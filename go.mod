@@ -1,4 +1,4 @@
-module github.com/carlosstrand/zepto
+module github.com/go-zepto/zepto
 
 go 1.13
 
