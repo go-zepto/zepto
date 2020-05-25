@@ -71,7 +71,7 @@ func (z *Zepto) Logger() *log.Logger {
 	}).Logger
 }
 
-func (z *Zepto) Start() error {
+func (z *Zepto) Start() {
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
 
@@ -111,5 +111,7 @@ func (z *Zepto) Start() error {
 			z.httpServer.ListenAndServe()
 		}()
 	}
-	return nil
+
+	errors := make(chan error)
+	<-errors
 }
