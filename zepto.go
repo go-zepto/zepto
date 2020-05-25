@@ -20,6 +20,7 @@ type Zepto struct {
 	httpServer *http.Server
 	broker     *broker.Broker
 	logger     *log.Logger
+	startedAt  *time.Time
 }
 
 func NewZepto(opts ...Option) *Zepto {
@@ -42,9 +43,13 @@ func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
 }
 
 func (z *Zepto) SetupHTTP(addr string, handler http.Handler) {
+
 	srv := &http.Server{
-		Addr:    addr,
-		Handler: handler,
+		Addr: addr,
+		Handler: &HTTPZeptoHandler{
+			z:       z,
+			handler: handler,
+		},
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -72,6 +77,8 @@ func (z *Zepto) Logger() *log.Logger {
 }
 
 func (z *Zepto) Start() {
+	now := time.Now()
+	z.startedAt = &now
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
 
