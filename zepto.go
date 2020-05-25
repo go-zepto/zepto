@@ -94,8 +94,10 @@ func (z *Zepto) Start() {
 				z.logger.Info("Stopping HTTP server...")
 				z.httpServer.Shutdown(context.Background())
 			}
-			z.logger.Info("Stopping Broker subscriptions...")
-			_ = z.broker.GracefulStop(context.Background())
+			if z.broker != nil {
+				z.logger.Info("Stopping Broker subscriptions...")
+				_ = z.broker.GracefulStop(context.Background())
+			}
 			os.Exit(0)
 		}
 	}()
