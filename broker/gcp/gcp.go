@@ -3,7 +3,7 @@ package gcp
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"github.com/carlosstrand/zepto/broker"
+	"github.com/go-zepto/zepto/broker"
 	"github.com/dustin/go-humanize"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
