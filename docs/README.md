@@ -99,7 +99,7 @@ Publish and Receive messages in an easy way. Zepto abstracts all the encode/deco
 
 Zepto uses the [Logrus](https://github.com/sirupsen/logrus) library for Logging. It is extensible and customizable. You can define the log format you want, as well as which channel you want to log to. By default, our log looks like the one in the image below:
 
-![logger](docs/logger.png)
+![logger](logger.png)
 
 # What's next
 
