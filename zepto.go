@@ -6,14 +6,18 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
+	"time"
 )
 
 type Zepto struct {
 	opts       Options
 	grpcServer *grpc.Server
 	grpcAddr   string
+	httpAddr   string
+	httpServer *http.Server
 	broker     *broker.Broker
 	logger     *log.Logger
 }
@@ -35,6 +39,18 @@ func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
 	z.grpcServer = grpc.NewServer()
 	z.grpcAddr = addr
 	fn(z.grpcServer)
+}
+
+func (z *Zepto) SetupHTTP(addr string, handler http.Handler) {
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: handler,
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	z.httpServer = srv
+	z.httpAddr = addr
 }
 
 func (z *Zepto) SetupBroker(bp broker.BrokerProvider) {
@@ -63,8 +79,14 @@ func (z *Zepto) Start() error {
 		select {
 		case sig := <-c:
 			z.logger.Infof("Got %s signal.", sig)
-			z.logger.Info("Stopping gRPC server...")
-			z.grpcServer.GracefulStop()
+			if z.grpcServer != nil {
+				z.logger.Info("Stopping gRPC server...")
+				z.grpcServer.GracefulStop()
+			}
+			if z.grpcServer != nil {
+				z.logger.Info("Stopping HTTP server...")
+				z.httpServer.Shutdown(context.Background())
+			}
 			z.logger.Info("Stopping Broker subscriptions...")
 			_ = z.broker.GracefulStop(context.Background())
 			os.Exit(0)
@@ -80,6 +102,13 @@ func (z *Zepto) Start() error {
 			}
 			z.Logger().Infof("gRPC server is listening on %s", z.grpcAddr)
 			z.grpcServer.Serve(lis)
+		}()
+	}
+
+	if z.httpServer != nil {
+		go func() {
+			z.Logger().Infof("HTTP server is listening on %s", z.httpAddr)
+			z.httpServer.ListenAndServe()
 		}()
 	}
 	return nil
