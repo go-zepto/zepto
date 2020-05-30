@@ -1,8 +1,11 @@
 package zepto
 
+import "github.com/go-zepto/zepto/utils"
+
 type Options struct {
 	Name    string
 	Version string
+	Env     string
 }
 
 type Option func(*Options)
@@ -11,6 +14,7 @@ func newOptions(opts ...Option) Options {
 	opt := Options{
 		Name:    "zepto",
 		Version: "latest",
+		Env:     utils.GetEnv("ZEPTO_ENV", "development"),
 	}
 	for _, o := range opts {
 		o(&opt)

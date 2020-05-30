@@ -3,6 +3,7 @@ package zepto
 import (
 	"context"
 	"github.com/go-zepto/zepto/broker"
+	"github.com/go-zepto/zepto/web"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -21,6 +22,7 @@ type Zepto struct {
 	broker     *broker.Broker
 	logger     *log.Logger
 	startedAt  *time.Time
+	webApp     *web.App
 }
 
 func NewZepto(opts ...Option) *Zepto {
@@ -43,7 +45,6 @@ func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
 }
 
 func (z *Zepto) SetupHTTP(addr string, handler http.Handler) {
-
 	srv := &http.Server{
 		Addr: addr,
 		Handler: &HTTPZeptoHandler{
@@ -58,6 +59,15 @@ func (z *Zepto) SetupHTTP(addr string, handler http.Handler) {
 	z.httpAddr = addr
 }
 
+func (z *Zepto) NewWeb() *web.App {
+	z.webApp = web.NewApp(
+		web.Broker(z.broker),
+		web.Logger(z.logger),
+		web.Env(z.opts.Env),
+	)
+	return z.webApp
+}
+
 func (z *Zepto) SetupBroker(bp broker.BrokerProvider) {
 	z.broker = broker.NewBroker(z.logger, bp)
 	z.broker.Init(&broker.InitOptions{
@@ -70,10 +80,7 @@ func (z *Zepto) Broker() *broker.Broker {
 }
 
 func (z *Zepto) Logger() *log.Logger {
-	return z.logger.WithFields(log.Fields{
-		"ts":    "uhuu",
-		"other": "I also should be logged always",
-	}).Logger
+	return z.logger
 }
 
 func (z *Zepto) Start() {
@@ -81,6 +88,8 @@ func (z *Zepto) Start() {
 	z.startedAt = &now
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
+
+	z.logger.Infof("Zepto is starting in %s mode...", z.opts.Env)
 
 	go func() {
 		select {
@@ -119,6 +128,10 @@ func (z *Zepto) Start() {
 			z.Logger().Infof("HTTP server is listening on %s", z.httpAddr)
 			z.httpServer.ListenAndServe()
 		}()
+	}
+
+	if z.webApp != nil {
+		z.webApp.Start()
 	}
 
 	errors := make(chan error)
