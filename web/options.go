@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/go-zepto/zepto/broker"
+	"github.com/go-zepto/zepto/web/renderer"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -10,6 +11,7 @@ type Options struct {
 	logger         *log.Logger
 	env            string
 	webpackEnabled bool
+	tmplEngine     renderer.Engine
 }
 
 type Option func(*Options)
@@ -46,9 +48,15 @@ func Env(e string) Option {
 	}
 }
 
-// Zepto Logger
 func WebpackEnabled(enabled bool) Option {
 	return func(o *Options) {
 		o.webpackEnabled = enabled
+	}
+}
+
+// TemplateEngine  - Change the template engine implementation
+func TemplateEngine(tmplEngine renderer.Engine) Option {
+	return func(o *Options) {
+		o.tmplEngine = tmplEngine
 	}
 }

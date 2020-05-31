@@ -9,6 +9,7 @@ require (
 	github.com/go-webpack/pongo2 v0.0.0-20191123090755-c408ad902faf
 	github.com/go-webpack/webpack v1.5.0
 	github.com/golang/protobuf v1.4.0
+	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/sirupsen/logrus v1.4.2

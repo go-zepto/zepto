@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"github.com/flosch/pongo2"
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/web/renderer"
 	log "github.com/sirupsen/logrus"
@@ -16,7 +15,7 @@ type Context interface {
 	context.Context
 	Set(string, interface{})
 	SetStatus(status int) Context
-	Render(template string)
+	Render(template string) error
 	Logger() *log.Logger
 	Broker() *broker.Broker
 }
@@ -25,11 +24,11 @@ type DefaultContext struct {
 	logger *log.Logger
 	broker *broker.Broker
 	context.Context
-	res    http.ResponseWriter
-	req    *http.Request
-	status int
-	data   *sync.Map
-	tmpl   *renderer.Tmpl
+	res        http.ResponseWriter
+	req        *http.Request
+	status     int
+	data       *sync.Map
+	tmplEngine renderer.Engine
 }
 
 func (d *DefaultContext) Set(key string, value interface{}) {
@@ -50,13 +49,8 @@ func (d *DefaultContext) SetStatus(s int) Context {
 	return d
 }
 
-func (d *DefaultContext) Render(template string) {
-	pongo2Ctx := pongo2.Context{}
-	d.data.Range(func(key, value interface{}) bool {
-		pongo2Ctx[key.(string)] = value
-		return true
-	})
-	d.tmpl.Render(d.res, template, pongo2Ctx)
+func (d *DefaultContext) Render(template string) error {
+	return d.tmplEngine.Render(d.res, d.status, template, d.data)
 }
 
 func (d *DefaultContext) Logger() *log.Logger {
