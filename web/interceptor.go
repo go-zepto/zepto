@@ -21,7 +21,7 @@ func (i *Interceptor) WriteHeader(rc int) {
 		i.origWriter.WriteHeader(rc)
 		if i.env == "production" {
 			// TODO: Render custom error prod
-			i.origWriter.Write([]byte(errMessage)
+			i.origWriter.Write([]byte(errMessage))
 		}
 		return
 	}
