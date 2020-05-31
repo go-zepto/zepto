@@ -16,16 +16,33 @@ type Interceptor struct {
 }
 
 func (i *Interceptor) WriteHeader(rc int) {
-	if rc != 500 && rc >= 400 && i.env == "development" {
-		errMessage := strings.ToLower(strconv.Itoa(rc) + " - " + http.StatusText(rc))
-		i.origWriter.Header().Set("content-type", "text/html")
+	errMessage := strings.ToLower(strconv.Itoa(rc) + " - " + http.StatusText(rc))
+	if rc == 500 {
 		i.origWriter.WriteHeader(rc)
-		renderer.RenderDevelopmentError(i.origWriter, i.origReq, errors.New(errMessage))
-		i.overridden = true
+		if i.env == "production" {
+			// TODO: Render custom error prod
+			i.origWriter.Write([]byte(errMessage)
+		}
+		return
+	}
+	/*
+		intercepts all error statuses except error 500, which is handled especially
+		with our development debugger that identifies the error message.
+	*/
+	if rc >= 400 {
+		if i.env == "development" {
+			i.origWriter.Header().Set("content-type", "text/html")
+			i.origWriter.WriteHeader(rc)
+			renderer.RenderDevelopmentError(i.origWriter, i.origReq, errors.New(errMessage))
+			i.overridden = true
+		} else {
+			i.origWriter.WriteHeader(rc)
+			i.origWriter.Write([]byte(errMessage))
+			i.overridden = true
+		}
 	} else {
 		i.origWriter.WriteHeader(rc)
 	}
-	// TODO: Add support for custom errors (production mode)
 }
 
 func (i *Interceptor) Write(b []byte) (int, error) {

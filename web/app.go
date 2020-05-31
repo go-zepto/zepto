@@ -99,8 +99,12 @@ func (app *App) GET(path string, routeHandler RouteHandler) *App {
 		}
 		err := routeHandler(&ctx)
 		if err != nil {
-			res.WriteHeader(500)
-			renderer.RenderDevelopmentError(res, req, err)
+			if app.opts.env == "development" {
+				res.WriteHeader(500)
+				renderer.RenderDevelopmentError(res, req, err)
+			} else {
+				res.WriteHeader(500)
+			}
 		}
 	})
 	return app
