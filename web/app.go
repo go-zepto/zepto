@@ -36,7 +36,7 @@ func (app *App) startWebpack() {
 	}
 	for scanner.Scan() {
 		m := scanner.Text()
-		fmt.Println(m)
+		app.opts.logger.Info(m)
 	}
 	_ = cmd.Wait()
 }
