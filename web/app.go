@@ -2,7 +2,6 @@ package web
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
 	"github.com/go-webpack/webpack"
@@ -12,7 +11,6 @@ import (
 	"github.com/urfave/negroni"
 	"net/http"
 	"os/exec"
-	"sync"
 )
 
 type MuxHandler func(w http.ResponseWriter, r *http.Request)
@@ -85,31 +83,68 @@ func (app *App) Start() {
 	}
 }
 
-func (app *App) GET(path string, routeHandler RouteHandler) *App {
+// HandleError recovers from panics gracefully and calls
+func (app *App) HandleError(res http.ResponseWriter, req *http.Request, err error) {
+	if app.opts.env == "development" {
+		res.WriteHeader(500)
+		renderer.RenderDevelopmentError(res, req, err)
+	} else {
+		res.WriteHeader(500)
+	}
+}
+
+func (app *App) HandleMethod(method string, path string, routeHandler RouteHandler) *App {
 	app.rootRouter.HandleFunc(path, func(res http.ResponseWriter, req *http.Request) {
-		ctx := DefaultContext{
-			Context:    context.Background(),
-			logger:     app.opts.logger,
-			broker:     app.opts.broker,
-			res:        res,
-			req:        req,
-			data:       &sync.Map{},
-			status:     200,
-			tmplEngine: app.tmplEngine,
-		}
-		err := routeHandler(&ctx)
-		if err != nil {
-			if app.opts.env == "development" {
-				res.WriteHeader(500)
-				renderer.RenderDevelopmentError(res, req, err)
-			} else {
-				res.WriteHeader(500)
+		ctx := NewDefaultContext()
+		ctx.logger = app.opts.logger
+		ctx.broker = app.opts.broker
+		ctx.res = res
+		ctx.req = req
+		ctx.tmplEngine = app.tmplEngine
+		// Handle Controller Panic
+		defer func() {
+			if r := recover(); r != nil {
+				var e error
+				switch t := r.(type) {
+				case error:
+					e = t
+				case string:
+					e = fmt.Errorf(t)
+				default:
+					e = fmt.Errorf(fmt.Sprint(t))
+				}
+				app.HandleError(res, req, e)
 			}
+		}()
+		err := routeHandler(ctx)
+		// Handle Controller Error
+		if err != nil {
+			app.HandleError(res, req, err)
 		}
-	})
+	}).Methods(method)
 	return app
 }
 
+func (app *App) GET(path string, routeHandler RouteHandler) *App {
+	return app.HandleMethod("GET", path, routeHandler)
+}
+
+func (app *App) POST(path string, routeHandler RouteHandler) *App {
+	return app.HandleMethod("POST", path, routeHandler)
+}
+
+func (app *App) PUT(path string, routeHandler RouteHandler) *App {
+	return app.HandleMethod("PUT", path, routeHandler)
+}
+
+func (app *App) DELETE(path string, routeHandler RouteHandler) *App {
+	return app.HandleMethod("DELETE", path, routeHandler)
+}
+
+func (app *App) PATCH(path string, routeHandler RouteHandler) *App {
+	return app.HandleMethod("PATCH", path, routeHandler)
+}
+
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ErrorHandler(app.rootRouter, app.opts.env).ServeHTTP(w, r)
+	ErrorHandler(app).ServeHTTP(w, r)
 }

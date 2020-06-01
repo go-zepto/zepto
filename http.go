@@ -2,7 +2,6 @@ package zepto
 
 import (
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
@@ -51,9 +50,7 @@ func (h *HTTPZeptoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	lrw := NewLoggingResponseWriter(w)
 	h.handler.ServeHTTP(lrw, r)
-	l := h.z.Logger().WithFields(log.Fields{
-		"took":   time.Since(t).Round(time.Nanosecond).String(),
-		"status": lrw.statusCode,
-	})
-	l.Infof("%s %s", r.Method, r.URL.Path)
+	took := time.Since(t).Round(time.Nanosecond).String()
+	status := lrw.statusCode
+	h.z.Logger().Infof("%s %s took=%s status=%d", r.Method, r.URL.Path, took, status)
 }

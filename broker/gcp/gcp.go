@@ -3,16 +3,16 @@ package gcp
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"github.com/go-zepto/zepto/broker"
 	"github.com/dustin/go-humanize"
-	log "github.com/sirupsen/logrus"
+	"github.com/go-zepto/zepto/broker"
+	"github.com/go-zepto/zepto/logger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"time"
 )
 
 type Broker struct {
-	logger *log.Logger
+	logger logger.Logger
 	opts   Options
 	client *pubsub.Client
 	// subscriptions is a map of subId -> subscription
@@ -82,11 +82,7 @@ func (b Broker) Publish(ctx context.Context, topicId string, msg *broker.Message
 	}
 
 	size := len(msg.Body)
-	l := b.logger.WithFields(log.Fields{
-		"topic": topicId,
-		"size":  humanize.Bytes(uint64(size)),
-	})
-	l.Debugf("Publishing message...")
+	b.logger.Debugf("Publishing message to topic %s (size=%s)", topicId, humanize.Bytes(uint64(size)))
 	pr := t.Publish(ctx, m)
 	if _, err := pr.Get(ctx); err != nil {
 		// create Topic if not exists

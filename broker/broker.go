@@ -2,7 +2,7 @@ package broker
 
 import (
 	"context"
-	log "github.com/sirupsen/logrus"
+	"github.com/go-zepto/zepto/logger"
 	"reflect"
 	"sync"
 )
@@ -10,7 +10,7 @@ import (
 type SubscribeHandler func(ctx context.Context, msg *Message)
 
 type InitOptions struct {
-	Logger *log.Logger
+	Logger logger.Logger
 }
 
 type BrokerProvider interface {
@@ -27,12 +27,12 @@ type Message struct {
 
 // BrokerWrapper is a struct that wrap the broker provider (gcp, rabbitmq, etc) and handle with message encode/decode
 type Broker struct {
-	logger *log.Logger
+	logger logger.Logger
 	p      BrokerProvider
 	mux    sync.Mutex
 }
 
-func NewBroker(logger *log.Logger, provider BrokerProvider) *Broker {
+func NewBroker(logger logger.Logger, provider BrokerProvider) *Broker {
 	return &Broker{
 		logger: logger,
 		p:      provider,

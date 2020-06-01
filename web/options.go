@@ -2,13 +2,13 @@ package web
 
 import (
 	"github.com/go-zepto/zepto/broker"
+	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/web/renderer"
-	log "github.com/sirupsen/logrus"
 )
 
 type Options struct {
 	broker         *broker.Broker
-	logger         *log.Logger
+	logger         logger.Logger
 	env            string
 	webpackEnabled bool
 	tmplEngine     renderer.Engine
@@ -35,7 +35,7 @@ func Broker(b *broker.Broker) Option {
 }
 
 // Zepto Logger
-func Logger(l *log.Logger) Option {
+func Logger(l logger.Logger) Option {
 	return func(o *Options) {
 		o.logger = l
 	}

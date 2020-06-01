@@ -98,6 +98,14 @@ var ERROR_HTML_TEMPLATE = `
 				color: #0984E3;
 				margin-bottom: 8px;
 			}
+			.error-stack-box {
+				padding: 24px;
+				border: 1px solid #c6c6c6;
+				line-height: 24px;
+				max-height: 300px;
+				overflow: auto;
+				color: #666;
+			}
 		</style>
 	</head>
 
@@ -122,6 +130,13 @@ var ERROR_HTML_TEMPLATE = `
 			</div>
 			<div class="error-title">
 				{{ .Title }}
+			</div>
+		</div>
+
+		<div class="container error-details">
+			<div class="table-title">Error Trace</div>
+			<div class="error-stack-box">
+				{{ .Trace }}
 			</div>
 		</div>
 		<div class="container error-details">

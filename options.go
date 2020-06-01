@@ -1,11 +1,15 @@
 package zepto
 
-import "github.com/go-zepto/zepto/utils"
+import (
+	"github.com/go-zepto/zepto/logger"
+	"github.com/go-zepto/zepto/utils"
+)
 
 type Options struct {
 	Name    string
 	Version string
 	Env     string
+	Logger  logger.Logger
 }
 
 type Option func(*Options)
@@ -33,5 +37,12 @@ func Name(n string) Option {
 func Version(v string) Option {
 	return func(o *Options) {
 		o.Version = v
+	}
+}
+
+// Logger is the mains logger used in all zepto app
+func Logger(l logger.Logger) Option {
+	return func(o *Options) {
+		o.Logger = l
 	}
 }

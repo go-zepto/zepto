@@ -3,8 +3,8 @@ package web
 import (
 	"context"
 	"github.com/go-zepto/zepto/broker"
+	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/web/renderer"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"sync"
 	// Enable webpack asset feature
@@ -16,12 +16,12 @@ type Context interface {
 	Set(string, interface{})
 	SetStatus(status int) Context
 	Render(template string) error
-	Logger() *log.Logger
+	Logger() logger.Logger
 	Broker() *broker.Broker
 }
 
 type DefaultContext struct {
-	logger *log.Logger
+	logger logger.Logger
 	broker *broker.Broker
 	context.Context
 	res        http.ResponseWriter
@@ -29,6 +29,14 @@ type DefaultContext struct {
 	status     int
 	data       *sync.Map
 	tmplEngine renderer.Engine
+}
+
+func NewDefaultContext() *DefaultContext {
+	return &DefaultContext{
+		Context: context.Background(),
+		data:    &sync.Map{},
+		status:  200,
+	}
 }
 
 func (d *DefaultContext) Set(key string, value interface{}) {
@@ -53,7 +61,7 @@ func (d *DefaultContext) Render(template string) error {
 	return d.tmplEngine.Render(d.res, d.status, template, d.data)
 }
 
-func (d *DefaultContext) Logger() *log.Logger {
+func (d *DefaultContext) Logger() logger.Logger {
 	return d.logger
 }
 

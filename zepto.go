@@ -3,6 +3,8 @@ package zepto
 import (
 	"context"
 	"github.com/go-zepto/zepto/broker"
+	"github.com/go-zepto/zepto/logger"
+	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/web"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -20,22 +22,28 @@ type Zepto struct {
 	httpAddr   string
 	httpServer *http.Server
 	broker     *broker.Broker
-	logger     *log.Logger
+	logger     logger.Logger
 	startedAt  *time.Time
 	webApp     *web.App
 }
 
 func NewZepto(opts ...Option) *Zepto {
 	options := newOptions(opts...)
-	logger := log.New()
-	logger.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
-	})
-	logger.SetLevel(log.DebugLevel)
-	return &Zepto{
-		opts:   options,
-		logger: logger,
+	z := &Zepto{
+		opts: options,
 	}
+	if options.Logger == nil {
+		// Logger not set. Using default logger (logrus)
+		l := log.New()
+		l.SetFormatter(&log.TextFormatter{
+			FullTimestamp: true,
+		})
+		l.SetLevel(log.DebugLevel)
+		z.logger = logrus.NewLogrus(l)
+	} else {
+		z.logger = options.Logger
+	}
+	return z
 }
 
 func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
@@ -79,7 +87,7 @@ func (z *Zepto) Broker() *broker.Broker {
 	return z.broker
 }
 
-func (z *Zepto) Logger() *log.Logger {
+func (z *Zepto) Logger() logger.Logger {
 	return z.logger
 }
 
@@ -88,9 +96,7 @@ func (z *Zepto) Start() {
 	z.startedAt = &now
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
-
 	z.logger.Infof("Zepto is starting in %s mode...", z.opts.Env)
-
 	go func() {
 		select {
 		case sig := <-c:
