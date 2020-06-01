@@ -8,8 +8,10 @@ import (
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/urfave/negroni"
 	"net/http"
+	"os"
 	"os/exec"
 )
 
@@ -41,6 +43,22 @@ func (app *App) startWebpack() {
 	_ = cmd.Wait()
 }
 
+func (app *App) setupSession() {
+	env := app.opts.env
+	if app.opts.sessionStore == nil {
+		secret := os.Getenv("SESSION_SECRET")
+		if secret == "" {
+			if env == "production" {
+				app.opts.logger.Fatalf("Missing a required environment variable: SESSION_SECRET")
+			} else if env == "development" {
+				app.opts.logger.Warn("You will need to setup a SESSION_SECRET in production mode.")
+				secret = "development-secret"
+			}
+		}
+		app.opts.sessionStore = sessions.NewCookieStore([]byte(secret))
+	}
+}
+
 func NewApp(opts ...Option) *App {
 	options := newOptions(opts...)
 	if options.tmplEngine == nil {
@@ -57,11 +75,13 @@ func NewApp(opts ...Option) *App {
 	rootRouter.
 		PathPrefix(staticDir).
 		Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir("."+staticDir))))
-	return &App{
+	app := &App{
 		opts:       options,
 		rootRouter: rootRouter,
 		tmplEngine: options.tmplEngine,
 	}
+	app.setupSession()
+	return app
 }
 
 func (app *App) Start() {
@@ -83,6 +103,15 @@ func (app *App) Start() {
 	}
 }
 
+func (app *App) getSession(res http.ResponseWriter, req *http.Request) *Session {
+	session, _ := app.opts.sessionStore.Get(req, app.opts.sessionName)
+	return &Session{
+		gSession: session,
+		req:      req,
+		res:      res,
+	}
+}
+
 // HandleError recovers from panics gracefully and calls
 func (app *App) HandleError(res http.ResponseWriter, req *http.Request, err error) {
 	if app.opts.env == "development" {
@@ -100,6 +129,7 @@ func (app *App) HandleMethod(method string, path string, routeHandler RouteHandl
 		ctx.broker = app.opts.broker
 		ctx.res = res
 		ctx.req = req
+		ctx.session = app.getSession(res, req)
 		ctx.tmplEngine = app.tmplEngine
 		// Handle Controller Panic
 		defer func() {

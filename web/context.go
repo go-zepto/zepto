@@ -5,6 +5,7 @@ import (
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/web/renderer"
+	"github.com/gorilla/mux"
 	"net/http"
 	"sync"
 	// Enable webpack asset feature
@@ -13,11 +14,13 @@ import (
 
 type Context interface {
 	context.Context
+	Vars() map[string]string
 	Set(string, interface{})
 	SetStatus(status int) Context
 	Render(template string) error
 	Logger() logger.Logger
 	Broker() *broker.Broker
+	Session() *Session
 }
 
 type DefaultContext struct {
@@ -29,6 +32,7 @@ type DefaultContext struct {
 	status     int
 	data       *sync.Map
 	tmplEngine renderer.Engine
+	session    *Session
 }
 
 func NewDefaultContext() *DefaultContext {
@@ -67,4 +71,12 @@ func (d *DefaultContext) Logger() logger.Logger {
 
 func (d *DefaultContext) Broker() *broker.Broker {
 	return d.broker
+}
+
+func (d *DefaultContext) Vars() map[string]string {
+	return mux.Vars(d.req)
+}
+
+func (d *DefaultContext) Session() *Session {
+	return d.session
 }
