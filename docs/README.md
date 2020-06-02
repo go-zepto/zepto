@@ -14,11 +14,23 @@ See below some of our features:
 - Healthcheck
 - Gracefully Shutdown
 - Pretty & Plugabble Logger
+- Web Module:
+    - Routing
+    - Template Rendering
+    - Debug Mode
+    - Cookie
+    - Session
+    - File Upload
+    - Static Files
+    - Sass & JS building with webpack (dev and prod)
+    - Error Handler
 
 
 ----
 
-# Quick Start
+# A Minimal Application
+
+A minimal Zepto application looks something like this:
 
 ```go
 package main
@@ -49,6 +61,44 @@ func main() {
 ```
 
 ---
+
+# Instalation
+
+With zepto you can easily create a project with the CLI tool:
+
+```bash
+    go get -u github.com/go-zepto/zepto-cli/cmd/zepto
+```
+
+---
+
+# Create a Project
+
+If you want to create a project, just run this command:
+
+```bash
+    zepto new <PROJECT_TYPE> github.com/username/project
+```
+
+---
+
+Available project types:
+
+- **ms**: It only includes the Zepto core like HTTP, gRPC, Healthcheck, Broker and all the basic structure to start the development and deployment of a microservice
+
+- **web**: It includes the zepto core and also the web module that includes routing, templating, cookie, session, file upload, static files, assets building (webpack).
+
+Examples:
+          
+```bash
+    # ms
+    zepto new ms github.com/username/my-microservice
+
+    # web
+    zepto new web github.com/username/my-web
+```
+
+
 
 # HTTP & gRPC 
 
@@ -100,7 +150,3 @@ Publish and Receive messages in an easy way. Zepto abstracts all the encode/deco
 Zepto uses the [Logrus](https://github.com/sirupsen/logrus) library for Logging. It is extensible and customizable. You can define the log format you want, as well as which channel you want to log to. By default, our log looks like the one in the image below:
 
 ![logger](logger.png)
-
-# What's next
-
-The next steps will be to support other brokers like kafka and rabbitmq. It is also in my planning to create a zepto-cli to easily create projects using zepto.
