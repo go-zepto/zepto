@@ -9,13 +9,24 @@
   <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css">t>
 </head>
 <body>
+  <style>
+    .sidebar {
+      padding: 20px 0 0;
+    }
+    .sidebar img {
+      height: 24px;
+      margin-left: 16px;
+    }
+    .sidebar ul li.active>a {
+      color: #0984E3;
+    }
+  </style>
   <div id="app"></div>
   <script>
     window.$docsify = {
+      logo: '/logo.png',
       loadSidebar: true,
       subMaxLevel: 2,
-      name: '',
-      repo: ''
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>

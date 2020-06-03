@@ -1,8 +1,8 @@
-# zepto ⚡️
+# Quickstart
 
 Zepto is a lightweight framework for the development of microservices & web services in golang.
 
-As an opinionated framework, zepto proposes to have a quick setup and with the greatest needs for the development of modern microservices.
+As an opinionated framework, zepto proposes to have a quick setup and with the greatest needs for the development of modern microservices. But not only that. It is a framework prepared for the development of complete web applications.
 
 See below some of our features:
 
@@ -67,7 +67,7 @@ func main() {
 With zepto you can easily create a project with the CLI tool:
 
 ```bash
-    go get -u github.com/go-zepto/zepto-cli/cmd/zepto
+go get -u github.com/go-zepto/zepto-cli/cmd/zepto
 ```
 
 ---
@@ -77,7 +77,7 @@ With zepto you can easily create a project with the CLI tool:
 If you want to create a project, just run this command:
 
 ```bash
-    zepto new <PROJECT_TYPE> github.com/username/project
+zepto new <PROJECT_TYPE> github.com/username/project
 ```
 
 ---
@@ -91,11 +91,11 @@ Available project types:
 Examples:
           
 ```bash
-    # ms
-    zepto new ms github.com/username/my-microservice
+# ms
+zepto new ms github.com/username/my-microservice
 
-    # web
-    zepto new web github.com/username/my-web
+# web
+zepto new web github.com/username/my-web
 ```
 
 
@@ -124,25 +124,25 @@ Publish and Receive messages in an easy way. Zepto abstracts all the encode/deco
 ## Broker Setup
 
 ```go
-	// Setup Broker Provider (Google Pub/Sub)
-	z.SetupBroker(gcp.NewBroker(
-		gcp.ProjectID("my-project"),
-		gcp.TopicPrefix("dev.accounts."),
-	))
+// Setup Broker Provider (Google Pub/Sub)
+z.SetupBroker(gcp.NewBroker(
+    gcp.ProjectID("my-project"),
+    gcp.TopicPrefix("dev.accounts."),
+))
 ```
 
 ## Subscribe to Messages
 
 ```go
-	z.Broker().Subscribe("created", func(ctx context.Context, user *pb.User) {
-        fmt.Println("User created account: " + user.Name)
-    })
+z.Broker().Subscribe("created", func(ctx context.Context, user *pb.User) {
+    fmt.Println("User created account: " + user.Name)
+})
 ```
 
 ## Publish Messages
 
 ```go
-    z.Broker().Publish(ctx, "created", user)
+z.Broker().Publish(ctx, "created", user)
 ```
 
 # Logging
