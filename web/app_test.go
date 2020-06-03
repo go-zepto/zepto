@@ -123,39 +123,39 @@ var DefaultRouterHandler = func(ctx Context) error {
 	return nil
 }
 
-func TestApp_HandleMethod_GET(t *testing.T) {
+func TestApp_HandleMethod_Get(t *testing.T) {
 	app := setupAppTest()
-	app.GET("/hello", DefaultRouterHandler)
+	app.Get("/hello", DefaultRouterHandler)
 	assertRequest(t, app, "GET", "/hello", 200, "Mocked Template!")
 }
 
-func TestApp_HandleMethod_POST(t *testing.T) {
+func TestApp_HandleMethod_Post(t *testing.T) {
 	app := setupAppTest()
-	app.POST("/hello", DefaultRouterHandler)
+	app.Post("/hello", DefaultRouterHandler)
 	assertRequest(t, app, "POST", "/hello", 200, "Mocked Template!")
 }
 
-func TestApp_HandleMethod_UPDATE(t *testing.T) {
+func TestApp_HandleMethod_Put(t *testing.T) {
 	app := setupAppTest()
-	app.PUT("/hello", DefaultRouterHandler)
+	app.Put("/hello", DefaultRouterHandler)
 	assertRequest(t, app, "PUT", "/hello", 200, "Mocked Template!")
 }
 
-func TestApp_HandleMethod_DELETE(t *testing.T) {
+func TestApp_HandleMethod_Delete(t *testing.T) {
 	app := setupAppTest()
-	app.DELETE("/hello", DefaultRouterHandler)
+	app.Delete("/hello", DefaultRouterHandler)
 	assertRequest(t, app, "DELETE", "/hello", 200, "Mocked Template!")
 }
 
-func TestApp_HandleMethod_PATCH(t *testing.T) {
+func TestApp_HandleMethod_Patch(t *testing.T) {
 	app := setupAppTest()
-	app.PATCH("/hello", DefaultRouterHandler)
+	app.Patch("/hello", DefaultRouterHandler)
 	assertRequest(t, app, "PATCH", "/hello", 200, "Mocked Template!")
 }
 
 func TestApp_HandleMethod_ControllerErrorDevelopment(t *testing.T) {
 	app := setupAppTest()
-	app.GET("/hello", func(ctx Context) error {
+	app.Get("/hello", func(ctx Context) error {
 		return errors.New("some custom error")
 	})
 	w := httptest.NewRecorder()
@@ -170,7 +170,7 @@ func TestApp_HandleMethod_ControllerErrorDevelopment(t *testing.T) {
 
 func TestApp_HandleMethod_ControllerPanicDevelopment(t *testing.T) {
 	app := setupAppTest()
-	app.GET("/hello", func(ctx Context) error {
+	app.Get("/hello", func(ctx Context) error {
 		panic(errors.New("panic problem"))
 		return nil
 	})
@@ -187,7 +187,7 @@ func TestApp_HandleMethod_ControllerPanicDevelopment(t *testing.T) {
 func assertProdError(t *testing.T, handler RouteHandler) {
 	app := setupAppTest()
 	app.opts.env = "production"
-	app.GET("/hello", handler)
+	app.Get("/hello", handler)
 	w := httptest.NewRecorder()
 	app.ServeHTTP(w, httptest.NewRequest("GET", "/hello", nil))
 	if w.Code != http.StatusInternalServerError {

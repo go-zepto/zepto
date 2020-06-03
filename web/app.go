@@ -155,23 +155,23 @@ func (app *App) HandleMethod(method string, path string, routeHandler RouteHandl
 	return app
 }
 
-func (app *App) GET(path string, routeHandler RouteHandler) *App {
+func (app *App) Get(path string, routeHandler RouteHandler) *App {
 	return app.HandleMethod("GET", path, routeHandler)
 }
 
-func (app *App) POST(path string, routeHandler RouteHandler) *App {
+func (app *App) Post(path string, routeHandler RouteHandler) *App {
 	return app.HandleMethod("POST", path, routeHandler)
 }
 
-func (app *App) PUT(path string, routeHandler RouteHandler) *App {
+func (app *App) Put(path string, routeHandler RouteHandler) *App {
 	return app.HandleMethod("PUT", path, routeHandler)
 }
 
-func (app *App) DELETE(path string, routeHandler RouteHandler) *App {
+func (app *App) Delete(path string, routeHandler RouteHandler) *App {
 	return app.HandleMethod("DELETE", path, routeHandler)
 }
 
-func (app *App) PATCH(path string, routeHandler RouteHandler) *App {
+func (app *App) Patch(path string, routeHandler RouteHandler) *App {
 	return app.HandleMethod("PATCH", path, routeHandler)
 }
 
