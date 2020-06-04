@@ -111,6 +111,25 @@ Here's an example:
 {% endblock %}
 ```
 
+# Render JSON
+
+Just as it is easy to render templates, you can render JSON like this:
+
+```go
+type Person struct {
+	Name string `json:"name"`
+	Email string `json:"email"`
+}
+
+func ExampleJsonController(ctx web.Context) error {
+	p := &Person{
+		Name: "Carlos Strand",
+		Email: "carlosstrand@gmail.com",
+	}
+	return ctx.RenderJson(p)
+}
+```
+
 # Debug Mode
 
 If your controller panics or returns an error in development mode `ZEPTO_ENV=development`, you can see a custom error page that provides useful information for debugging.

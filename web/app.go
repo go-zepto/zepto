@@ -129,6 +129,10 @@ func (app *App) HandleMethod(method string, path string, routeHandler RouteHandl
 		ctx.broker = app.opts.broker
 		ctx.res = res
 		ctx.req = req
+		ctx.cookies = &Cookies{
+			res: res,
+			req: req,
+		}
 		ctx.session = app.getSession(res, req)
 		ctx.tmplEngine = app.tmplEngine
 		// Handle Controller Panic

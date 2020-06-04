@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/web/renderer"
@@ -14,12 +15,14 @@ import (
 
 type Context interface {
 	context.Context
-	Vars() map[string]string
+	Params() map[string]string
 	Set(string, interface{})
 	SetStatus(status int) Context
 	Render(template string) error
+	RenderJson(data interface{}) error
 	Logger() logger.Logger
 	Broker() *broker.Broker
+	Cookies() *Cookies
 	Session() *Session
 }
 
@@ -32,6 +35,7 @@ type DefaultContext struct {
 	status     int
 	data       *sync.Map
 	tmplEngine renderer.Engine
+	cookies    *Cookies
 	session    *Session
 }
 
@@ -43,10 +47,12 @@ func NewDefaultContext() *DefaultContext {
 	}
 }
 
+// Set a value to context. The values defined here are accessible in the template
 func (d *DefaultContext) Set(key string, value interface{}) {
 	d.data.Store(key, value)
 }
 
+// Value returns a value from context
 func (d *DefaultContext) Value(key interface{}) interface{} {
 	if k, ok := key.(string); ok {
 		if v, ok := d.data.Load(k); ok {
@@ -56,27 +62,44 @@ func (d *DefaultContext) Value(key interface{}) interface{} {
 	return d.Context.Value(key)
 }
 
+// SetStatus set a http status code before render
 func (d *DefaultContext) SetStatus(s int) Context {
 	d.status = s
 	return d
 }
 
+// Render a template
 func (d *DefaultContext) Render(template string) error {
 	return d.tmplEngine.Render(d.res, d.status, template, d.data)
 }
 
+// Render a json
+func (d *DefaultContext) RenderJson(data interface{}) error {
+	d.res.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(d.res).Encode(data)
+}
+
+// Logger is the logger instance from zepto
 func (d *DefaultContext) Logger() logger.Logger {
 	return d.logger
 }
 
+// Broker is the broker instance from zepto
 func (d *DefaultContext) Broker() *broker.Broker {
 	return d.broker
 }
 
-func (d *DefaultContext) Vars() map[string]string {
+// Retrieve a map of URL parameters
+func (d *DefaultContext) Params() map[string]string {
 	return mux.Vars(d.req)
 }
 
+// Retrieve request session instance
+func (d *DefaultContext) Cookies() *Cookies {
+	return d.cookies
+}
+
+// Retrieve request session instance
 func (d *DefaultContext) Session() *Session {
 	return d.session
 }

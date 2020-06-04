@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger/logrus"
@@ -224,5 +225,30 @@ func TestApp_Start(t *testing.T) {
 	app.Start()
 	if !tmplEngine.InitCalled {
 		t.Errorf("Init should be called at this point")
+	}
+}
+
+func TestApp_HandleMethod_ControllerRenderJson(t *testing.T) {
+	type Person struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+	app := setupAppTest()
+	p := &Person{"Mike", 27}
+	app.Get("/person", func(ctx Context) error {
+		return ctx.RenderJson(p)
+	})
+	w := httptest.NewRecorder()
+	app.ServeHTTP(w, httptest.NewRequest("GET", "/person", nil))
+	if w.Code != http.StatusOK {
+		t.Error("Did not get expected HTTP status code, got", w.Code)
+	}
+	var pp Person
+	err := json.Unmarshal(w.Body.Bytes(), &pp)
+	if err != nil {
+		t.Error(err)
+	}
+	if pp.Name != "Mike" || pp.Age != 27 {
+		t.Errorf("Decoded json data is not as expected. Received: %#v", pp)
 	}
 }

@@ -13,6 +13,7 @@ require (
 	github.com/gorilla/sessions v1.2.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/stretchr/testify v1.4.0
 	github.com/urfave/negroni v1.0.0
 	google.golang.org/api v0.25.0 // indirect
 	google.golang.org/grpc v1.29.1
