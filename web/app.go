@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	pathlib "path"
 )
 
 type MuxHandler func(w http.ResponseWriter, r *http.Request)
@@ -122,7 +123,7 @@ func (app *App) HandleError(res http.ResponseWriter, req *http.Request, err erro
 	}
 }
 
-func (app *App) HandleMethod(method string, path string, routeHandler RouteHandler) *App {
+func (app *App) HandleMethod(methods []string, path string, routeHandler RouteHandler) *App {
 	app.rootRouter.HandleFunc(path, func(res http.ResponseWriter, req *http.Request) {
 		ctx := NewDefaultContext()
 		ctx.logger = app.opts.logger
@@ -155,28 +156,42 @@ func (app *App) HandleMethod(method string, path string, routeHandler RouteHandl
 		if err != nil {
 			app.HandleError(res, req, err)
 		}
-	}).Methods(method)
+	}).Methods(methods...)
 	return app
 }
 
 func (app *App) Get(path string, routeHandler RouteHandler) *App {
-	return app.HandleMethod("GET", path, routeHandler)
+	return app.HandleMethod([]string{"GET"}, path, routeHandler)
 }
 
 func (app *App) Post(path string, routeHandler RouteHandler) *App {
-	return app.HandleMethod("POST", path, routeHandler)
+	return app.HandleMethod([]string{"POST"}, path, routeHandler)
 }
 
 func (app *App) Put(path string, routeHandler RouteHandler) *App {
-	return app.HandleMethod("PUT", path, routeHandler)
+	return app.HandleMethod([]string{"PUT"}, path, routeHandler)
 }
 
 func (app *App) Delete(path string, routeHandler RouteHandler) *App {
-	return app.HandleMethod("DELETE", path, routeHandler)
+	return app.HandleMethod([]string{"DELETE"}, path, routeHandler)
 }
 
 func (app *App) Patch(path string, routeHandler RouteHandler) *App {
-	return app.HandleMethod("PATCH", path, routeHandler)
+	return app.HandleMethod([]string{"PATCH"}, path, routeHandler)
+}
+
+func (app *App) Any(path string, routeHandler RouteHandler) *App {
+	return app.HandleMethod([]string{"GET", "POST", "PUT", "DELETE", "PATCH"}, path, routeHandler)
+}
+
+func (app *App) Resource(path string, resource Resource) *App {
+	id_path := pathlib.Join(path, "/{id}")
+	app.Get(path, resource.List)
+	app.Get(id_path, resource.Show)
+	app.Post(path, resource.Create)
+	app.Put(id_path, resource.Update)
+	app.Delete(id_path, resource.Destroy)
+	return app
 }
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {

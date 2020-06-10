@@ -15,11 +15,14 @@ import (
 
 type Context interface {
 	context.Context
+	Request() *http.Request
+	Response() http.ResponseWriter
 	Params() map[string]string
 	Set(string, interface{})
 	SetStatus(status int) Context
 	Render(template string) error
 	RenderJson(data interface{}) error
+	Redirect(url string) error
 	Logger() logger.Logger
 	Broker() *broker.Broker
 	Cookies() *Cookies
@@ -45,6 +48,16 @@ func NewDefaultContext() *DefaultContext {
 		data:    &sync.Map{},
 		status:  200,
 	}
+}
+
+// Request is the http request
+func (d *DefaultContext) Request() *http.Request {
+	return d.req
+}
+
+// Response is the http response writer
+func (d *DefaultContext) Response() http.ResponseWriter {
+	return d.res
 }
 
 // Set a value to context. The values defined here are accessible in the template
@@ -77,6 +90,12 @@ func (d *DefaultContext) Render(template string) error {
 func (d *DefaultContext) RenderJson(data interface{}) error {
 	d.res.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(d.res).Encode(data)
+}
+
+// Redirect to url
+func (d *DefaultContext) Redirect(url string) error {
+	http.Redirect(d.res, d.req, url, http.StatusMovedPermanently)
+	return nil
 }
 
 // Logger is the logger instance from zepto
