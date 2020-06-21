@@ -89,12 +89,13 @@ func (d *DefaultContext) Render(template string) error {
 // Render a json
 func (d *DefaultContext) RenderJson(data interface{}) error {
 	d.res.Header().Set("Content-Type", "application/json")
+	d.res.WriteHeader(d.status)
 	return json.NewEncoder(d.res).Encode(data)
 }
 
 // Redirect to url
 func (d *DefaultContext) Redirect(url string) error {
-	http.Redirect(d.res, d.req, url, http.StatusMovedPermanently)
+	http.Redirect(d.res, d.req, url, 302)
 	return nil
 }
 
