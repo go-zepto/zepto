@@ -255,3 +255,49 @@ Running the docker image:
 ```bash
 docker run -it -p 8000:8000 app-service
 ```
+
+# Testing
+
+Zepto has a utility to make it easy to write controller tests.
+
+A minimal test example:
+
+```go
+package myapp
+
+import (
+    "github.com/go-zepto/zepto/web"
+    "strings"
+	"testing"
+)
+
+func MyController(ctx web.Context) error {
+    ctx.SetStatus(401)
+    return ctx.RenderJson(map[string]string{"hello": "world"})
+}
+
+func TestHandlerRequestStatus(t *testing.T) {
+	app := web.NewApp()
+	zt := web.NewZeptoTest(t, app)
+	res, err := zt.TestHandlerRequest(web.TestHandlerRequestOptions{
+		Handler: MyController,
+		Method:  "POST",
+		Target:  "/",
+        Body:    strings.NewReader("body data!"),
+		InitialSession: map[string]string{
+			"abc": "123", // Useful for testing logged user, for example.
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res.AssertStatusCode(401)
+}
+```
+
+## Result Assert Methods
+- AssertStatusCode(status int)
+- AssertBodyEquals(str string)
+- AssertBodyContains(str string)
+- AssertSessionValue(key string, value string)
+- AssertHeaderValue(key string, value string)

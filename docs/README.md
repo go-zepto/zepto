@@ -24,6 +24,7 @@ See below some of our features:
     - Static Files
     - Sass & JS building with webpack (dev and prod)
     - Error Handler
+    - Testing Utilities
 
 
 ----
@@ -36,7 +37,7 @@ A minimal Zepto application looks something like this:
 package main
 
 import (
-	"github.com/carlosstrand/zepto"
+	"github.com/go-zepto/zepto"
 	"github.com/gorilla/mux"
 	"net/http"
 )
