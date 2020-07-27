@@ -18,6 +18,7 @@ import (
 
 type MuxHandler func(w http.ResponseWriter, r *http.Request)
 type RouteHandler func(ctx Context) error
+type MiddlewareFunc func(RouteHandler) RouteHandler
 
 type App struct {
 	http.Handler
@@ -25,6 +26,7 @@ type App struct {
 	rootRouter *mux.Router
 	n          *negroni.Negroni
 	tmplEngine renderer.Engine
+	middleware MiddlewareStack
 }
 
 func (app *App) startWebpack() {
@@ -80,6 +82,10 @@ func NewApp(opts ...Option) *App {
 		opts:       options,
 		rootRouter: rootRouter,
 		tmplEngine: options.tmplEngine,
+		middleware: MiddlewareStack{
+			stack: make([]MiddlewareFunc, 0),
+			skips: nil,
+		},
 	}
 	app.setupSession()
 	return app
@@ -151,7 +157,8 @@ func (app *App) HandleMethod(methods []string, path string, routeHandler RouteHa
 				app.HandleError(res, req, e)
 			}
 		}()
-		err := routeHandler(ctx)
+		h := app.middleware.handle(routeHandler)
+		err := h(ctx)
 		// Handle Controller Error
 		if err != nil {
 			app.HandleError(res, req, err)
@@ -184,6 +191,10 @@ func (app *App) Any(path string, routeHandler RouteHandler) *App {
 	return app.HandleMethod([]string{"GET", "POST", "PUT", "DELETE", "PATCH"}, path, routeHandler)
 }
 
+func (app *App) Use(mw ...MiddlewareFunc) {
+	app.middleware.Use(mw...)
+}
+
 func (app *App) Resource(path string, resource Resource) *App {
 	id_path := pathlib.Join(path, "/{id}")
 	app.Get(path, resource.List)
@@ -193,6 +204,8 @@ func (app *App) Resource(path string, resource Resource) *App {
 	app.Delete(id_path, resource.Destroy)
 	return app
 }
+
+//func (app *App) Use(mw ...MiddlewareFunc)
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ErrorHandler(app).ServeHTTP(w, r)

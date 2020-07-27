@@ -102,6 +102,14 @@ func setupAppTest() *App {
 	return app
 }
 
+func assertRequestStatus(t *testing.T, app *App, method string, path string, code int) {
+	w := httptest.NewRecorder()
+	app.ServeHTTP(w, httptest.NewRequest(method, path, nil))
+	if w.Code != code {
+		t.Error("Did not get expected HTTP status code, got", w.Code)
+	}
+}
+
 func assertRequest(t *testing.T, app *App, method string, path string, code int, body string) {
 	w := httptest.NewRecorder()
 	app.ServeHTTP(w, httptest.NewRequest(method, path, nil))
