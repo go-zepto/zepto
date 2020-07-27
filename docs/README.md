@@ -16,6 +16,7 @@ See below some of our features:
 - Pretty & Plugabble Logger
 - Web Module:
     - Routing
+    - Middlewares
     - Template Rendering
     - Debug Mode
     - Cookie

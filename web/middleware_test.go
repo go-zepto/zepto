@@ -4,8 +4,6 @@ import (
 	"testing"
 )
 
-type MiddlewareTester struct{}
-
 func TestMiddlewareStack_Use_Default(t *testing.T) {
 	var Middleware1 = func(next RouteHandler) RouteHandler {
 		return func(ctx Context) error {

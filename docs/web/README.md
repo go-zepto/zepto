@@ -85,6 +85,40 @@ type Context interface {
 }
 ```
 
+# Middlewares
+
+You can easily create middleware with Zepto, as follows:
+
+
+```go
+func LoggedUserMiddleware(next RouteHandler) RouteHandler {
+	return func(ctx Context) error {
+		token := ctx.Request().Header.Get("Authorization")
+		user := User.LoadUserByToken(token)
+		ctx.Set("user", user)
+		return next(ctx)
+	}
+}
+```
+
+Through the `Use` method you can apply the middleware to all requests:
+
+Example:
+```go
+
+    a.Use(LoggedUserMiddleware, AnotherMiddleware)
+    a.Get("/", MyControllerFunc)
+    a.Get("/me", AnotherControllerFunc)
+
+```
+
+But if you want middleware to be used only on some controllers, you can apply it directly:
+
+```go
+    a.Get("/", MyControllerFunc)
+    a.Get("/me", LoggedUserMiddleware(AnotherControllerFunc))
+```
+
 # Templating
 
 In zepto our main templating engine is pongo2. It has a syntax similar to Django/Jinja2.
