@@ -1,6 +1,8 @@
 package web
 
 import (
+	"github.com/stretchr/testify/assert"
+	"net/http"
 	"testing"
 )
 
@@ -60,7 +62,27 @@ func TestHandlerRequestStatus(t *testing.T) {
 	res.AssertStatusCode(401)
 }
 
-func TestHandlerRequestHeader(t *testing.T) {
+func TestHandlerRequestHeaderReq(t *testing.T) {
+	var handler = func(ctx Context) error {
+		assert.Equal(t, "OK", ctx.Request().Header.Get("X-TESUTILS-HEADER"))
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	}
+	app := NewApp()
+	zt := NewZeptoTest(t, app)
+	header := http.Header{}
+	header.Set("X-TESUTILS-HEADER", "OK")
+	_, err := zt.TestHandlerRequest(TestHandlerRequestOptions{
+		Handler: handler,
+		Method:  "GET",
+		Target:  "/",
+		Header:  header,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestHandlerRequestHeaderRes(t *testing.T) {
 	var handler = func(ctx Context) error {
 		ctx.Response().Header().Set("X-HELLO", "WORLD")
 		return ctx.RenderJson(map[string]string{"hello": "world"})
@@ -76,6 +98,24 @@ func TestHandlerRequestHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 	res.AssertHeaderValue("X-HELLO", "WORLD")
+}
+
+func TestHandlerRequestHost(t *testing.T) {
+	var handler = func(ctx Context) error {
+		assert.Equal(t, "go-zepto.github.io", ctx.Request().Host)
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	}
+	app := NewApp()
+	zt := NewZeptoTest(t, app)
+	_, err := zt.TestHandlerRequest(TestHandlerRequestOptions{
+		Handler: handler,
+		Method:  "GET",
+		Target:  "/",
+		Host:    "go-zepto.github.io",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestHandlerRequestSession(t *testing.T) {

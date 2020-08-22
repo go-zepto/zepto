@@ -27,6 +27,8 @@ type TestHandlerRequestOptions struct {
 	Method         string
 	Target         string
 	Body           io.Reader
+	Header         http.Header
+	Host           string
 	InitialSession map[string]string
 }
 
@@ -60,6 +62,8 @@ func (tr *TestHandlerRequestResult) AssertHeaderValue(key string, value string) 
 
 func (zt *ZeptoTest) TestHandlerRequest(opts TestHandlerRequestOptions) (TestHandlerRequestResult, error) {
 	req := httptest.NewRequest(opts.Method, opts.Target, opts.Body)
+	req.Header = opts.Header
+	req.Host = opts.Host
 	res := httptest.NewRecorder()
 	ctx := NewDefaultContext()
 	ctx.session = zt.app.getSession(res, req)
