@@ -4,6 +4,7 @@ type Options struct {
 	ProjectID          string
 	TopicPrefix        string
 	SubscriptionPrefix string
+	CredentialsJSON    []byte
 }
 
 type Option func(*Options)
@@ -36,5 +37,11 @@ func TopicPrefix(p string) Option {
 func SubscriptionPrefix(p string) Option {
 	return func(o *Options) {
 		o.SubscriptionPrefix = p
+	}
+}
+
+func WithCredentialsJSON(p []byte) Option {
+	return func(o *Options) {
+		o.CredentialsJSON = p
 	}
 }

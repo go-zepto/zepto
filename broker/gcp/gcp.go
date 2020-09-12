@@ -6,6 +6,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
+	goption "google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"time"
@@ -30,7 +31,11 @@ type subscription struct {
 
 func NewBroker(opts ...Option) broker.BrokerProvider {
 	options := newOptions(opts...)
-	c, err := pubsub.NewClient(context.Background(), options.ProjectID)
+	gcpOpts := make([]goption.ClientOption, 0)
+	if options.CredentialsJSON != nil {
+		gcpOpts = append(gcpOpts, goption.WithCredentialsJSON(options.CredentialsJSON))
+	}
+	c, err := pubsub.NewClient(context.Background(), options.ProjectID, gcpOpts...)
 	if err != nil {
 		panic(err)
 	}
@@ -136,6 +141,7 @@ func (s *subscription) Run() {
 					Body:   pm.Data,
 				}
 				go s.handler(ctx, m)
+				pm.Ack()
 			}); err != nil {
 				s.b.logger.Error(err)
 				time.Sleep(time.Second)

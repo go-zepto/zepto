@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/negroni v1.0.0
-	google.golang.org/api v0.25.0 // indirect
+	google.golang.org/api v0.25.0
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.23.0
 	gopkg.in/yaml.v2 v2.2.4 // indirect
