@@ -35,21 +35,6 @@ func (e *Pongo2Engine) Init() error {
 	return e.Load()
 }
 
-//// Dir returns absolute path to directory with views
-//func (t *Pongo2Engine) Dir() string {
-//	return t.dir
-//}
-
-//// Ext returns extension of views
-//func (t *Pongo2Engine) Ext() string {
-//	return t.ext
-//}
-
-//// Devel returns autoReloadopment pin
-//func (t *Pongo2Engine) Devel() bool {
-//	return t.autoReload
-//}
-
 func recoverTemplateNotFound() error {
 	if r := recover(); r != nil {
 		err := r.(*pongo2.Error)
