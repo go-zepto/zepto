@@ -3,17 +3,17 @@ package web
 import (
 	"bufio"
 	"errors"
-	"fmt"
+	"net/http"
+	"os"
+	"os/exec"
+	pathlib "path"
+
 	"github.com/go-webpack/webpack"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/urfave/negroni"
-	"net/http"
-	"os"
-	"os/exec"
-	pathlib "path"
 )
 
 type MuxHandler func(w http.ResponseWriter, r *http.Request)
@@ -23,10 +23,11 @@ type MiddlewareFunc func(RouteHandler) RouteHandler
 type App struct {
 	http.Handler
 	opts       Options
-	rootRouter *mux.Router
+	muxRouter  *mux.Router
 	n          *negroni.Negroni
 	tmplEngine renderer.Engine
-	middleware MiddlewareStack
+	rootRouter *Router
+	routers    []*Router
 }
 
 func (app *App) startWebpack() {
@@ -72,30 +73,39 @@ func NewApp(opts ...Option) *App {
 			pongo2.AutoReload(options.env == "development"),
 		)
 	}
-	rootRouter := mux.NewRouter()
+	muxRouter := mux.NewRouter()
 	staticDir := "/public/"
 	// Create the static router
-	rootRouter.
+	muxRouter.
 		PathPrefix(staticDir).
 		Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir("."+staticDir))))
 	app := &App{
 		opts:       options,
-		rootRouter: rootRouter,
+		muxRouter:  muxRouter,
 		tmplEngine: options.tmplEngine,
-		middleware: MiddlewareStack{
-			stack: make([]MiddlewareFunc, 0),
-			skips: nil,
-		},
+		routers:    make([]*Router, 0),
+		rootRouter: NewRouter(""),
 	}
 	app.setupSession()
 	return app
 }
 
-func (app *App) Start() {
+func (app *App) Init() {
+	// Initialize Root Router Handlers
+	app.initRouterHandlers(app.rootRouter)
+	// Initialize Router Hanlders
+	for _, router := range app.routers {
+		app.initRouterHandlers(router)
+	}
+	// Initialize Template Engine
 	err := app.tmplEngine.Init()
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (app *App) Start() {
+	app.Init()
 	dev := app.opts.env == "development"
 	if app.opts.webpackEnabled {
 		webpack.FsPath = "./public/build"
@@ -130,40 +140,7 @@ func (app *App) HandleError(res http.ResponseWriter, req *http.Request, err erro
 }
 
 func (app *App) HandleMethod(methods []string, path string, routeHandler RouteHandler) *App {
-	app.rootRouter.HandleFunc(path, func(res http.ResponseWriter, req *http.Request) {
-		ctx := NewDefaultContext()
-		ctx.logger = app.opts.logger
-		ctx.broker = app.opts.broker
-		ctx.res = res
-		ctx.req = req
-		ctx.cookies = &Cookies{
-			res: res,
-			req: req,
-		}
-		ctx.session = app.getSession(res, req)
-		ctx.tmplEngine = app.tmplEngine
-		// Handle Controller Panic
-		defer func() {
-			if r := recover(); r != nil {
-				var e error
-				switch t := r.(type) {
-				case error:
-					e = t
-				case string:
-					e = fmt.Errorf(t)
-				default:
-					e = fmt.Errorf(fmt.Sprint(t))
-				}
-				app.HandleError(res, req, e)
-			}
-		}()
-		h := app.middleware.handle(routeHandler)
-		err := h(ctx)
-		// Handle Controller Error
-		if err != nil {
-			app.HandleError(res, req, err)
-		}
-	}).Methods(methods...)
+	app.rootRouter.HandleMethod(methods, path, routeHandler)
 	return app
 }
 
@@ -192,7 +169,7 @@ func (app *App) Any(path string, routeHandler RouteHandler) *App {
 }
 
 func (app *App) Use(mw ...MiddlewareFunc) {
-	app.middleware.Use(mw...)
+	app.rootRouter.middleware.Use(mw...)
 }
 
 func (app *App) Resource(path string, resource Resource) *App {

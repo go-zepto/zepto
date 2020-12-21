@@ -57,6 +57,31 @@ Routing with Zepto Web is very simple, just do as follows:
     a.Post("/", AnotherControllerFunc)
 ```
 
+You can also create a subroute:
+
+```go
+    v1 := a.Router("/api/v1")
+    v1.Get("/", MyControllerFunc)
+
+    v2 := a.Router("/api/v2")
+    v2.Get("/", MyControllerFunc)
+```
+
+Subroutes also accepts `hosts` params:
+
+```go
+    foo := a.Router("/", web.Hosts("foo.go-zepto.com"))
+    foo.Get("/", MyControllerFunc)
+
+    bar := a.Router("/", web.Hosts("bar.go-zepto.com"))
+    bar.Get("/", MyControllerFunc)
+
+    dynamic := a.Router("/", web.Hosts("{subdomain}.go-zepto.com"))
+    dynamic.Get("/", MyControllerFunc)
+```
+
+
+
 
 # Controller
 

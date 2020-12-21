@@ -2,10 +2,11 @@ package web
 
 import (
 	"errors"
-	"github.com/go-zepto/zepto/web/renderer"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/go-zepto/zepto/web/renderer"
 )
 
 type Interceptor struct {
@@ -61,7 +62,7 @@ func (i *Interceptor) Header() http.Header {
 func ErrorHandler(app *App) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w = &Interceptor{origWriter: w, origReq: r, app: app}
-		app.rootRouter.ServeHTTP(w, r)
+		app.muxRouter.ServeHTTP(w, r)
 	}
 
 	return http.HandlerFunc(fn)

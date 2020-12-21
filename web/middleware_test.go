@@ -31,5 +31,47 @@ func TestMiddlewareStack_Use_Default(t *testing.T) {
 		}
 		return ctx.RenderJson(map[string]string{"hello": "world"})
 	})
+	app.Init()
 	assertRequestStatus(t, app, "GET", "/hello", 200)
+}
+
+func TestMiddlewareStack_WithRouter(t *testing.T) {
+	var GlobalMiddleware = func(next RouteHandler) RouteHandler {
+		return func(ctx Context) error {
+			ctx.Set("global-middleware", "ok")
+			return next(ctx)
+		}
+	}
+	var ApiMiddleware = func(next RouteHandler) RouteHandler {
+		return func(ctx Context) error {
+			ctx.Set("api-middleware", "ok")
+			return next(ctx)
+		}
+	}
+	app := setupAppTest()
+	app.Use(GlobalMiddleware)
+	app.Get("/global/hello", func(ctx Context) error {
+		if ctx.Value("global-middleware") == nil || ctx.Value("global-middleware").(string) != "ok" {
+			t.Error("global-middleware should be present in context")
+		}
+		if ctx.Value("api-middleware") != nil {
+			t.Error("api-middleware should not be present in context")
+		}
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	})
+	// With Router
+	r := app.Router("/api")
+	r.Use(ApiMiddleware)
+	r.Get("/hello", func(ctx Context) error {
+		if ctx.Value("global-middleware") == nil || ctx.Value("global-middleware").(string) != "ok" {
+			t.Error("global-middleware should be present in context")
+		}
+		if ctx.Value("api-middleware") == nil || ctx.Value("api-middleware").(string) != "ok" {
+			t.Error("api-middleware should be present in context")
+		}
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	})
+	app.Init()
+	assertRequestStatus(t, app, "GET", "/global/hello", 200)
+	assertRequestStatus(t, app, "GET", "/api/hello", 200)
 }
