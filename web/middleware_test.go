@@ -2,6 +2,8 @@ package web
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMiddlewareStack_Use_Default(t *testing.T) {
@@ -74,4 +76,22 @@ func TestMiddlewareStack_WithRouter(t *testing.T) {
 	app.Init()
 	assertRequestStatus(t, app, "GET", "/global/hello", 200)
 	assertRequestStatus(t, app, "GET", "/api/hello", 200)
+}
+
+func TestMiddlewareStack_RootRouter(t *testing.T) {
+	runCount := 0
+	var Middleware = func(next RouteHandler) RouteHandler {
+		return func(ctx Context) error {
+			runCount += 1
+			return next(ctx)
+		}
+	}
+	app := setupAppTest()
+	app.Use(Middleware)
+	app.Get("/hello", func(ctx Context) error {
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	})
+	app.Init()
+	assertRequestStatus(t, app, "GET", "/hello", 200)
+	assert.Equal(t, 1, runCount)
 }

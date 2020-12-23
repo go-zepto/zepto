@@ -10,8 +10,9 @@ import (
 )
 
 type routerOptions struct {
-	path  string
-	hosts []string
+	path   string
+	hosts  []string
+	isRoot bool
 }
 
 type RouterHandler struct {
@@ -136,8 +137,11 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 				app.HandleError(res, req, e)
 			}
 		}()
+		h := h.routeHandler
 		// Apply Root Middlewares
-		h := app.rootRouter.middleware.handle(h.routeHandler)
+		if router != app.rootRouter {
+			h = app.rootRouter.middleware.handle(h)
+		}
 		// Apply Router (Scoped) Middlewares
 		h = router.middleware.handle(h)
 		err := h(ctx)
