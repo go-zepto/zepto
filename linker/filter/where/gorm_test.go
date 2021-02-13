@@ -368,3 +368,42 @@ func TestGormQuery_NIN_Invalid(t *testing.T) {
 	_, err := w.ToSQL()
 	assert.EqualError(t, err, "NIN operator must be an array")
 }
+
+func TestGormQuery_LIKE(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"name": {
+				"like": "%ent%"
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 1)
+	assert.Equal(t, people[0].Name, "Clark Kent")
+}
+
+func TestGormQuery_NLIKE(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"name": {
+				"nlike": "%ent%"
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 2)
+	assert.Equal(t, people[0].Name, "Carlos Strand")
+	assert.Equal(t, people[1].Name, "Bill Gates")
+}

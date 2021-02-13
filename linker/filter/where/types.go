@@ -94,4 +94,16 @@ var TYPES = map[string]WhereType{
 			SQL: "%s NOT IN ?",
 		},
 	},
+	"like": {
+		Key: "like",
+		Operator: WhereOperator{
+			SQL: "%s LIKE ?",
+		},
+	},
+	"nlike": {
+		Key: "nlike",
+		Operator: WhereOperator{
+			SQL: "%s NOT LIKE ?",
+		},
+	},
 }

@@ -87,7 +87,7 @@ func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 			op, _ := node.Parent.Type.ApplySQL()
 			query.Append(" " + op + " ")
 		}
-	case "eq", "neq", "gt", "gte", "lt", "lte":
+	case "eq", "neq", "gt", "gte", "lt", "lte", "like", "nlike":
 		op, _ := node.Type.ApplySQL(node.Parent.Key)
 		query.Append(op)
 		query.Vars = append(query.Vars, node.Value)
