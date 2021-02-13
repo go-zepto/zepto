@@ -1,81 +1,14 @@
 package where
 
 import (
-	"database/sql"
-	"log"
-	"os"
 	"testing"
-	"time"
 
+	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/thriftrw/ptr"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
-type Person struct {
-	ID          uint
-	Name        string
-	Email       *string
-	Age         uint8
-	Birthday    *time.Time
-	Active      bool
-	ActivatedAt sql.NullTime
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-func SetupGorm() *gorm.DB {
-	l := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags),
-		logger.Config{
-			SlowThreshold: time.Second,
-			LogLevel:      logger.Silent,
-			Colorful:      true,
-		},
-	)
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
-		Logger: l,
-	})
-	if err != nil {
-		panic(err)
-	}
-	db.Migrator().DropTable(&Person{})
-	db.AutoMigrate(
-		&Person{},
-	)
-	newDate := func(year int, month time.Month, date int) *time.Time {
-		d := time.Date(year, month, date, 0, 0, 0, 0, time.Local)
-		return &d
-	}
-	persons := []Person{
-		{
-			Name:     "Carlos Strand",
-			Email:    ptr.String("carlos@test.com"),
-			Age:      27,
-			Birthday: newDate(1993, 02, 10),
-		},
-		{
-			Name:     "Bill Gates",
-			Email:    ptr.String("bill@test.com"),
-			Age:      65,
-			Birthday: newDate(1955, 10, 28),
-		},
-		{
-			Name:     "Clark Kent",
-			Email:    ptr.String("clark@test.com"),
-			Age:      24,
-			Birthday: newDate(1996, 05, 12),
-			Active:   true,
-		},
-	}
-	db.Create(&persons)
-	return db
-}
-
 func TestGormQuery(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"name": {
@@ -84,7 +17,7 @@ func TestGormQuery(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -94,7 +27,7 @@ func TestGormQuery(t *testing.T) {
 }
 
 func TestGormQueryOr(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"or": [
@@ -112,7 +45,7 @@ func TestGormQueryOr(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -123,7 +56,7 @@ func TestGormQueryOr(t *testing.T) {
 }
 
 func TestGormQuery_Boolean(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"active": {
@@ -132,7 +65,7 @@ func TestGormQuery_Boolean(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -142,7 +75,7 @@ func TestGormQuery_Boolean(t *testing.T) {
 }
 
 func TestGormQuery_Integer(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -151,7 +84,7 @@ func TestGormQuery_Integer(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -161,7 +94,7 @@ func TestGormQuery_Integer(t *testing.T) {
 }
 
 func TestGormQuery_GreaterThan(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -170,7 +103,7 @@ func TestGormQuery_GreaterThan(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -180,7 +113,7 @@ func TestGormQuery_GreaterThan(t *testing.T) {
 }
 
 func TestGormQuery_GreaterEqualThan(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -189,7 +122,7 @@ func TestGormQuery_GreaterEqualThan(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -199,7 +132,7 @@ func TestGormQuery_GreaterEqualThan(t *testing.T) {
 }
 
 func TestGormQuery_LessThen(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -208,7 +141,7 @@ func TestGormQuery_LessThen(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -218,7 +151,7 @@ func TestGormQuery_LessThen(t *testing.T) {
 }
 
 func TestGormQuery_LessThenEqual(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -227,7 +160,7 @@ func TestGormQuery_LessThenEqual(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -237,7 +170,7 @@ func TestGormQuery_LessThenEqual(t *testing.T) {
 }
 
 func TestGormQuery_Between(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -246,7 +179,7 @@ func TestGormQuery_Between(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -257,7 +190,7 @@ func TestGormQuery_Between(t *testing.T) {
 }
 
 func TestGormQuery_BetweenDates1(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"birthday": {
@@ -266,7 +199,7 @@ func TestGormQuery_BetweenDates1(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -276,7 +209,7 @@ func TestGormQuery_BetweenDates1(t *testing.T) {
 }
 
 func TestGormQuery_BetweenDates2(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"or": [
@@ -294,7 +227,7 @@ func TestGormQuery_BetweenDates2(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -305,7 +238,7 @@ func TestGormQuery_BetweenDates2(t *testing.T) {
 
 }
 func TestGormQuery_IN(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -314,7 +247,7 @@ func TestGormQuery_IN(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -338,7 +271,7 @@ func TestGormQuery_IN_Invalid(t *testing.T) {
 }
 
 func TestGormQuery_NIN(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"age": {
@@ -347,7 +280,7 @@ func TestGormQuery_NIN(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -370,7 +303,7 @@ func TestGormQuery_NIN_Invalid(t *testing.T) {
 }
 
 func TestGormQuery_LIKE(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"name": {
@@ -379,7 +312,7 @@ func TestGormQuery_LIKE(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
@@ -389,7 +322,7 @@ func TestGormQuery_LIKE(t *testing.T) {
 }
 
 func TestGormQuery_NLIKE(t *testing.T) {
-	db := SetupGorm()
+	db := testutils.SetupGorm()
 	filterJson := `
 		{
 			"name": {
@@ -398,7 +331,7 @@ func TestGormQuery_NLIKE(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	var people []Person
+	var people []testutils.Person
 	q, err := w.ToSQL()
 	assert.NoError(t, err)
 	err = db.Where(q.Text, q.Vars...).Find(&people).Error
