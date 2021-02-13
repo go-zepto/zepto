@@ -302,4 +302,69 @@ func TestGormQuery_BetweenDates2(t *testing.T) {
 	assert.Len(t, people, 2)
 	assert.Equal(t, people[0].Name, "Carlos Strand")
 	assert.Equal(t, people[1].Name, "Bill Gates")
+
+}
+func TestGormQuery_IN(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"age": {
+				"in": [24, 65]
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 2)
+	assert.Equal(t, people[0].Name, "Bill Gates")
+	assert.Equal(t, people[1].Name, "Clark Kent")
+}
+
+func TestGormQuery_IN_Invalid(t *testing.T) {
+	filterJson := `
+		{
+			"age": {
+				"in": "invalid-value"
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	_, err := w.ToSQL()
+	assert.EqualError(t, err, "IN operator must be an array")
+}
+
+func TestGormQuery_NIN(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"age": {
+				"nin": [24, 65]
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 1)
+	assert.Equal(t, people[0].Name, "Carlos Strand")
+}
+
+func TestGormQuery_NIN_Invalid(t *testing.T) {
+	filterJson := `
+		{
+			"age": {
+				"nin": "invalid-value"
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	_, err := w.ToSQL()
+	assert.EqualError(t, err, "NIN operator must be an array")
 }

@@ -82,4 +82,16 @@ var TYPES = map[string]WhereType{
 			SQL: "%s BETWEEN ? AND ?",
 		},
 	},
+	"in": {
+		Key: "in",
+		Operator: WhereOperator{
+			SQL: "%s IN ?",
+		},
+	},
+	"nin": {
+		Key: "nin",
+		Operator: WhereOperator{
+			SQL: "%s NOT IN ?",
+		},
+	},
 }
