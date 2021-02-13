@@ -1,8 +1,9 @@
 package where
 
 import (
-	"fmt"
+	"errors"
 	"reflect"
+	"strings"
 )
 
 type Where struct {
@@ -50,6 +51,9 @@ func (w *Where) walk(parent *Node, v reflect.Value) {
 }
 
 func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
+	if query.Error != nil {
+		return
+	}
 	nt := node.Type
 	switch nt.Key {
 	case "__root__":
@@ -69,6 +73,11 @@ func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 			}
 		}
 	case "and", "or":
+		pk := node.Parent.Type.Key
+		if pk != "and" && pk != "or" && pk != "__root__" {
+			query.Error = errors.New(strings.ToUpper(node.Key) + " operator in unsupported parent")
+			return
+		}
 		query.Append("(")
 		for _, n := range node.Nodes {
 			f.walkGenerateSQLQuery(n, query)
@@ -80,8 +89,6 @@ func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 		}
 	case "eq", "neq":
 		op, _ := node.Type.ApplySQL(node.Parent.Key)
-		fmt.Println(node.Parent.Type.Key)
-		fmt.Println(op)
 		query.Append(op)
 		query.Vars = append(query.Vars, node.Value)
 		if node.Parent != nil && node.Parent.LastChild() != node {
@@ -90,11 +97,11 @@ func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 	}
 }
 
-func (w *Where) ToSQL() Query {
+func (w *Where) ToSQL() (Query, error) {
 	q := Query{
 		Text: "",
 		Vars: make([]interface{}, 0),
 	}
 	w.walkGenerateSQLQuery(w.Root, &q)
-	return q
+	return q, q.Error
 }

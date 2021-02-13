@@ -28,11 +28,12 @@ func TestWhere(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	query := w.ToSQL()
+	query, err := w.ToSQL()
+	assert.NoError(t, err)
 	assert.Len(t, query.Vars, 2)
 	assert.Equal(t, query.Vars[0].(string), "Carlos")
 	assert.Equal(t, query.Vars[1].(string), "Strand")
-	assert.Equal(t, query.Text, "first_name = ? AND last_name <> ?")
+	assert.Equal(t, "first_name = ? AND last_name <> ?", query.Text)
 }
 
 func TestWhereOR(t *testing.T) {
@@ -53,11 +54,12 @@ func TestWhereOR(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	query := w.ToSQL()
+	query, err := w.ToSQL()
+	assert.NoError(t, err)
 	assert.Len(t, query.Vars, 2)
 	assert.Equal(t, query.Vars[0].(string), "Carlos")
 	assert.Equal(t, query.Vars[1].(string), "Strand")
-	assert.Equal(t, query.Text, "(first_name = ? OR last_name <> ?)")
+	assert.Equal(t, "(first_name = ? OR last_name <> ?)", query.Text)
 }
 
 func TestWhereAND(t *testing.T) {
@@ -78,11 +80,12 @@ func TestWhereAND(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	query := w.ToSQL()
+	query, err := w.ToSQL()
+	assert.NoError(t, err)
 	assert.Len(t, query.Vars, 2)
 	assert.Equal(t, query.Vars[0].(string), "Carlos")
 	assert.Equal(t, query.Vars[1].(string), "Strand")
-	assert.Equal(t, query.Text, "(first_name = ? AND last_name <> ?)")
+	assert.Equal(t, "(first_name = ? AND last_name <> ?)", query.Text)
 }
 
 func TestWhereOR_with_AND(t *testing.T) {
@@ -121,11 +124,59 @@ func TestWhereOR_with_AND(t *testing.T) {
 		}
 	`
 	w := NewFromMap(jsonToMap(filterJson))
-	query := w.ToSQL()
+	query, err := w.ToSQL()
+	assert.NoError(t, err)
 	assert.Len(t, query.Vars, 4)
 	assert.Equal(t, query.Vars[0].(string), "Carlos")
 	assert.Equal(t, query.Vars[1].(string), "Strand")
 	assert.Equal(t, query.Vars[2].(string), "Bill")
 	assert.Equal(t, query.Vars[3].(string), "Gates")
-	assert.Equal(t, query.Text, "((first_name = ? AND last_name = ?) OR (first_name = ? AND last_name = ?))")
+	assert.Equal(t, "((first_name = ? AND last_name = ?) OR (first_name = ? AND last_name = ?))", query.Text)
+}
+
+func TestGetWhereType(t *testing.T) {
+	filterJson := `
+	{
+		"name": {
+			"or": [
+				{
+					"test": "or can't be inside field"
+				}
+			]
+		}
+	}
+`
+	w := NewFromMap(jsonToMap(filterJson))
+	assert.Equal(t, "__field__", w.GetWhereType("name").Key)
+}
+
+func TestWhereWithInvalidFormat(t *testing.T) {
+	filterJson := `
+		{
+			"name": {
+				"or": [
+					{
+						"test": "or can't be inside field"
+					}
+				]
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	_, err := w.ToSQL()
+	assert.EqualError(t, err, "OR operator in unsupported parent")
+	filterJson = `
+		{
+			"name": {
+				"and": [
+					{
+						"test": "and can't be inside field"
+					}
+				]
+			}
+		}
+	`
+	w = NewFromMap(jsonToMap(filterJson))
+	_, err = w.ToSQL()
+	assert.EqualError(t, err, "AND operator in unsupported parent")
 }

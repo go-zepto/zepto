@@ -1,8 +1,9 @@
 package where
 
 type Query struct {
-	Text string
-	Vars []interface{}
+	Text  string
+	Vars  []interface{}
+	Error error
 }
 
 func (q *Query) Prepend(txt string) {
