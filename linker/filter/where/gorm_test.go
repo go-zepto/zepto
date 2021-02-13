@@ -160,6 +160,82 @@ func TestGormQuery_Integer(t *testing.T) {
 	assert.Equal(t, people[0].Name, "Bill Gates")
 }
 
+func TestGormQuery_GreaterThan(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"age": {
+				"gt": 64
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 1)
+	assert.Equal(t, people[0].Name, "Bill Gates")
+}
+
+func TestGormQuery_GreaterEqualThan(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"age": {
+				"gte": 65
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 1)
+	assert.Equal(t, people[0].Name, "Bill Gates")
+}
+
+func TestGormQuery_LessThen(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"age": {
+				"lt": 25
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 1)
+	assert.Equal(t, people[0].Name, "Clark Kent")
+}
+
+func TestGormQuery_LessThenEqual(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"age": {
+				"lte": 24
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 1)
+	assert.Equal(t, people[0].Name, "Clark Kent")
+}
+
 func TestGormQuery_Between(t *testing.T) {
 	db := SetupGorm()
 	filterJson := `

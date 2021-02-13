@@ -52,6 +52,30 @@ var TYPES = map[string]WhereType{
 			SQL: "%s <> ?",
 		},
 	},
+	"gt": {
+		Key: "gt",
+		Operator: WhereOperator{
+			SQL: "%s > ?",
+		},
+	},
+	"gte": {
+		Key: "gte",
+		Operator: WhereOperator{
+			SQL: "%s >= ?",
+		},
+	},
+	"lt": {
+		Key: "lt",
+		Operator: WhereOperator{
+			SQL: "%s < ?",
+		},
+	},
+	"lte": {
+		Key: "lte",
+		Operator: WhereOperator{
+			SQL: "%s <= ?",
+		},
+	},
 	"between": {
 		Key: "between",
 		Operator: WhereOperator{
