@@ -159,3 +159,71 @@ func TestGormQuery_Integer(t *testing.T) {
 	assert.Len(t, people, 1)
 	assert.Equal(t, people[0].Name, "Bill Gates")
 }
+
+func TestGormQuery_Between(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"age": {
+				"between": [20, 30]
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 2)
+	assert.Equal(t, people[0].Name, "Carlos Strand")
+	assert.Equal(t, people[1].Name, "Clark Kent")
+}
+
+func TestGormQuery_BetweenDates1(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"birthday": {
+				"between": ["1992-02-10", "1994-02-10"]
+			}
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 1)
+	assert.Equal(t, people[0].Name, "Carlos Strand")
+}
+
+func TestGormQuery_BetweenDates2(t *testing.T) {
+	db := SetupGorm()
+	filterJson := `
+		{
+			"or": [
+				{
+					"birthday": {
+						"between": ["1950-01-01", "1960-01-01"]
+					}
+				},
+				{
+					"birthday": {
+						"between": ["1992-02-10", "1994-02-10"]
+					}
+				}
+			]
+		}
+	`
+	w := NewFromMap(jsonToMap(filterJson))
+	var people []Person
+	q, err := w.ToSQL()
+	assert.NoError(t, err)
+	err = db.Where(q.Text, q.Vars...).Find(&people).Error
+	assert.NoError(t, err)
+	assert.Len(t, people, 2)
+	assert.Equal(t, people[0].Name, "Carlos Strand")
+	assert.Equal(t, people[1].Name, "Bill Gates")
+}

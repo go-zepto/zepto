@@ -52,4 +52,10 @@ var TYPES = map[string]WhereType{
 			SQL: "%s <> ?",
 		},
 	},
+	"between": {
+		Key: "between",
+		Operator: WhereOperator{
+			SQL: "%s BETWEEN ? AND ?",
+		},
+	},
 }

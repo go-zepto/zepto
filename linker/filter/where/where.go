@@ -94,6 +94,19 @@ func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 		if node.Parent != nil && node.Parent.LastChild() != node {
 			query.SQLAppendAND()
 		}
+	case "between":
+		op, _ := node.Type.ApplySQL(node.Parent.Key)
+		query.Append(op)
+		b_range, valid := node.Value.([]interface{})
+		if !valid || len(b_range) != 2 {
+			query.Error = errors.New(strings.ToUpper(node.Key) + " operator must be an array with lenght = 2")
+			return
+		}
+		query.Vars = append(query.Vars, b_range[0])
+		query.Vars = append(query.Vars, b_range[1])
+		if node.Parent != nil && node.Parent.LastChild() != node {
+			query.SQLAppendAND()
+		}
 	}
 }
 
