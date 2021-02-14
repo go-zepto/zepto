@@ -89,10 +89,32 @@ func (g *GormDatasource) Create(ctx datasource.QueryContext, data map[string]int
 	return &result, nil
 }
 
-func (g *GormDatasource) Update(ctx datasource.QueryContext, data map[string]interface{}) (*map[string]interface{}, error) {
-	panic("not implemented")
+func (g *GormDatasource) Update(ctx datasource.QueryContext, data map[string]interface{}) (datasource.ManyAffectedResult, error) {
+	query := g.DB.Model(g.Model)
+	query, err := g.ApplyWhere(ctx, query)
+	if err != nil {
+		return datasource.ManyAffectedResult{}, err
+	}
+	res := query.Updates(data)
+	if res.Error != nil {
+		return datasource.ManyAffectedResult{}, res.Error
+	}
+	return datasource.ManyAffectedResult{
+		TotalAffected: res.RowsAffected,
+	}, nil
 }
 
-func (g *GormDatasource) Destroy(ctx datasource.QueryContext) (*map[string]interface{}, error) {
-	panic("not implemented")
+func (g *GormDatasource) Destroy(ctx datasource.QueryContext) (datasource.ManyAffectedResult, error) {
+	query := g.DB.Model(g.Model)
+	query, err := g.ApplyWhere(ctx, query)
+	if err != nil {
+		return datasource.ManyAffectedResult{}, err
+	}
+	res := query.Delete(g.Model)
+	if res.Error != nil {
+		return datasource.ManyAffectedResult{}, res.Error
+	}
+	return datasource.ManyAffectedResult{
+		TotalAffected: res.RowsAffected,
+	}, nil
 }

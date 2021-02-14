@@ -17,20 +17,24 @@ type ListResult struct {
 	Count int64
 }
 
+type ManyAffectedResult struct {
+	TotalAffected int64
+}
+
 type Datasource interface {
 	Find(ctx QueryContext) (*ListResult, error)
 	FindOne(ctx QueryContext) (*map[string]interface{}, error)
 	Create(ctx QueryContext, data map[string]interface{}) (*map[string]interface{}, error)
-	Update(ctx QueryContext, data map[string]interface{}) (*map[string]interface{}, error)
-	Destroy(ctx QueryContext) (*map[string]interface{}, error)
+	Update(ctx QueryContext, data map[string]interface{}) (ManyAffectedResult, error)
+	Destroy(ctx QueryContext) (ManyAffectedResult, error)
 }
 
 type Properties struct {
-	Skip  int
-	Limit int
+	Skip  int64
+	Limit int64
 }
 
-func (d *Properties) GetSkip(ctx QueryContext) int {
+func (d *Properties) GetSkip(ctx QueryContext) int64 {
 	f := ctx.Filter
 	if f != nil && f.Skip != nil {
 		return *f.Skip
@@ -38,7 +42,7 @@ func (d *Properties) GetSkip(ctx QueryContext) int {
 	return d.Skip
 }
 
-func (d *Properties) GetLimit(ctx QueryContext) int {
+func (d *Properties) GetLimit(ctx QueryContext) int64 {
 	f := ctx.Filter
 	if f != nil && f.Limit != nil {
 		return *f.Limit

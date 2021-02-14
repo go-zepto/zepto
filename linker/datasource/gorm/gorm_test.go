@@ -45,7 +45,7 @@ func TestFind_Where(t *testing.T) {
 func TestFind_Limit(t *testing.T) {
 	db := testutils.SetupGorm()
 	gds := NewGormDatasource(db, &testutils.Person{})
-	limit := 1
+	limit := int64(1)
 	res, err := gds.Find(datasource.QueryContext{
 		Filter: &filter.Filter{
 			Limit: &limit,
@@ -65,8 +65,8 @@ func TestFind_Limit(t *testing.T) {
 func TestFind_Skip(t *testing.T) {
 	db := testutils.SetupGorm()
 	gds := NewGormDatasource(db, &testutils.Person{})
-	limit := 1
-	skip := 1
+	limit := int64(1)
+	skip := int64(1)
 	res, err := gds.Find(datasource.QueryContext{
 		Filter: &filter.Filter{
 			Limit: &limit,
@@ -145,4 +145,118 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, uint8(21), user["age"])
 	assert.Equal(t, newDate(1999, 10, 10), user["birthday"])
 	assert.Equal(t, true, user["active"])
+}
+
+func TestUpdate(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	newDate := func(year int, month time.Month, date int) *time.Time {
+		d := time.Date(year, month, date, 0, 0, 0, 0, time.Local)
+		return &d
+	}
+	res, err := gds.Update(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Where: &map[string]interface{}{
+				"id": map[string]interface{}{
+					"eq": 1,
+				},
+			},
+		},
+	}, map[string]interface{}{
+		"name":     "Batman",
+		"email":    "batman@test.com",
+		"age":      25,
+		"birthday": newDate(1995, 10, 10),
+		"active":   true,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, int64(1), res.TotalAffected)
+	p := testutils.Person{}
+	err = db.First(&p, 1).Error
+	assert.NoError(t, err)
+	assert.Equal(t, "Batman", p.Name)
+	assert.Equal(t, ptr.String("batman@test.com"), p.Email)
+	assert.Equal(t, uint8(25), p.Age)
+	assert.Equal(t, newDate(1995, 10, 10).Unix(), p.Birthday.Unix())
+	assert.Equal(t, true, p.Active)
+}
+
+func TestUpdate_Many(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	res, err := gds.Update(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Where: &map[string]interface{}{
+				"age": map[string]interface{}{
+					"lt": 30,
+				},
+			},
+		},
+	}, map[string]interface{}{
+		"name": "Young Person",
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, int64(2), res.TotalAffected)
+	people := []testutils.Person{}
+	err = db.Find(&people).Error
+	assert.NoError(t, err)
+	var asserts = []struct {
+		Name string
+	}{
+		{
+			Name: "Young Person",
+		},
+		{
+			Name: "Bill Gates",
+		},
+		{
+			Name: "Young Person",
+		},
+	}
+	for idx, p := range asserts {
+		assert.Equal(t, p.Name, people[idx].Name)
+	}
+}
+
+func TestDestroy(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	res, err := gds.Destroy(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Where: &map[string]interface{}{
+				"id": map[string]interface{}{
+					"eq": 1,
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, int64(1), res.TotalAffected)
+	p := testutils.Person{}
+	err = db.First(&p, 1).Error
+	assert.EqualError(t, err, "record not found")
+}
+
+func TestDestroyMany(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	res, err := gds.Destroy(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Where: &map[string]interface{}{
+				"id": map[string]interface{}{
+					"in": []uint{1, 2},
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, int64(2), res.TotalAffected)
+	p := []testutils.Person{}
+	err = db.Find(&p, []uint{1, 2}).Error
+	assert.NoError(t, err)
+	assert.Len(t, p, 0)
 }

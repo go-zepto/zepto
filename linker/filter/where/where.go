@@ -97,8 +97,7 @@ func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 	case "in", "nin":
 		op, _ := node.Type.ApplySQL(node.Parent.Key)
 		query.Append(op)
-		list, valid := node.Value.([]interface{})
-		if !valid || len(list) != 2 {
+		if reflect.TypeOf(node.Value).Kind() != reflect.Slice {
 			query.Error = errors.New(strings.ToUpper(node.Key) + " operator must be an array")
 			return
 		}
