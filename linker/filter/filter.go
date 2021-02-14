@@ -1,5 +1,7 @@
 package filter
 
 type Filter struct {
-	Where map[string]interface{}
+	Skip  *int                    `json:"skip"`
+	Limit *int                    `json:"limit"`
+	Where *map[string]interface{} `json:"where"`
 }
