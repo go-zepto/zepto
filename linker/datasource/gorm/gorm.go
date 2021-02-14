@@ -4,8 +4,8 @@ import (
 	"reflect"
 
 	"github.com/go-zepto/zepto/linker/datasource"
-	"github.com/go-zepto/zepto/linker/datasource/gorm/utils"
 	"github.com/go-zepto/zepto/linker/filter/where"
+	lutils "github.com/go-zepto/zepto/linker/utils"
 	"gorm.io/gorm"
 )
 
@@ -67,7 +67,7 @@ func (g *GormDatasource) FindOne(ctx datasource.QueryContext) (*map[string]inter
 	if err != nil {
 		return nil, err
 	}
-	if err := query.Find(&dest).Error; err != nil {
+	if err := query.First(&dest).Error; err != nil {
 		return nil, err
 	}
 	return &dest, nil
@@ -80,12 +80,12 @@ func (g *GormDatasource) createModelReflectInstance() reflect.Value {
 func (g *GormDatasource) Create(ctx datasource.QueryContext, data map[string]interface{}) (*map[string]interface{}, error) {
 	obj := g.createModelReflectInstance()
 	createObj := obj.Interface()
-	utils.DecodeMapToStruct(data, createObj)
+	lutils.DecodeMapToStruct(data, createObj)
 	query := g.DB.Model(g.Model)
 	if err := query.Create(createObj).Error; err != nil {
 		return nil, err
 	}
-	result := utils.DecodeStructToMap(createObj)
+	result := lutils.DecodeStructToMap(createObj)
 	return &result, nil
 }
 
