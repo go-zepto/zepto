@@ -2,11 +2,13 @@ package gorm
 
 import (
 	"testing"
+	"time"
 
 	"github.com/go-zepto/zepto/linker/datasource"
 	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/linker/filter"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/thriftrw/ptr"
 )
 
 func SetupTestDatasource() datasource.Datasource {
@@ -123,12 +125,24 @@ func TestFindOne_Where(t *testing.T) {
 func TestCreate(t *testing.T) {
 	db := testutils.SetupGorm()
 	gds := NewGormDatasource(db, &testutils.Person{})
+	newDate := func(year int, month time.Month, date int) *time.Time {
+		d := time.Date(year, month, date, 0, 0, 0, 0, time.Local)
+		return &d
+	}
 	res, err := gds.Create(datasource.QueryContext{}, map[string]interface{}{
-		"name": "Mariah Medeiros",
+		"name":     "Bruce Wayne",
+		"email":    "bruce@test.com",
+		"age":      21,
+		"birthday": newDate(1999, 10, 10),
+		"active":   true,
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	user := *res
-	assert.Equal(t, "Mariah Medeiros", user["name"])
 	assert.Equal(t, uint(4), user["id"])
+	assert.Equal(t, "Bruce Wayne", user["name"])
+	assert.Equal(t, ptr.String("bruce@test.com"), user["email"])
+	assert.Equal(t, uint8(21), user["age"])
+	assert.Equal(t, newDate(1999, 10, 10), user["birthday"])
+	assert.Equal(t, true, user["active"])
 }

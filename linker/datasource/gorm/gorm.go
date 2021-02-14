@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	"github.com/go-zepto/zepto/linker/datasource"
-	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/linker/datasource/gorm/utils"
 	"github.com/go-zepto/zepto/linker/filter/where"
 	"gorm.io/gorm"
@@ -72,11 +71,6 @@ func (g *GormDatasource) FindOne(ctx datasource.QueryContext) (*map[string]inter
 		return nil, err
 	}
 	return &dest, nil
-}
-
-func (g *GormDatasource) itemGen1() interface{} {
-	// d := time.Date(1990, 5, 5, 0, 0, 0, 0, time.Local)
-	return &testutils.Person{}
 }
 
 func (g *GormDatasource) createModelReflectInstance() reflect.Value {

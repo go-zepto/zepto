@@ -1,3 +1,0 @@
-type Repository struct {
-}
-
