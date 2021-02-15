@@ -6,5 +6,5 @@ type Filter struct {
 	Skip    *int64                  `json:"skip"`
 	Limit   *int64                  `json:"limit"`
 	Where   *map[string]interface{} `json:"where"`
-	Include []include.IncludeItem   `json:"include"`
+	Include []include.Include       `json:"include"`
 }

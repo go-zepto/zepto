@@ -16,7 +16,7 @@ func SetupGorm() *gorm.DB {
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
 			SlowThreshold: time.Second,
-			LogLevel:      logger.Info,
+			LogLevel:      logger.Silent,
 			Colorful:      true,
 		},
 	)
@@ -26,8 +26,13 @@ func SetupGorm() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	db.Migrator().DropTable(&Person{})
+	db.Migrator().DropTable(
+		&Order{},
+		&Person{},
+		&City{},
+	)
 	db.AutoMigrate(
+		&Order{},
 		&City{},
 		&Person{},
 	)
@@ -37,15 +42,12 @@ func SetupGorm() *gorm.DB {
 	}
 	cities := []City{
 		{
-			ID:   1,
 			Name: "Salvador",
 		},
 		{
-			ID:   2,
 			Name: "Seattle",
 		},
 		{
-			ID:   3,
 			Name: "Krypton",
 		},
 	}
@@ -73,7 +75,38 @@ func SetupGorm() *gorm.DB {
 			CityID:   3,
 		},
 	}
+	orders := []Order{
+		{
+			Name:                  "Carlos's Order (1)",
+			EstimatedShippingDate: newDate(2021, 2, 20),
+			AmountInCents:         5000,
+			Approved:              true,
+			PersonID:              1,
+		},
+		{
+			Name:                  "Carlos's Order (2)",
+			EstimatedShippingDate: newDate(2021, 2, 22),
+			AmountInCents:         12800,
+			Approved:              false,
+			PersonID:              1,
+		},
+		{
+			Name:                  "Bill's Order (1)",
+			EstimatedShippingDate: newDate(2021, 3, 10),
+			AmountInCents:         600000,
+			Approved:              true,
+			PersonID:              2,
+		},
+		{
+			Name:                  "Bill's Order (2)",
+			EstimatedShippingDate: newDate(2021, 4, 20),
+			AmountInCents:         900000,
+			Approved:              true,
+			PersonID:              2,
+		},
+	}
 	db.Create(&cities)
 	db.Create(&persons)
+	db.Create(&orders)
 	return db
 }

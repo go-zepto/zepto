@@ -1,6 +1,6 @@
 package include
 
-type IncludeItem struct {
+type Include struct {
 	Relation string
 	Where    *map[string]interface{}
 }

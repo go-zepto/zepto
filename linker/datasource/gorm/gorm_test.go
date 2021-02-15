@@ -43,14 +43,17 @@ func TestFind_Where(t *testing.T) {
 	assert.Equal(t, res.Data[0]["name"], "Carlos Strand")
 }
 
-func TestFind_Where_Include(t *testing.T) {
+func TestFind_Where_Include_1(t *testing.T) {
 	db := testutils.SetupGorm()
 	gds := NewGormDatasource(db, &testutils.Person{})
 	res, err := gds.Find(datasource.QueryContext{
 		Filter: &filter.Filter{
-			Include: []include.IncludeItem{
+			Include: []include.Include{
 				{
 					Relation: "City",
+				},
+				{
+					Relation: "Orders",
 				},
 			},
 			Where: &map[string]interface{}{
@@ -65,6 +68,47 @@ func TestFind_Where_Include(t *testing.T) {
 	assert.Equal(t, res.Data[0]["name"], "Carlos Strand")
 	assert.NotNil(t, res.Data[0]["city"])
 	assert.Equal(t, "Salvador", res.Data[0]["city"].(*testutils.City).Name)
+	user := res.Data[0]
+	assert.Len(t, user["orders"], 2)
+	orders := user["orders"].([]testutils.Order)
+	assert.Equal(t, "Carlos's Order (1)", orders[0].Name)
+	assert.Equal(t, "Carlos's Order (2)", orders[1].Name)
+}
+
+func TestFind_Where_Include_2(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	res, err := gds.Find(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Include: []include.Include{
+				{
+					Relation: "City",
+				},
+				{
+					Relation: "Orders",
+					Where: &map[string]interface{}{
+						"approved": map[string]interface{}{
+							"eq": true,
+						},
+					},
+				},
+			},
+			Where: &map[string]interface{}{
+				"name": map[string]interface{}{
+					"eq": "Carlos Strand",
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), res.Count)
+	assert.Equal(t, res.Data[0]["name"], "Carlos Strand")
+	assert.NotNil(t, res.Data[0]["city"])
+	assert.Equal(t, "Salvador", res.Data[0]["city"].(*testutils.City).Name)
+	user := res.Data[0]
+	assert.Len(t, user["orders"], 1)
+	orders := user["orders"].([]testutils.Order)
+	assert.Equal(t, "Carlos's Order (1)", orders[0].Name)
 }
 
 func TestFind_Limit(t *testing.T) {
@@ -112,17 +156,7 @@ func TestFind_Skip(t *testing.T) {
 func TestFindOne(t *testing.T) {
 	db := testutils.SetupGorm()
 	gds := NewGormDatasource(db, &testutils.Person{})
-	res, err := gds.FindOne(datasource.QueryContext{
-		// Filter: &filter.Filter{
-		// 	Limit: &limit,
-		// 	Skip:  &skip,
-		// 	Where: &map[string]interface{}{
-		// 		"age": map[string]interface{}{
-		// 			"gt": 0,
-		// 		},
-		// 	},
-		// },
-	})
+	res, err := gds.FindOne(datasource.QueryContext{})
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	user := *res
@@ -147,19 +181,22 @@ func TestFindOne_Where(t *testing.T) {
 	assert.Equal(t, user["name"], "Bill Gates")
 }
 
-func TestFindOne_Where_Include(t *testing.T) {
+func TestFindOne_Where_Include_1(t *testing.T) {
 	db := testutils.SetupGorm()
 	gds := NewGormDatasource(db, &testutils.Person{})
 	res, err := gds.FindOne(datasource.QueryContext{
 		Filter: &filter.Filter{
-			Include: []include.IncludeItem{
+			Include: []include.Include{
 				{
 					Relation: "City",
+				},
+				{
+					Relation: "Orders",
 				},
 			},
 			Where: &map[string]interface{}{
 				"age": map[string]interface{}{
-					"gt": 50,
+					"eq": 27,
 				},
 			},
 		},
@@ -167,11 +204,53 @@ func TestFindOne_Where_Include(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	user := *res
-	assert.Equal(t, user["name"], "Bill Gates")
+	assert.Equal(t, user["name"], "Carlos Strand")
 	assert.NotNil(t, user["city"])
 	cityArg := user["city"]
 	city := cityArg.(*testutils.City)
-	assert.Equal(t, city.Name, "Seattle")
+	assert.Equal(t, city.Name, "Salvador")
+	assert.Len(t, user["orders"], 2)
+	orders := user["orders"].([]testutils.Order)
+	assert.Equal(t, "Carlos's Order (1)", orders[0].Name)
+	assert.Equal(t, "Carlos's Order (2)", orders[1].Name)
+}
+
+func TestFindOne_Where_Include_2(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	res, err := gds.FindOne(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Include: []include.Include{
+				{
+					Relation: "City",
+				},
+				{
+					Relation: "Orders",
+					Where: &map[string]interface{}{
+						"approved": map[string]interface{}{
+							"eq": true,
+						},
+					},
+				},
+			},
+			Where: &map[string]interface{}{
+				"age": map[string]interface{}{
+					"eq": 27,
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	user := *res
+	assert.Equal(t, user["name"], "Carlos Strand")
+	assert.NotNil(t, user["city"])
+	cityArg := user["city"]
+	city := cityArg.(*testutils.City)
+	assert.Equal(t, city.Name, "Salvador")
+	assert.Len(t, user["orders"], 1)
+	orders := user["orders"].([]testutils.Order)
+	assert.Equal(t, "Carlos's Order (1)", orders[0].Name)
 }
 
 func TestCreate(t *testing.T) {
