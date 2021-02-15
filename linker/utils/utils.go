@@ -52,3 +52,8 @@ func DecodeStructToMap(input interface{}) map[string]interface{} {
 	DecodeMapToStruct(input, &out)
 	return out
 }
+func DecodeStructToMapList(input interface{}) []map[string]interface{} {
+	out := []map[string]interface{}{}
+	DecodeMapToStruct(input, &out)
+	return out
+}

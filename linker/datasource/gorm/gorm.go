@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/go-zepto/zepto/linker/datasource"
@@ -38,11 +39,49 @@ func (g *GormDatasource) ApplyWhere(ctx datasource.QueryContext, query *gorm.DB)
 	return query, nil
 }
 
+func (g *GormDatasource) ApplyInclude(ctx datasource.QueryContext, query *gorm.DB) (*gorm.DB, error) {
+	if ctx.Filter != nil && ctx.Filter.Include != nil {
+		for _, include := range ctx.Filter.Include {
+			if include.Where == nil {
+				fmt.Println("Preloading: " + include.Relation + "...")
+				query = query.Preload(include.Relation)
+			} else {
+				where := where.NewFromMap(*include.Where)
+				sqlWhere, err := where.ToSQL()
+				if err != nil {
+					return nil, err
+				}
+				args := []interface{}{}
+				args = append(args, sqlWhere.Text)
+				for _, v := range sqlWhere.Vars {
+					args = append(args, v)
+				}
+				query = query.Preload(include.Relation, args...)
+			}
+		}
+	}
+	return query, nil
+}
+
+func (g *GormDatasource) createModelReflectInstance() reflect.Value {
+	return reflect.New(reflect.TypeOf(g.Model).Elem())
+}
+
+func (g *GormDatasource) createModelReflectInstanceSlice() reflect.Value {
+	elemType := reflect.TypeOf(g.Model)
+	return reflect.New(reflect.SliceOf(elemType))
+}
+
 func (g *GormDatasource) Find(ctx datasource.QueryContext) (*datasource.ListResult, error) {
-	dest := []map[string]interface{}{}
+	obj := g.createModelReflectInstanceSlice()
+	dest := obj.Interface()
 	var count int64
 	query := g.DB.Model(g.Model)
-	query, err := g.ApplyWhere(ctx, query)
+	query, err := g.ApplyInclude(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	query, err = g.ApplyWhere(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -51,30 +90,33 @@ func (g *GormDatasource) Find(ctx datasource.QueryContext) (*datasource.ListResu
 		return nil, err
 	}
 	query = query.Limit(int(g.Properties.GetLimit(ctx))).Offset(int(g.Properties.GetSkip(ctx)))
-	if err := query.Find(&dest).Error; err != nil {
+	if err := query.Find(dest).Error; err != nil {
 		return nil, err
 	}
+	result := lutils.DecodeStructToMapList(dest)
 	return &datasource.ListResult{
-		Data:  dest,
+		Data:  result,
 		Count: count,
 	}, nil
 }
 
 func (g *GormDatasource) FindOne(ctx datasource.QueryContext) (*map[string]interface{}, error) {
-	dest := map[string]interface{}{}
-	query := g.DB.Model(g.Model)
-	query, err := g.ApplyWhere(ctx, query)
+	obj := g.createModelReflectInstance()
+	dest := obj.Interface()
+	query := g.DB
+	query, err := g.ApplyInclude(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	if err := query.First(&dest).Error; err != nil {
+	query, err = g.ApplyWhere(ctx, query)
+	if err != nil {
 		return nil, err
 	}
-	return &dest, nil
-}
-
-func (g *GormDatasource) createModelReflectInstance() reflect.Value {
-	return reflect.New(reflect.TypeOf(g.Model).Elem())
+	if err := query.First(dest).Error; err != nil {
+		return nil, err
+	}
+	result := lutils.DecodeStructToMap(dest)
+	return &result, nil
 }
 
 func (g *GormDatasource) Create(ctx datasource.QueryContext, data map[string]interface{}) (*map[string]interface{}, error) {

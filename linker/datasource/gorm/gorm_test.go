@@ -7,6 +7,7 @@ import (
 	"github.com/go-zepto/zepto/linker/datasource"
 	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/linker/filter"
+	"github.com/go-zepto/zepto/linker/filter/include"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/thriftrw/ptr"
 )
@@ -40,6 +41,30 @@ func TestFind_Where(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), res.Count)
 	assert.Equal(t, res.Data[0]["name"], "Carlos Strand")
+}
+
+func TestFind_Where_Include(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	res, err := gds.Find(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Include: []include.IncludeItem{
+				{
+					Relation: "City",
+				},
+			},
+			Where: &map[string]interface{}{
+				"name": map[string]interface{}{
+					"eq": "Carlos Strand",
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), res.Count)
+	assert.Equal(t, res.Data[0]["name"], "Carlos Strand")
+	assert.NotNil(t, res.Data[0]["city"])
+	assert.Equal(t, "Salvador", res.Data[0]["city"].(*testutils.City).Name)
 }
 
 func TestFind_Limit(t *testing.T) {
@@ -120,6 +145,33 @@ func TestFindOne_Where(t *testing.T) {
 	assert.NotNil(t, res)
 	user := *res
 	assert.Equal(t, user["name"], "Bill Gates")
+}
+
+func TestFindOne_Where_Include(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	res, err := gds.FindOne(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Include: []include.IncludeItem{
+				{
+					Relation: "City",
+				},
+			},
+			Where: &map[string]interface{}{
+				"age": map[string]interface{}{
+					"gt": 50,
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	user := *res
+	assert.Equal(t, user["name"], "Bill Gates")
+	assert.NotNil(t, user["city"])
+	cityArg := user["city"]
+	city := cityArg.(*testutils.City)
+	assert.Equal(t, city.Name, "Seattle")
 }
 
 func TestCreate(t *testing.T) {
