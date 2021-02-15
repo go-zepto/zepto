@@ -104,6 +104,9 @@ func (app *App) Init() {
 func (app *App) Start() {
 	app.Init()
 	dev := app.opts.env == "development"
+	if _, err := os.Stat("webpack.config.js"); dev && os.IsNotExist(err) {
+		return
+	}
 	if app.opts.webpackEnabled {
 		webpack.FsPath = "./public/build"
 		webpack.WebPath = "build"
