@@ -98,15 +98,15 @@ func (app *App) Init() {
 		app.initRouterHandlers(router)
 	}
 	// Initialize Template Engine
-	err := app.tmplEngine.Init()
-	if err != nil {
-		panic(err)
-	}
+	app.tmplEngine.Init()
 }
 
 func (app *App) Start() {
 	app.Init()
 	dev := app.opts.env == "development"
+	if _, err := os.Stat("webpack.config.js"); dev && os.IsNotExist(err) {
+		return
+	}
 	if app.opts.webpackEnabled {
 		webpack.FsPath = "./public/build"
 		webpack.WebPath = "build"
@@ -120,22 +120,16 @@ func (app *App) Start() {
 	}
 }
 
+func (app *App) isDev() bool {
+	return app.opts.env == "development"
+}
+
 func (app *App) getSession(res http.ResponseWriter, req *http.Request) *Session {
 	session, _ := app.opts.sessionStore.Get(req, app.opts.sessionName)
 	return &Session{
 		gSession: session,
 		req:      req,
 		res:      res,
-	}
-}
-
-// HandleError recovers from panics gracefully and calls
-func (app *App) HandleError(res http.ResponseWriter, req *http.Request, err error) {
-	if app.opts.env == "development" {
-		res.WriteHeader(500)
-		renderer.RenderDevelopmentError(res, req, err)
-	} else {
-		res.WriteHeader(500)
 	}
 }
 
@@ -185,5 +179,5 @@ func (app *App) Resource(path string, resource Resource) *App {
 //func (app *App) Use(mw ...MiddlewareFunc)
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ErrorHandler(app).ServeHTTP(w, r)
+	app.muxRouter.ServeHTTP(w, r)
 }

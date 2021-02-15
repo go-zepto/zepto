@@ -145,3 +145,82 @@ func TestRouter_MultipleHosts(t *testing.T) {
 		}
 	}
 }
+
+type ResourceMockInfo struct {
+	Controller string `json:"controller"`
+}
+
+type ResourceMock struct{}
+
+func (rm *ResourceMock) List(ctx Context) error {
+	return ctx.RenderJson(ResourceMockInfo{Controller: "LIST BOOKS"})
+}
+
+func (rm *ResourceMock) Show(ctx Context) error {
+	id := ctx.Params()["id"]
+	return ctx.RenderJson(ResourceMockInfo{Controller: "SHOW BOOK ID=" + id})
+}
+
+func (rm *ResourceMock) Create(ctx Context) error {
+	return ctx.RenderJson(ResourceMockInfo{Controller: "CREATE BOOK"})
+}
+
+func (rm *ResourceMock) Update(ctx Context) error {
+	id := ctx.Params()["id"]
+	return ctx.RenderJson(ResourceMockInfo{Controller: "UPDATE BOOK ID=" + id})
+}
+
+func (rm *ResourceMock) Destroy(ctx Context) error {
+	id := ctx.Params()["id"]
+	return ctx.RenderJson(ResourceMockInfo{Controller: "DESTROY BOOK ID=" + id})
+}
+
+func TestRouter_Resource(t *testing.T) {
+	r := require.New(t)
+	app := setupAppTest()
+	api := app.Router("/api")
+	api.Resource("/books", &ResourceMock{})
+	app.Start()
+	testCases := []struct {
+		method       string
+		endpoint     string
+		expectedText string
+	}{
+		{
+			method:       "GET",
+			endpoint:     "/api/books",
+			expectedText: "LIST BOOKS",
+		},
+		{
+			method:       "GET",
+			endpoint:     "/api/books/55",
+			expectedText: "SHOW BOOK ID=55",
+		},
+		{
+			method:       "POST",
+			endpoint:     "/api/books",
+			expectedText: "CREATE BOOK",
+		},
+		{
+			method:       "PUT",
+			endpoint:     "/api/books/90",
+			expectedText: "UPDATE BOOK ID=90",
+		},
+		{
+			method:       "DELETE",
+			endpoint:     "/api/books/70",
+			expectedText: "DESTROY BOOK ID=70",
+		},
+	}
+	for _, c := range testCases {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(c.method, c.endpoint, nil)
+		app.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Error("Did not get expected HTTP status code, got", w.Code)
+		}
+		var info ResourceMockInfo
+		json.Unmarshal(w.Body.Bytes(), &info)
+		r.Equal(c.expectedText, info.Controller)
+	}
+}

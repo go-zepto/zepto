@@ -169,23 +169,7 @@ func TestApp_HandleMethod_Patch(t *testing.T) {
 	assertRequest(t, app, "PATCH", "/hello", 200, "Mocked Template!")
 }
 
-func TestApp_HandleMethod_ControllerErrorDevelopment(t *testing.T) {
-	app := setupAppTest()
-	app.Get("/hello", func(ctx Context) error {
-		return errors.New("some custom error")
-	})
-	app.Init()
-	w := httptest.NewRecorder()
-	app.ServeHTTP(w, httptest.NewRequest("GET", "/hello", nil))
-	if w.Code != http.StatusInternalServerError {
-		t.Error("Did not get expected HTTP status code, got", w.Code)
-	}
-	if !strings.Contains(w.Body.String(), "<title>Internal Error - some custom error</title>") {
-		t.Error("Did not get expected body, got", w.Body.String())
-	}
-}
-
-func TestApp_HandleMethod_ControllerPanicDevelopment(t *testing.T) {
+func TestApp_HandleMethod_ControllerPanicDevelopmentAsDebug(t *testing.T) {
 	app := setupAppTest()
 	app.Get("/hello", func(ctx Context) error {
 		panic(errors.New("panic problem"))
@@ -197,7 +181,7 @@ func TestApp_HandleMethod_ControllerPanicDevelopment(t *testing.T) {
 	if w.Code != http.StatusInternalServerError {
 		t.Error("Did not get expected HTTP status code, got", w.Code)
 	}
-	if !strings.Contains(w.Body.String(), "<title>Internal Error - panic problem</title>") {
+	if !strings.Contains(w.Body.String(), "<title>Internal Error - 500 - internal server error: panic problem</title>") {
 		t.Error("Did not get expected body, got", w.Body.String())
 	}
 }
