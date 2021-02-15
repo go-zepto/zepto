@@ -98,10 +98,7 @@ func (app *App) Init() {
 		app.initRouterHandlers(router)
 	}
 	// Initialize Template Engine
-	err := app.tmplEngine.Init()
-	if err != nil {
-		panic(err)
-	}
+	app.tmplEngine.Init()
 }
 
 func (app *App) Start() {
