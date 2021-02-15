@@ -101,6 +101,17 @@ func (r *Repository) Update(ctx context.Context, filter *filter.Filter, data map
 	}, nil
 }
 
+func (r *Repository) Create(ctx context.Context, data map[string]interface{}) (*SingleResult, error) {
+	res, err := r.ds.Create(datasource.QueryContext{
+		Context: ctx,
+	}, data)
+	if err != nil {
+		return nil, err
+	}
+	rr := SingleResult(*res)
+	return &rr, nil
+}
+
 func (r *Repository) DestroyById(ctx context.Context, id interface{}) error {
 	where := map[string]interface{}{
 		"id": map[string]interface{}{

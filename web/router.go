@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	pathlib "path"
 
 	"path"
 
@@ -100,6 +101,16 @@ func (router *Router) Any(path string, routeHandler RouteHandler) *Router {
 
 func (router *Router) Use(mw ...MiddlewareFunc) {
 	router.middleware.Use(mw...)
+}
+
+func (router *Router) Resource(path string, resource Resource) *Router {
+	id_path := pathlib.Join(path, "/{id}")
+	router.Get(path, resource.List)
+	router.Get(id_path, resource.Show)
+	router.Post(path, resource.Create)
+	router.Put(id_path, resource.Update)
+	router.Delete(id_path, resource.Destroy)
+	return router
 }
 
 func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *string) {
