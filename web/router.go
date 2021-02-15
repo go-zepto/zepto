@@ -1,12 +1,16 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	pathlib "path"
+	"strconv"
+	"strings"
 
 	"path"
 
+	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/gorilla/mux"
 )
 
@@ -113,6 +117,22 @@ func (router *Router) Resource(path string, resource Resource) *Router {
 	return router
 }
 
+// HandleError recovers from panics gracefully and calls
+func (app *App) HandleError(router *Router, ctx Context, err error) {
+	status := ctx.GetStatus()
+	if status == 200 {
+		status = 500
+	}
+	ctx.Response().WriteHeader(status)
+	errMessage := strings.ToLower(strconv.Itoa(status) + " - " + http.StatusText(status))
+	if err != nil && app.isDev() {
+		errMessage = errMessage + ": " + err.Error()
+		renderer.RenderDevelopmentError(ctx.Response(), ctx.Request(), errors.New(errMessage))
+		return
+	}
+	ctx.Response().Write([]byte(errMessage))
+}
+
 func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *string) {
 	var muxRouter *mux.Router
 	if host == nil {
@@ -145,7 +165,7 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 				default:
 					e = fmt.Errorf(fmt.Sprint(t))
 				}
-				app.HandleError(res, req, e)
+				app.HandleError(router, ctx, e)
 			}
 		}()
 		h := h.routeHandler
@@ -158,7 +178,7 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 		err := h(ctx)
 		// Handle Controller Error
 		if err != nil {
-			app.HandleError(res, req, err)
+			app.HandleError(router, ctx, err)
 		}
 	}).Methods(h.methods...)
 }

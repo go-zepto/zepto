@@ -120,22 +120,16 @@ func (app *App) Start() {
 	}
 }
 
+func (app *App) isDev() bool {
+	return app.opts.env == "development"
+}
+
 func (app *App) getSession(res http.ResponseWriter, req *http.Request) *Session {
 	session, _ := app.opts.sessionStore.Get(req, app.opts.sessionName)
 	return &Session{
 		gSession: session,
 		req:      req,
 		res:      res,
-	}
-}
-
-// HandleError recovers from panics gracefully and calls
-func (app *App) HandleError(res http.ResponseWriter, req *http.Request, err error) {
-	if app.opts.env == "development" {
-		res.WriteHeader(500)
-		renderer.RenderDevelopmentError(res, req, err)
-	} else {
-		res.WriteHeader(500)
 	}
 }
 
@@ -185,5 +179,5 @@ func (app *App) Resource(path string, resource Resource) *App {
 //func (app *App) Use(mw ...MiddlewareFunc)
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ErrorHandler(app).ServeHTTP(w, r)
+	app.muxRouter.ServeHTTP(w, r)
 }

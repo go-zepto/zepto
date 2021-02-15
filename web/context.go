@@ -3,12 +3,14 @@ package web
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"sync"
+
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/gorilla/mux"
-	"net/http"
-	"sync"
+
 	// Enable webpack asset feature
 	_ "github.com/go-webpack/pongo2"
 )
@@ -20,6 +22,7 @@ type Context interface {
 	Params() map[string]string
 	Set(string, interface{})
 	SetStatus(status int) Context
+	GetStatus() int
 	Render(template string) error
 	RenderJson(data interface{}) error
 	Redirect(url string) error
@@ -79,6 +82,11 @@ func (d *DefaultContext) Value(key interface{}) interface{} {
 func (d *DefaultContext) SetStatus(s int) Context {
 	d.status = s
 	return d
+}
+
+// GetStatus get the current context status
+func (d *DefaultContext) GetStatus() int {
+	return d.status
 }
 
 // Render a template
