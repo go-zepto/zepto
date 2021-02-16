@@ -11,7 +11,7 @@ type RemoteHooksInfo struct {
 
 type RemoteHooks interface {
 	BeforeRemote(info RemoteHooksInfo) error
-	AfterRemote(info RemoteHooksInfo) error
+	AfterRemote(info RemoteHooksInfo) (*map[string]interface{}, error)
 }
 
 type OperationHooksInfo struct {

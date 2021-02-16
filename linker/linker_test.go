@@ -61,9 +61,11 @@ func (r *RemoteHooksMock) BeforeRemote(info hooks.RemoteHooksInfo) error {
 	return nil
 }
 
-func (r *RemoteHooksMock) AfterRemote(info hooks.RemoteHooksInfo) error {
+func (r *RemoteHooksMock) AfterRemote(info hooks.RemoteHooksInfo) (*map[string]interface{}, error) {
 	r.afterRemoteCallInfo = &info
-	return nil
+	data := *info.Data
+	data["custom_field"] = "perfect!"
+	return &data, nil
 }
 
 type RemoteHooksMockError struct{}
@@ -73,8 +75,8 @@ func (r *RemoteHooksMockError) BeforeRemote(info hooks.RemoteHooksInfo) error {
 	return errors.New("ups! strange error")
 }
 
-func (r *RemoteHooksMockError) AfterRemote(info hooks.RemoteHooksInfo) error {
-	return nil
+func (r *RemoteHooksMockError) AfterRemote(info hooks.RemoteHooksInfo) (*map[string]interface{}, error) {
+	return nil, nil
 }
 
 func TestBeforeRemoteHooksList(t *testing.T) {
@@ -90,13 +92,15 @@ func TestBeforeRemoteHooksList(t *testing.T) {
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people", nil))
 	type Res struct {
-		Data  []testutils.Person `json:"data"`
-		Count int                `json:"count"`
+		Data        []testutils.Person `json:"data"`
+		Count       int                `json:"count"`
+		CustomField string             `json:"custom_field"`
 	}
 	var res Res
 	json.Unmarshal(w.Body.Bytes(), &res)
 	r.Equal(http.StatusOK, w.Code)
 	r.Equal(3, res.Count)
+	r.Equal("perfect!", res.CustomField)
 	r.Equal("Carlos Strand", res.Data[0].Name)
 	r.Equal("Bill Gates", res.Data[1].Name)
 	r.Equal("Clark Kent", res.Data[2].Name)
@@ -143,11 +147,16 @@ func TestBeforeRemoteHooksShow(t *testing.T) {
 	w := httptest.NewRecorder()
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people/1", nil))
-	var res testutils.Person
+	type Res struct {
+		testutils.Person
+		CustomField string `json:"custom_field"`
+	}
+	var res Res
 	json.Unmarshal(w.Body.Bytes(), &res)
 	r.Equal(http.StatusOK, w.Code)
 	r.Equal(uint(1), res.ID)
 	r.Equal("Carlos Strand", res.Name)
+	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
 	r.NotNil(binfo)
@@ -161,7 +170,7 @@ func TestBeforeRemoteHooksShow(t *testing.T) {
 	r.Equal("Show", ainfo.Endpoint)
 	r.NotNil(ainfo.ID)
 	r.Equal("1", *ainfo.ID)
-	var hres testutils.Person
+	var hres Res
 	utils.DecodeMapToStruct(ainfo.Data, &hres)
 	r.Equal(res.ID, hres.ID)
 	r.Equal(res.Name, hres.Name)
@@ -200,11 +209,16 @@ func TestBeforeRemoteHooksCreate(t *testing.T) {
 		}
 	`
 	k.app.ServeHTTP(w, httptest.NewRequest("POST", "/api/people", strings.NewReader(body)))
-	var res testutils.Person
+	type Res struct {
+		testutils.Person
+		CustomField string `json:"custom_field"`
+	}
+	var res Res
 	json.Unmarshal(w.Body.Bytes(), &res)
 	r.Equal(http.StatusOK, w.Code)
 	r.Equal(uint(4), res.ID)
 	r.Equal("Bruce Wayne", res.Name)
+	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
 	r.NotNil(binfo)
@@ -221,7 +235,7 @@ func TestBeforeRemoteHooksCreate(t *testing.T) {
 	r.NotNil(ainfo.ID)
 	r.Equal("4", *ainfo.ID)
 	r.Equal("Create", ainfo.Endpoint)
-	var hres testutils.Person
+	var hres Res
 	utils.DecodeMapToStruct(ainfo.Data, &hres)
 	r.Equal(res.ID, hres.ID)
 	r.Equal(res.Name, hres.Name)
@@ -266,11 +280,16 @@ func TestBeforeRemoteHooksUpdate(t *testing.T) {
 		}
 	`
 	k.app.ServeHTTP(w, httptest.NewRequest("PUT", "/api/people/1", strings.NewReader(body)))
-	var res testutils.Person
+	type Res struct {
+		testutils.Person
+		CustomField string `json:"custom_field"`
+	}
+	var res Res
 	json.Unmarshal(w.Body.Bytes(), &res)
 	r.Equal(http.StatusOK, w.Code)
 	r.Equal(uint(1), res.ID)
 	r.Equal("Bruce Wayne", res.Name)
+	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
 	r.NotNil(binfo)
@@ -287,7 +306,7 @@ func TestBeforeRemoteHooksUpdate(t *testing.T) {
 	r.NotNil(ainfo.ID)
 	r.Equal("1", *ainfo.ID)
 	r.Equal("Update", ainfo.Endpoint)
-	var hres testutils.Person
+	var hres Res
 	utils.DecodeMapToStruct(ainfo.Data, &hres)
 	r.Equal(res.ID, hres.ID)
 	r.Equal(res.Name, hres.Name)
@@ -327,12 +346,14 @@ func TestBeforeRemoteHooksDestroy(t *testing.T) {
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("DELETE", "/api/people/1", nil))
 	type DelRes struct {
-		Deleted bool `json:"deleted"`
+		Deleted     bool   `json:"deleted"`
+		CustomField string `json:"custom_field"`
 	}
 	var res DelRes
 	json.Unmarshal(w.Body.Bytes(), &res)
 	r.Equal(http.StatusOK, w.Code)
 	r.Equal(true, res.Deleted)
+	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
 	r.NotNil(binfo)

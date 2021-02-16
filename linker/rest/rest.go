@@ -29,17 +29,18 @@ func (rest *RestResource) List(ctx web.Context) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		var hres map[string]interface{}
-		res.DecodeAll(&hres)
-		rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-			ID:       nil,
-			Endpoint: "List",
-			Data:     &hres,
-			Ctx:      ctx,
-		})
-	}()
-	return ctx.RenderJson(res)
+	var hres map[string]interface{}
+	res.DecodeAll(&hres)
+	ares, err := rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
+		ID:       nil,
+		Endpoint: "List",
+		Data:     &hres,
+		Ctx:      ctx,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.RenderJson(ares)
 }
 
 func (rest *RestResource) Show(ctx web.Context) error {
@@ -58,17 +59,18 @@ func (rest *RestResource) Show(ctx web.Context) error {
 		ctx.SetStatus(400)
 		return err
 	}
-	defer func() {
-		var hres map[string]interface{}
-		res.Decode(&hres)
-		rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-			ID:       &id,
-			Endpoint: "Show",
-			Data:     &hres,
-			Ctx:      ctx,
-		})
-	}()
-	return ctx.RenderJson(res)
+	var hres map[string]interface{}
+	res.Decode(&hres)
+	ares, err := rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
+		ID:       &id,
+		Endpoint: "Show",
+		Data:     &hres,
+		Ctx:      ctx,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.RenderJson(ares)
 }
 
 func (rest *RestResource) Create(ctx web.Context) error {
@@ -90,18 +92,19 @@ func (rest *RestResource) Create(ctx web.Context) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		var hres map[string]interface{}
-		res.Decode(&hres)
-		id := fmt.Sprintf("%v", hres["id"])
-		rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-			ID:       &id,
-			Endpoint: "Create",
-			Data:     &hres,
-			Ctx:      ctx,
-		})
-	}()
-	return ctx.RenderJson(res)
+	var hres map[string]interface{}
+	res.Decode(&hres)
+	id := fmt.Sprintf("%v", hres["id"])
+	ares, err := rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
+		ID:       &id,
+		Endpoint: "Create",
+		Data:     &hres,
+		Ctx:      ctx,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.RenderJson(ares)
 }
 
 func (rest *RestResource) Update(ctx web.Context) error {
@@ -124,17 +127,18 @@ func (rest *RestResource) Update(ctx web.Context) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		var hres map[string]interface{}
-		res.Decode(&hres)
-		rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-			ID:       &id,
-			Endpoint: "Update",
-			Data:     &hres,
-			Ctx:      ctx,
-		})
-	}()
-	return ctx.RenderJson(res)
+	var hres map[string]interface{}
+	res.Decode(&hres)
+	ares, err := rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
+		ID:       &id,
+		Endpoint: "Update",
+		Data:     &hres,
+		Ctx:      ctx,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.RenderJson(ares)
 }
 
 func (rest *RestResource) Destroy(ctx web.Context) error {
@@ -155,13 +159,14 @@ func (rest *RestResource) Destroy(ctx web.Context) error {
 	res := map[string]interface{}{
 		"deleted": true,
 	}
-	defer func() {
-		rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-			ID:       &id,
-			Endpoint: "Destroy",
-			Data:     &res,
-			Ctx:      ctx,
-		})
-	}()
-	return ctx.RenderJson(res)
+	ares, err := rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
+		ID:       &id,
+		Endpoint: "Destroy",
+		Data:     &res,
+		Ctx:      ctx,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.RenderJson(ares)
 }
