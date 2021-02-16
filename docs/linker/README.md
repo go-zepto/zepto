@@ -5,7 +5,7 @@ Linker is a go-zepto module for those who don't want to lose time with repetitiv
 With few lines of codes you can build a complete CRUD API. Also, Linker is extensible, wich means you can easily apply business rules.
 
 
-# Supported Datasources
+### Supported Datasources
 
  - Gorm
 
@@ -306,3 +306,145 @@ Also, as any filter config, you can use URI filter format:
 ```
 GET /api/books?filter[skip]=10&filter[limit]=10
 ```
+
+
+## Include Filter
+
+You can include results from related models data when you retrieve objects.
+
+Include works with:
+- One-to-One
+- One-to-Many
+- Many-to-Many
+
+
+Example in JSON filter:
+
+```json
+{
+  "include": [
+    {
+      "relation": "Author"
+    }
+  ]
+}
+```
+
+Example in URI filter:
+
+```
+GET /books?filter[include][][relation]=Author
+```
+
+You can also, perform a where in related model.
+
+Let's assume we have an ecommerce and we need to get a user with all his active orders:
+
+
+Example:
+
+```json
+{
+  "include": [
+    {
+      "relation": "Orders",
+      "where": {
+        "active": {
+          "eq": true
+        }
+      }
+    }
+  ]
+}
+```
+
+
+# Hooks
+
+Sometimes just a simple CRUD does not meet our needs. Sometimes it is necessary to insert a business rule or have a certain customized control under a Model.
+
+Hooks was created for that. For any kind of request (List, Show, Create, Update or Destroy) it intercepts the request in 4 moments:
+
+**Remote Hooks:**
+- BeforeRemote 
+- AfterRemote
+
+**Operation Hooks:**
+- BeforeOperation
+- AfterOperation
+
+
+## Remote Hooks
+
+Remote hooks is called in web context. It means that you can intercept in two moments:
+
+- BeforeRemote: When Liker receives the HTTP Request from user
+- AfterRemote: When Linker will send the response back to the user
+
+If you need to intercept the request in the sitations above, you will need to implement the RemoteHooks interface:
+
+```go
+type RemoteHooks interface {
+	BeforeRemote(info RemoteHooksInfo) error
+	AfterRemote(info RemoteHooksInfo) error
+}
+```
+
+#### Quick Example RemoteHooks
+
+1 - Create a struct that implements RemoteHooks:
+
+```go
+type BookRemoteHooks struct{}
+
+func (h *BookRemoteHooks) BeforeRemote(info hooks.RemoteHooksInfo) error {
+	if info.Ctx.Session().Get("user") == nil {
+		info.Ctx.SetStatus(401)
+		return errors.New("not logged")
+	}
+	return nil
+}
+
+func (h *BookRemoteHooks) AfterRemote(info hooks.RemoteHooksInfo) error {
+	d := *info.Data
+	d["custom_field"] = "I added this custom field to the current response data"
+	if info.Endpoint == "Show" {
+		d["only_show_endpoint"] = "This custom field only is available in endpoint of kind 'Show'"
+	}
+	return nil
+}
+```
+
+2 - Add hooks to the resource configuration:
+
+```go
+...
+
+	lr.AddResource(linker.Resource{
+		Name:        "Book",
+		Datasource:  gormds.NewGormDatasource(db, &Book{}),
+		RemoteHooks: &BookRemoteHooks{},
+	})
+
+...
+```
+
+
+In Remote Hooks (Before and After), you have access of a `info` object like below:
+
+```go
+type RemoteHooksInfo struct {
+	Endpoint string
+	Ctx      web.Context
+	ID       *string
+	Data     *map[string]interface{}
+}
+```
+
+
+| Field | Description
+| --- | --- |
+| info.Endpoint | kind of endpoint: `List`,`Show`,`Create`,`Update` or `Destroy`
+| info.Ctx | Zepto Web Context. You have access to Request (Host, Cookies, Session, and every Zepto feature)
+| info.ID | The object ID to be requested. It can be nil in some kind of endpoints |
+| info.Data | The object Data that will be send to user as json. You can change it in AfterRemote to customize the final response
