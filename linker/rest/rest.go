@@ -11,9 +11,8 @@ import (
 )
 
 type RestResource struct {
-	Repository     *repository.Repository
-	RemoteHooks    hooks.RemoteHooks
-	OperationHooks hooks.OperationHooks
+	Repository  *repository.Repository
+	RemoteHooks hooks.RemoteHooks
 }
 
 func (rest *RestResource) List(ctx web.Context) error {

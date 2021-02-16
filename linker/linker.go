@@ -39,12 +39,12 @@ func (l *Linker) AddResource(res Resource) {
 		res.OperationHooks = &hooks.DefaultOperationHooks{}
 	}
 	repo := repository.NewRepository(repository.RepositoryConfig{
-		Datasource: res.Datasource,
+		Datasource:     res.Datasource,
+		OperationHooks: res.OperationHooks,
 	})
 	r := rest.RestResource{
-		Repository:     repo,
-		RemoteHooks:    res.RemoteHooks,
-		OperationHooks: res.OperationHooks,
+		Repository:  repo,
+		RemoteHooks: res.RemoteHooks,
 	}
 	l.repositories[res.Name] = repo
 	endpoint := utils.ToSnakeCase(l.pluralize.Plural(res.Name))

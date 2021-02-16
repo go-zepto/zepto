@@ -1,6 +1,9 @@
 package hooks
 
-import "github.com/go-zepto/zepto/web"
+import (
+	"github.com/go-zepto/zepto/linker/datasource"
+	"github.com/go-zepto/zepto/web"
+)
 
 type RemoteHooksInfo struct {
 	Endpoint string
@@ -15,9 +18,10 @@ type RemoteHooks interface {
 }
 
 type OperationHooksInfo struct {
-	Operation string
-	ID        *string
-	Data      *map[string]interface{}
+	Operation    string
+	ID           *string
+	Data         *map[string]interface{}
+	QueryContext *datasource.QueryContext
 }
 
 type OperationHooks interface {
