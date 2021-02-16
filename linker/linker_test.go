@@ -61,11 +61,11 @@ func (r *RemoteHooksMock) BeforeRemote(info hooks.RemoteHooksInfo) error {
 	return nil
 }
 
-func (r *RemoteHooksMock) AfterRemote(info hooks.RemoteHooksInfo) (*map[string]interface{}, error) {
+func (r *RemoteHooksMock) AfterRemote(info hooks.RemoteHooksInfo) error {
 	r.afterRemoteCallInfo = &info
 	data := *info.Data
 	data["custom_field"] = "perfect!"
-	return &data, nil
+	return nil
 }
 
 type RemoteHooksMockError struct{}
@@ -75,8 +75,8 @@ func (r *RemoteHooksMockError) BeforeRemote(info hooks.RemoteHooksInfo) error {
 	return errors.New("ups! strange error")
 }
 
-func (r *RemoteHooksMockError) AfterRemote(info hooks.RemoteHooksInfo) (*map[string]interface{}, error) {
-	return nil, nil
+func (r *RemoteHooksMockError) AfterRemote(info hooks.RemoteHooksInfo) error {
+	return nil
 }
 
 func TestBeforeRemoteHooksList(t *testing.T) {
