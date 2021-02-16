@@ -288,3 +288,21 @@ GET /api/books?filter[where][published_at][gt]=1995-06-26T00:00:00.000Z
 ```
 
 > Searching for any book that title **NOT** contains `Potter`.
+
+
+## Skip and Limit Filter
+
+You can easily paginate the list result with `skip` and `limit` as below:
+
+```json
+{
+  "skip": 10,
+  "limit": 10
+}
+```
+
+Also, as any filter config, you can use URI filter format:
+
+```
+GET /api/books?filter[skip]=10&filter[limit]=10
+```
