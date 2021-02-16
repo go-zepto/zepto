@@ -24,7 +24,14 @@ func (rest *RestResource) List(ctx web.Context) error {
 	if err != nil {
 		return err
 	}
-	res, err := rest.Repository.Find(ctx, utils.GetFilterFromQueryArgCtx(ctx))
+	filter, err := utils.GetFilterFromQueryArgCtx(ctx)
+	if err != nil {
+		ctx.SetStatus(400)
+		return ctx.RenderJson(map[string]string{
+			"error": err.Error(),
+		})
+	}
+	res, err := rest.Repository.Find(ctx, filter)
 	if err != nil {
 		return err
 	}
