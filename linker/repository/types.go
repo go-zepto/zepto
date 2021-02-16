@@ -17,6 +17,10 @@ func (s *ListResult) Decode(dest interface{}) error {
 	return utils.DecodeMapToStruct(s.Data, dest)
 }
 
+func (s *ListResult) DecodeAll(dest interface{}) error {
+	return utils.DecodeMapToStruct(s, dest)
+}
+
 type ManyAffectedResult struct {
 	TotalAffected int64
 }
