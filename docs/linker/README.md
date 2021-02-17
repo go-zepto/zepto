@@ -448,3 +448,97 @@ type RemoteHooksInfo struct {
 | info.Ctx | Zepto Web Context. You have access to Request (Host, Cookies, Session, and every Zepto feature)
 | info.ID | The object ID to be requested. It can be nil in some kind of endpoints |
 | info.Data | The object Data that will be send to user as json. You can change it in AfterRemote to customize the final response
+
+
+## Operation Hooks
+
+Operation hooks is called in Repository context. It means that you can intercept in two moments:
+
+- BeforeOperation: When Liker have all parsed data needed to perform operation in Model (Find, FindOne, Update, Destroy)
+- AfterOperation: When Linker sucessfully executed the operation and will send the result to Remote (Web)
+
+If you need to intercept the remote operations in the sitations above, you will need to implement the OperationHooks interface:
+
+```go
+type OperationHooks interface {
+	BeforeOperation(info OperationHooksInfo) error
+	AfterOperation(info OperationHooksInfo) error
+}
+```
+
+In Operation Hooks (Before and After), you have access of a `info` object like below:
+
+```go
+type OperationHooksInfo struct {
+	Operation    string
+	ID           *string
+	Data         *map[string]interface{}
+	QueryContext *datasource.QueryContext
+}
+```
+
+| Field | Description
+| --- | --- |
+| info.Operation | kind of operation: `FindOne`,`Find`,`Update`,`Create` or `Destroy`
+| info.ID | The object ID to be requested. It can be nil in some kind of operation |
+| info.Data | The object Data received from AfterOperation. You can change it with custom fields or removing some sensitive data, for example
+| info.QueryContext | The operation Query context. You can modify the Where object here in BeforeOperation
+
+#### Quick Example OperationHooks
+
+1 - Create a struct that implements OperationHooks:
+
+```go
+type BookOperationHooks struct{}
+
+func (h *BookOperationHooks) BeforeOperation(info hooks.OperationHooksInfo) error {
+	if info.Operation == "Find" {
+		maxLimit := int64(10)
+		filter := info.QueryContext.Filter
+		if filter.Limit != nil && *filter.Limit > maxLimit {
+			fmt.Printf("User requested limit=%d. Changing to %d (max)\n", *filter.Limit, maxLimit)
+			filter.Limit = &maxLimit
+		}
+	}
+	return nil
+}
+
+func (h *BookOperationHooks) AfterOperation(info hooks.OperationHooksInfo) error {
+	return nil
+}
+```
+
+2 - Add hooks to the resource configuration:
+
+```go
+...
+
+	lr.AddResource(linker.Resource{
+		Name:        "Book",
+		Datasource:  gormds.NewGormDatasource(db, &Book{}),
+		OperationHooks: &BookOperationHooks{},
+	})
+
+...
+```
+
+
+# Manual Resource Operations
+
+You can access the Linker Repository object and call operations manually.
+
+Example:
+
+```go
+lr := linker.NewLinker(api)
+
+lr.AddResource(linker.Resource{
+  Name:           "Book",
+  Datasource:     gormds.NewGormDatasource(db, &Book{}),
+  OperationHooks: &BookOperationHooks{},
+})
+
+res, err := lr.Repository("Book").Create(context.Background(), map[string]interface{}{
+  "title": "Harry Potter",
+})
+```
