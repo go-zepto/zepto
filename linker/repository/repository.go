@@ -7,6 +7,7 @@ import (
 	"github.com/go-zepto/zepto/linker/datasource"
 	"github.com/go-zepto/zepto/linker/filter"
 	"github.com/go-zepto/zepto/linker/hooks"
+	"github.com/go-zepto/zepto/linker/utils"
 )
 
 type Repository struct {
@@ -27,6 +28,10 @@ func NewRepository(config RepositoryConfig) *Repository {
 		ds:             config.Datasource,
 		operationHooks: config.OperationHooks,
 	}
+}
+
+func (r *Repository) encodeInputDataToMap(input interface{}) map[string]interface{} {
+	return utils.DecodeStructToMap(input)
 }
 
 func (r *Repository) FindById(ctx context.Context, id interface{}) (*SingleResult, error) {
@@ -84,9 +89,10 @@ func (r *Repository) Find(ctx context.Context, filter *filter.Filter) (*ListResu
 	if err != nil {
 		return nil, err
 	}
-	rrdata := make([]map[string]interface{}, 0)
+	rrdata := make(ManyResults, 0)
 	for _, r := range res.Data {
-		rrdata = append(rrdata, map[string]interface{}(r))
+		sr := SingleResult(r)
+		rrdata = append(rrdata, &sr)
 	}
 	lres := ListResult{
 		Data:  rrdata,
@@ -103,12 +109,12 @@ func (r *Repository) Find(ctx context.Context, filter *filter.Filter) (*ListResu
 		return nil, err
 	}
 	return &ListResult{
-		Data:  hres["data"].([]map[string]interface{}),
+		Data:  hres["data"].(ManyResults),
 		Count: hres["count"].(int64),
 	}, nil
 }
 
-func (r *Repository) UpdateById(ctx context.Context, id interface{}, data map[string]interface{}) (*SingleResult, error) {
+func (r *Repository) UpdateById(ctx context.Context, id interface{}, data interface{}) (*SingleResult, error) {
 	where := map[string]interface{}{
 		"id": map[string]interface{}{
 			"eq": id,
@@ -124,7 +130,8 @@ func (r *Repository) UpdateById(ctx context.Context, id interface{}, data map[st
 	return r.FindById(ctx, id)
 }
 
-func (r *Repository) Update(ctx context.Context, filter *filter.Filter, data map[string]interface{}) (*ManyAffectedResult, error) {
+func (r *Repository) Update(ctx context.Context, filter *filter.Filter, data interface{}) (*ManyAffectedResult, error) {
+	dataMap := r.encodeInputDataToMap(data)
 	qc := datasource.QueryContext{
 		Context: ctx,
 		Filter:  filter,
@@ -132,7 +139,7 @@ func (r *Repository) Update(ctx context.Context, filter *filter.Filter, data map
 	err := r.operationHooks.BeforeOperation(hooks.OperationHooksInfo{
 		Operation:    "Update",
 		QueryContext: &qc,
-		Data:         &data,
+		Data:         &dataMap,
 	})
 	if err != nil {
 		return nil, err
@@ -157,19 +164,20 @@ func (r *Repository) Update(ctx context.Context, filter *filter.Filter, data map
 	}, nil
 }
 
-func (r *Repository) Create(ctx context.Context, data map[string]interface{}) (*SingleResult, error) {
+func (r *Repository) Create(ctx context.Context, data interface{}) (*SingleResult, error) {
+	dataMap := r.encodeInputDataToMap(data)
 	qc := datasource.QueryContext{
 		Context: ctx,
 	}
 	err := r.operationHooks.BeforeOperation(hooks.OperationHooksInfo{
 		Operation:    "Create",
 		QueryContext: &qc,
-		Data:         &data,
+		Data:         &dataMap,
 	})
 	if err != nil {
 		return nil, err
 	}
-	res, err := r.ds.Create(qc, data)
+	res, err := r.ds.Create(qc, dataMap)
 	if err != nil {
 		return nil, err
 	}

@@ -172,6 +172,23 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, data["email"], d["email"])
 }
 
+func TestCreateFromModel(t *testing.T) {
+	db := testutils.SetupGorm()
+	r := SetupRepository(db, nil)
+	data := testutils.Person{
+		Name:  "New Name",
+		Email: ptr.String("email@test.com"),
+	}
+	res, err := r.Create(context.Background(), &data)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	var d testutils.Person
+	res.Decode(&d)
+	assert.Equal(t, d.ID, uint(4))
+	assert.Equal(t, data.Name, d.Name)
+	assert.Equal(t, data.Email, d.Email)
+}
+
 func TestCreate_OperationHooks(t *testing.T) {
 	db := testutils.SetupGorm()
 	hooks := OperationHooksMock{}
@@ -260,6 +277,30 @@ func TestUpdate(t *testing.T) {
 		var p testutils.Person
 		res.Decode(&p)
 		assert.Equal(t, "Young Person", p.Name)
+	}
+}
+
+func TestUpdateFromModel(t *testing.T) {
+	db := testutils.SetupGorm()
+	r := SetupRepository(db, nil)
+	where := map[string]interface{}{
+		"age": map[string]interface{}{
+			"in": []uint{24, 27},
+		},
+	}
+	data := testutils.Person{
+		Name: "Young Person Directly from GORM Model",
+	}
+	res, err := r.Update(context.Background(), &filter.Filter{Where: &where}, data)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, int64(2), res.TotalAffected)
+	for _, id := range []uint{1, 3} {
+		res, err := r.FindById(context.Background(), id)
+		assert.NoError(t, err)
+		var p testutils.Person
+		res.Decode(&p)
+		assert.Equal(t, "Young Person Directly from GORM Model", p.Name)
 	}
 }
 

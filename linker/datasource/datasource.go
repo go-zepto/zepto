@@ -24,8 +24,8 @@ type ManyAffectedResult struct {
 type Datasource interface {
 	Find(ctx QueryContext) (*ListResult, error)
 	FindOne(ctx QueryContext) (*map[string]interface{}, error)
-	Create(ctx QueryContext, data map[string]interface{}) (*map[string]interface{}, error)
-	Update(ctx QueryContext, data map[string]interface{}) (ManyAffectedResult, error)
+	Create(ctx QueryContext, data interface{}) (*map[string]interface{}, error)
+	Update(ctx QueryContext, data interface{}) (ManyAffectedResult, error)
 	Destroy(ctx QueryContext) (ManyAffectedResult, error)
 }
 

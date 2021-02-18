@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-zepto/zepto/linker/filter"
 )
@@ -34,7 +35,7 @@ func (r *RepositoryDecoder) Find(ctx context.Context, filter *filter.Filter, des
 	return res.Decode(dest)
 }
 
-func (r *RepositoryDecoder) UpdateById(ctx context.Context, id interface{}, data map[string]interface{}, dest interface{}) error {
+func (r *RepositoryDecoder) UpdateById(ctx context.Context, id interface{}, data interface{}, dest interface{}) error {
 	res, err := r.Repo.UpdateById(ctx, id, data)
 	if err != nil {
 		return nil
@@ -42,15 +43,16 @@ func (r *RepositoryDecoder) UpdateById(ctx context.Context, id interface{}, data
 	return res.Decode(dest)
 }
 
-func (r *RepositoryDecoder) Update(ctx context.Context, filter *filter.Filter, data map[string]interface{}, dest interface{}) error {
+func (r *RepositoryDecoder) Update(ctx context.Context, filter *filter.Filter, data interface{}, dest interface{}) error {
 	res, err := r.Repo.Update(ctx, filter, data)
+	fmt.Println(res)
 	if err != nil {
 		return nil
 	}
 	return res.Decode(dest)
 }
 
-func (r *RepositoryDecoder) Create(ctx context.Context, data map[string]interface{}, dest interface{}) error {
+func (r *RepositoryDecoder) Create(ctx context.Context, data interface{}, dest interface{}) error {
 	res, err := r.Repo.Create(ctx, data)
 	if err != nil {
 		return nil

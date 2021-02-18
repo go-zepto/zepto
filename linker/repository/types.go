@@ -13,9 +13,15 @@ func (s *SingleResult) Decode(dest interface{}) error {
 	return utils.DecodeMapToStruct(s, dest)
 }
 
+type ManyResults []*SingleResult
+
+func (m *ManyResults) Decode(dest interface{}) error {
+	return utils.DecodeMapToStruct(m, dest)
+}
+
 type ListResult struct {
-	Data  []map[string]interface{} `json:"data"`
-	Count int64                    `json:"count"`
+	Data  ManyResults `json:"data"`
+	Count int64       `json:"count"`
 }
 
 func (s *ListResult) Decode(dest interface{}) error {
@@ -30,7 +36,7 @@ func (s *ListResult) Decode(dest interface{}) error {
 }
 
 type ManyAffectedResult struct {
-	TotalAffected int64
+	TotalAffected int64 `json:"total_affected"`
 }
 
 func (mar *ManyAffectedResult) Decode(dest interface{}) error {
