@@ -36,7 +36,7 @@ func (rest *RestResource) List(ctx web.Context) error {
 		return err
 	}
 	var hres map[string]interface{}
-	res.DecodeAll(&hres)
+	res.Decode(&hres)
 	err = rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
 		ID:       nil,
 		Endpoint: "List",

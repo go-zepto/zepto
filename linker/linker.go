@@ -54,3 +54,9 @@ func (l *Linker) AddResource(res Resource) {
 func (l *Linker) Repository(name string) *repository.Repository {
 	return l.repositories[name]
 }
+
+func (l *Linker) RepositoryDecoder(name string) *repository.RepositoryDecoder {
+	return &repository.RepositoryDecoder{
+		Repo: l.repositories[name],
+	}
+}

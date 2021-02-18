@@ -93,7 +93,7 @@ func (r *Repository) Find(ctx context.Context, filter *filter.Filter) (*ListResu
 		Count: res.Count,
 	}
 	var hres map[string]interface{}
-	lres.DecodeAll(&hres)
+	lres.Decode(&hres)
 	err = r.operationHooks.AfterOperation(hooks.OperationHooksInfo{
 		Operation:    "Find",
 		Data:         &hres,
