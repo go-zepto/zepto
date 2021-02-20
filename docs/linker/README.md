@@ -523,7 +523,7 @@ func (h *BookOperationHooks) AfterOperation(info hooks.OperationHooksInfo) error
 ```
 
 
-# Manual Resource Operations
+# Manual Repository Operations
 
 You can access the Linker Repository object and call operations manually.
 
@@ -541,4 +541,50 @@ lr.AddResource(linker.Resource{
 res, err := lr.Repository("Book").Create(context.Background(), map[string]interface{}{
   "title": "Harry Potter",
 })
+
+if err != nil {
+  // do something...
+}
+
+var createdBook Book
+err = res.Decode(&createdBook)
+if err != nil {
+  // do something
+}
+```
+
+> In this case res is a `SingleResult` type and you will need to decode using `res.Decode(&out)`
+
+
+You can use `lr.RepositoryDecoder("Book")` instead `lr.Repository("Book")` and the book is created and decoded in just one call.
+
+Example:
+
+```go
+var createdBook Book
+
+err := lr.RepositoryDecoder("Book").Create(context.Background(), map[string]interface{}{"title": "Harry Potter"}, &createdBook)
+```
+
+Also, you can create or update using the GORM model object:
+
+```go
+var createdBook Book
+book := Book {
+  Title: "Harry Potter",
+}
+err := lr.RepositoryDecoder("Book").Create(context.Background(), &book, &createdBook)
+```
+
+You can use the same GORM object as input and output. After the creation, the book object will be filled after operation:
+
+```go
+book := Book {
+  Title: "Harry Potter",
+}
+err := lr.RepositoryDecoder("Book").Create(context.Background(), &book, &book)
+if err != nil {
+  // do something
+}
+fmt.Println(fmt.Sprintf("Book created! ID=%d", book.ID))
 ```
