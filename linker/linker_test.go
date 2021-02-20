@@ -89,6 +89,7 @@ func TestBeforeRemoteHooksList(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people", nil))
 	type Res struct {
@@ -130,6 +131,7 @@ func TestBeforeRemoteHooksListError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people", nil))
 	r.Equal(http.StatusBadRequest, w.Code)
@@ -145,6 +147,7 @@ func TestBeforeRemoteHooksShow(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people/1", nil))
 	type Res struct {
@@ -186,6 +189,7 @@ func TestBeforeRemoteHooksShowError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people/1", nil))
 	r.Equal(http.StatusBadRequest, w.Code)
@@ -201,6 +205,7 @@ func TestBeforeRemoteHooksCreate(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	body := `
 		{
@@ -251,6 +256,7 @@ func TestBeforeRemoteHooksCreateError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	body := `
 		{
@@ -272,6 +278,7 @@ func TestBeforeRemoteHooksUpdate(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	body := `
 		{
@@ -322,6 +329,7 @@ func TestBeforeRemoteHooksUpdateError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	body := `
 		{
@@ -343,6 +351,7 @@ func TestBeforeRemoteHooksDestroy(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
+	k.app.Init(web.InitOptions{})
 	k.app.Start()
 	k.app.ServeHTTP(w, httptest.NewRequest("DELETE", "/api/people/1", nil))
 	type DelRes struct {

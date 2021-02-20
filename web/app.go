@@ -9,6 +9,8 @@ import (
 	pathlib "path"
 
 	"github.com/go-webpack/webpack"
+	"github.com/go-zepto/zepto/broker"
+	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
 	"github.com/gorilla/mux"
@@ -28,6 +30,12 @@ type App struct {
 	tmplEngine renderer.Engine
 	rootRouter *Router
 	routers    []*Router
+}
+
+type InitOptions struct {
+	Broker *broker.Broker
+	Logger logger.Logger
+	Env    string
 }
 
 func (app *App) startWebpack() {
@@ -90,7 +98,7 @@ func NewApp(opts ...Option) *App {
 	return app
 }
 
-func (app *App) Init() {
+func (app *App) Init(opts InitOptions) {
 	// Initialize Root Router Handlers
 	app.initRouterHandlers(app.rootRouter)
 	// Initialize Router Hanlders
@@ -102,7 +110,6 @@ func (app *App) Init() {
 }
 
 func (app *App) Start() {
-	app.Init()
 	dev := app.opts.env == "development"
 	if _, err := os.Stat("webpack.config.js"); dev && os.IsNotExist(err) {
 		return
@@ -180,4 +187,8 @@ func (app *App) Resource(path string, resource Resource) *App {
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	app.muxRouter.ServeHTTP(w, r)
+}
+
+func (app *App) RendererEngine() renderer.Engine {
+	return app.tmplEngine
 }

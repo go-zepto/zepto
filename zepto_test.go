@@ -2,12 +2,12 @@ package zepto
 
 import (
 	"encoding/json"
-	"github.com/go-zepto/zepto/testutils"
-	"github.com/gorilla/mux"
-	"google.golang.org/grpc"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/go-zepto/zepto/testutils"
+	"google.golang.org/grpc"
 )
 
 func TestNewZepto(t *testing.T) {
@@ -19,8 +19,7 @@ func TestNewZepto(t *testing.T) {
 
 func TestSetupHTTP(t *testing.T) {
 	z := NewZepto()
-	h := mux.NewRouter()
-	z.SetupHTTP("0.0.0.0:8000", h)
+	z.SetupHTTP("0.0.0.0:8000")
 	w := httptest.NewRecorder()
 	if z.httpServer == nil {
 		t.Fatal("z.httpServer should not be nil")

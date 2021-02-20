@@ -2,20 +2,22 @@ package zepto
 
 import (
 	"context"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
+
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/web"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"time"
 )
 
 type Zepto struct {
+	*web.App
 	opts       Options
 	grpcServer *grpc.Server
 	grpcAddr   string
@@ -24,7 +26,6 @@ type Zepto struct {
 	broker     *broker.Broker
 	logger     logger.Logger
 	startedAt  *time.Time
-	webApp     *web.App
 }
 
 func NewZepto(opts ...Option) *Zepto {
@@ -43,6 +44,7 @@ func NewZepto(opts ...Option) *Zepto {
 	} else {
 		z.logger = options.Logger
 	}
+	z.createApp()
 	return z
 }
 
@@ -52,12 +54,12 @@ func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
 	fn(z.grpcServer)
 }
 
-func (z *Zepto) SetupHTTP(addr string, handler http.Handler) {
+func (z *Zepto) SetupHTTP(addr string) {
 	srv := &http.Server{
 		Addr: addr,
 		Handler: &HTTPZeptoHandler{
 			z:       z,
-			handler: handler,
+			handler: z,
 		},
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
@@ -67,13 +69,8 @@ func (z *Zepto) SetupHTTP(addr string, handler http.Handler) {
 	z.httpAddr = addr
 }
 
-func (z *Zepto) NewWeb() *web.App {
-	z.webApp = web.NewApp(
-		web.Broker(z.broker),
-		web.Logger(z.logger),
-		web.Env(z.opts.Env),
-	)
-	return z.webApp
+func (z *Zepto) createApp() {
+	z.App = web.NewApp()
 }
 
 func (z *Zepto) SetupBroker(bp broker.BrokerProvider) {
@@ -136,8 +133,13 @@ func (z *Zepto) Start() {
 		}()
 	}
 
-	if z.webApp != nil {
-		z.webApp.Start()
+	if z.App != nil {
+		z.App.Init(web.InitOptions{
+			Broker: z.broker,
+			Logger: z.logger,
+			Env:    z.opts.Env,
+		})
+		z.App.Start()
 	}
 
 	errors := make(chan error)

@@ -44,22 +44,23 @@ func main() {
 		zepto.Version("0.0.1"),
 	)
 
-	app := z.NewWeb()
-
-	api := app.Router("/api", web.Hosts("localhost:8000"))
-
+	api := z.Router("/api")
 	lr := linker.NewLinker(api)
+
+	api.Get("/hello", func(ctx web.Context) error {
+		ctx.Logger().Debug("Opaaaa")
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	})
 
 	lr.AddResource(linker.Resource{
 		Name:       "Author",
 		Datasource: gormds.NewGormDatasource(db, &models.Author{}),
 	})
-
 	lr.AddResource(linker.Resource{
 		Name:       "Book",
 		Datasource: gormds.NewGormDatasource(db, &models.Book{}),
 	})
 
-	z.SetupHTTP("0.0.0.0:8000", app)
+	z.SetupHTTP("0.0.0.0:8000")
 	z.Start()
 }
