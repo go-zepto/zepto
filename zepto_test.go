@@ -12,6 +12,7 @@ import (
 
 func TestNewZepto(t *testing.T) {
 	z := NewZepto()
+	z.InitApp()
 	if z.logger == nil {
 		t.Errorf("Logger should not be nil")
 	}

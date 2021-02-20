@@ -88,7 +88,24 @@ func (z *Zepto) Logger() logger.Logger {
 	return z.logger
 }
 
+func (z *Zepto) InitApp() {
+	if z.App != nil {
+		z.App.Configure(web.ConfigureOptions{
+			Broker:         z.broker,
+			Logger:         z.logger,
+			Env:            z.opts.Env,
+			TmplEngine:     z.opts.TmplEngine,
+			SessionName:    z.opts.SessionName,
+			SessionStore:   z.opts.SessionStore,
+			WebpackEnabled: z.opts.WebpackEnabled,
+		})
+		z.Init()
+		z.App.StartWebpackServer()
+	}
+}
+
 func (z *Zepto) Start() {
+	z.InitApp()
 	now := time.Now()
 	z.startedAt = &now
 	c := make(chan os.Signal)
@@ -131,15 +148,6 @@ func (z *Zepto) Start() {
 			z.Logger().Infof("HTTP server is listening on %s", z.httpAddr)
 			z.httpServer.ListenAndServe()
 		}()
-	}
-
-	if z.App != nil {
-		z.App.Init(web.InitOptions{
-			Broker: z.broker,
-			Logger: z.logger,
-			Env:    z.opts.Env,
-		})
-		z.App.Start()
 	}
 
 	errors := make(chan error)

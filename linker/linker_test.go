@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-zepto/zepto"
 	gormds "github.com/go-zepto/zepto/linker/datasource/gorm"
 	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/linker/hooks"
@@ -18,7 +19,7 @@ import (
 )
 
 type TestKit struct {
-	app    *web.App
+	app    *zepto.Zepto
 	router *web.Router
 	db     *gorm.DB
 	linker *Linker
@@ -26,7 +27,7 @@ type TestKit struct {
 
 func NewTestKit(t *testing.T) TestKit {
 	r := require.New(t)
-	app := web.NewApp()
+	app := zepto.NewZepto()
 	apiRouter := app.Router("/api")
 	r.NotNil(apiRouter)
 	db := testutils.SetupGorm()
@@ -89,8 +90,7 @@ func TestBeforeRemoteHooksList(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people", nil))
 	type Res struct {
 		Data        []testutils.Person `json:"data"`
@@ -131,8 +131,7 @@ func TestBeforeRemoteHooksListError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people", nil))
 	r.Equal(http.StatusBadRequest, w.Code)
 }
@@ -147,8 +146,7 @@ func TestBeforeRemoteHooksShow(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people/1", nil))
 	type Res struct {
 		testutils.Person
@@ -189,8 +187,7 @@ func TestBeforeRemoteHooksShowError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	k.app.ServeHTTP(w, httptest.NewRequest("GET", "/api/people/1", nil))
 	r.Equal(http.StatusBadRequest, w.Code)
 }
@@ -205,8 +202,7 @@ func TestBeforeRemoteHooksCreate(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	body := `
 		{
 			"name": "Bruce Wayne",
@@ -256,8 +252,7 @@ func TestBeforeRemoteHooksCreateError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	body := `
 		{
 			"name": "Bruce Wayne",
@@ -278,8 +273,7 @@ func TestBeforeRemoteHooksUpdate(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	body := `
 		{
 			"name": "Bruce Wayne",
@@ -329,8 +323,7 @@ func TestBeforeRemoteHooksUpdateError(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	body := `
 		{
 			"name": "Bruce Wayne",
@@ -351,8 +344,7 @@ func TestBeforeRemoteHooksDestroy(t *testing.T) {
 		RemoteHooks: &h,
 	})
 	w := httptest.NewRecorder()
-	k.app.Init(web.InitOptions{})
-	k.app.Start()
+	k.app.InitApp()
 	k.app.ServeHTTP(w, httptest.NewRequest("DELETE", "/api/people/1", nil))
 	type DelRes struct {
 		Deleted     bool   `json:"deleted"`

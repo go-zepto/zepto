@@ -6,13 +6,13 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/testutils"
-	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,9 +20,8 @@ func CreateAppWithBrokerTest() (*App, *testutils.BrokerProviderMock) {
 	l := logrus.NewLogrus(log.New())
 	bp := &testutils.BrokerProviderMock{}
 	b := broker.NewBroker(l, bp)
-	app := NewApp(
-		Broker(b),
-	)
+	app := NewApp()
+	app.opts.broker = b
 	return app, bp
 }
 
@@ -96,16 +95,14 @@ func TestApp_Broker_Subscribe(t *testing.T) {
 
 func setupAppTest() *App {
 	app, _ := CreateAppWithBrokerTest()
-	app.opts.env = "development"
-	muxRouter := mux.NewRouter()
-	app.muxRouter = muxRouter
 	app.tmplEngine = &testutils.EngineMock{}
-	app.Init(InitOptions{})
+	app.opts.env = "development"
 	return app
 }
 
 func assertRequestStatus(t *testing.T, app *App, method string, path string, code int) {
 	w := httptest.NewRecorder()
+	app.Init()
 	app.ServeHTTP(w, httptest.NewRequest(method, path, nil))
 	if w.Code != code {
 		t.Error("Did not get expected HTTP status code, got", w.Code)
@@ -114,6 +111,7 @@ func assertRequestStatus(t *testing.T, app *App, method string, path string, cod
 
 func assertRequest(t *testing.T, app *App, method string, path string, code int, body string) {
 	w := httptest.NewRecorder()
+	app.Init()
 	app.ServeHTTP(w, httptest.NewRequest(method, path, nil))
 	if w.Code != code {
 		t.Error("Did not get expected HTTP status code, got", w.Code)
@@ -137,35 +135,33 @@ var DefaultRouterHandler = func(ctx Context) error {
 func TestApp_HandleMethod_Get(t *testing.T) {
 	app := setupAppTest()
 	app.Get("/hello", DefaultRouterHandler)
-	app.Init(InitOptions{})
+	app.Init()
 	assertRequest(t, app, "GET", "/hello", 200, "Mocked Template!")
 }
 
 func TestApp_HandleMethod_Post(t *testing.T) {
 	app := setupAppTest()
 	app.Post("/hello", DefaultRouterHandler)
-	app.Init(InitOptions{})
+	app.Init()
 	assertRequest(t, app, "POST", "/hello", 200, "Mocked Template!")
 }
 
 func TestApp_HandleMethod_Put(t *testing.T) {
 	app := setupAppTest()
 	app.Put("/hello", DefaultRouterHandler)
-	app.Init(InitOptions{})
+	app.Init()
 	assertRequest(t, app, "PUT", "/hello", 200, "Mocked Template!")
 }
 
 func TestApp_HandleMethod_Delete(t *testing.T) {
 	app := setupAppTest()
 	app.Delete("/hello", DefaultRouterHandler)
-	app.Init(InitOptions{})
 	assertRequest(t, app, "DELETE", "/hello", 200, "Mocked Template!")
 }
 
 func TestApp_HandleMethod_Patch(t *testing.T) {
 	app := setupAppTest()
 	app.Patch("/hello", DefaultRouterHandler)
-	app.Init(InitOptions{})
 	assertRequest(t, app, "PATCH", "/hello", 200, "Mocked Template!")
 }
 
@@ -175,8 +171,8 @@ func TestApp_HandleMethod_ControllerPanicDevelopmentAsDebug(t *testing.T) {
 		panic(errors.New("panic problem"))
 		return nil
 	})
-	app.Init(InitOptions{})
 	w := httptest.NewRecorder()
+	app.Init()
 	app.ServeHTTP(w, httptest.NewRequest("GET", "/hello", nil))
 	if w.Code != http.StatusInternalServerError {
 		t.Error("Did not get expected HTTP status code, got", w.Code)
@@ -190,8 +186,8 @@ func assertProdError(t *testing.T, handler RouteHandler) {
 	app := setupAppTest()
 	app.opts.env = "production"
 	app.Get("/hello", handler)
-	app.Init(InitOptions{})
 	w := httptest.NewRecorder()
+	app.Init()
 	app.ServeHTTP(w, httptest.NewRequest("GET", "/hello", nil))
 	if w.Code != http.StatusInternalServerError {
 		t.Error("Did not get expected HTTP status code, got", w.Code)
@@ -202,6 +198,7 @@ func assertProdError(t *testing.T, handler RouteHandler) {
 }
 
 func TestApp_HandleMethod_ControllerErrorProduction(t *testing.T) {
+	os.Setenv("SESSION_SECRET", "test_session_secret")
 	assertProdError(t, func(ctx Context) error {
 		return errors.New("some error in prod")
 	})
@@ -224,8 +221,7 @@ func TestApp_Start(t *testing.T) {
 	if tmplEngine.InitCalled {
 		t.Errorf("Init should not be called at this point")
 	}
-	app.Init(InitOptions{})
-	app.Start()
+	app.Init()
 	if !tmplEngine.InitCalled {
 		t.Errorf("Init should be called at this point")
 	}
@@ -241,8 +237,8 @@ func TestApp_HandleMethod_ControllerRenderJson(t *testing.T) {
 	app.Get("/person", func(ctx Context) error {
 		return ctx.RenderJson(p)
 	})
-	app.Init(InitOptions{})
 	w := httptest.NewRecorder()
+	app.Init()
 	app.ServeHTTP(w, httptest.NewRequest("GET", "/person", nil))
 	if w.Code != http.StatusOK {
 		t.Error("Did not get expected HTTP status code, got", w.Code)

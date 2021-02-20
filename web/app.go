@@ -8,9 +8,12 @@ import (
 	"os/exec"
 	pathlib "path"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/go-webpack/webpack"
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
+	"github.com/go-zepto/zepto/utils"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
 	"github.com/gorilla/mux"
@@ -22,6 +25,16 @@ type MuxHandler func(w http.ResponseWriter, r *http.Request)
 type RouteHandler func(ctx Context) error
 type MiddlewareFunc func(RouteHandler) RouteHandler
 
+type Options struct {
+	broker         *broker.Broker
+	logger         logger.Logger
+	env            string
+	webpackEnabled bool
+	tmplEngine     renderer.Engine
+	sessionName    string
+	sessionStore   sessions.Store
+}
+
 type App struct {
 	http.Handler
 	opts       Options
@@ -32,10 +45,14 @@ type App struct {
 	routers    []*Router
 }
 
-type InitOptions struct {
-	Broker *broker.Broker
-	Logger logger.Logger
-	Env    string
+type ConfigureOptions struct {
+	Broker         *broker.Broker
+	Logger         logger.Logger
+	Env            string
+	WebpackEnabled bool
+	TmplEngine     renderer.Engine
+	SessionName    string
+	SessionStore   sessions.Store
 }
 
 func (app *App) startWebpack() {
@@ -71,16 +88,7 @@ func (app *App) setupSession() {
 	}
 }
 
-func NewApp(opts ...Option) *App {
-	options := newOptions(opts...)
-	if options.tmplEngine == nil {
-		// Use pongo2 as default template engine
-		options.tmplEngine = pongo2.NewPongo2Engine(
-			pongo2.TemplateDir("templates"),
-			pongo2.Ext(".html"),
-			pongo2.AutoReload(options.env == "development"),
-		)
-	}
+func NewApp() *App {
 	muxRouter := mux.NewRouter()
 	staticDir := "/public/"
 	// Create the static router
@@ -88,17 +96,42 @@ func NewApp(opts ...Option) *App {
 		PathPrefix(staticDir).
 		Handler(http.StripPrefix(staticDir, http.FileServer(http.Dir("."+staticDir))))
 	app := &App{
-		opts:       options,
 		muxRouter:  muxRouter,
-		tmplEngine: options.tmplEngine,
 		routers:    make([]*Router, 0),
 		rootRouter: NewRouter(""),
 	}
-	app.setupSession()
+	// Configure defaults
+	env := utils.GetEnv("ZEPTO_ENV", "development")
+	app.Configure(ConfigureOptions{
+		Env:            env,
+		Logger:         log.New(),
+		WebpackEnabled: true,
+		SessionName:    "zsid",
+		TmplEngine: pongo2.NewPongo2Engine(
+			pongo2.TemplateDir("templates"),
+			pongo2.Ext(".html"),
+			pongo2.AutoReload(env == "development"),
+		),
+	})
 	return app
 }
 
-func (app *App) Init(opts InitOptions) {
+func (app *App) Configure(opts ConfigureOptions) {
+	app.opts = Options{
+		broker:         opts.Broker,
+		logger:         opts.Logger,
+		env:            opts.Env,
+		sessionName:    opts.SessionName,
+		sessionStore:   opts.SessionStore,
+		tmplEngine:     opts.TmplEngine,
+		webpackEnabled: opts.WebpackEnabled,
+	}
+	app.tmplEngine = app.opts.tmplEngine
+}
+
+func (app *App) Init() {
+	// Setup Session
+	app.setupSession()
 	// Initialize Root Router Handlers
 	app.initRouterHandlers(app.rootRouter)
 	// Initialize Router Hanlders
@@ -109,7 +142,7 @@ func (app *App) Init(opts InitOptions) {
 	app.tmplEngine.Init()
 }
 
-func (app *App) Start() {
+func (app *App) StartWebpackServer() {
 	dev := app.opts.env == "development"
 	if _, err := os.Stat("webpack.config.js"); dev && os.IsNotExist(err) {
 		return

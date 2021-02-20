@@ -16,7 +16,6 @@ func SetupTestRouterApi(t *testing.T) (app *App, router *Router) {
 	r.NotNil(apiv1Router)
 	r.Len(app.routers, 1)
 	r.Equal(app.routers[0].options.path, "/api/v1")
-	app.Init(InitOptions{})
 	return app, apiv1Router
 }
 
@@ -31,7 +30,7 @@ func TestNewRouterWithRoutes(t *testing.T) {
 	apiv1Router.HandleMethod([]string{"GET"}, "/hello", func(ctx Context) error {
 		return ctx.RenderJson(map[string]string{"hello": "world"})
 	})
-	app.Init(InitOptions{})
+	app.Init()
 	r.Len(apiv1Router.handlers, 1)
 	h := apiv1Router.handlers[0]
 	r.Equal(h.methods, []string{"GET"})
@@ -60,8 +59,7 @@ func TestRouter_ManyRouters(t *testing.T) {
 		return ctx.RenderJson(Info{Version: "v3"})
 	})
 
-	app.Init(InitOptions{})
-	app.Start()
+	app.Init()
 
 	for _, v := range []string{"v1", "v2", "v3"} {
 		w := httptest.NewRecorder()
@@ -92,8 +90,7 @@ func TestRouter_ManyRoutersWithHosts(t *testing.T) {
 		return ctx.RenderJson(Info{Host: "go-zepto.ca"})
 	})
 
-	app.Init(InitOptions{})
-	app.Start()
+	app.Init()
 
 	for _, host := range []string{"go-zepto.com", "go-zepto.ca"} {
 		w := httptest.NewRecorder()
@@ -120,8 +117,7 @@ func TestRouter_MultipleHosts(t *testing.T) {
 		return ctx.RenderJson(Info{Message: "Hello World"})
 	})
 
-	app.Init(InitOptions{})
-	app.Start()
+	app.Init()
 
 	var cases = []struct {
 		Host           string
@@ -144,6 +140,7 @@ func TestRouter_MultipleHosts(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/api/info", nil)
 		req.Host = c.Host
+		app.Init()
 		app.ServeHTTP(w, req)
 		if w.Code != c.ExpectedStatus {
 			t.Error("Did not get expected HTTP status code, got", w.Code)
@@ -185,8 +182,7 @@ func TestRouter_Resource(t *testing.T) {
 	app := setupAppTest()
 	api := app.Router("/api")
 	api.Resource("/books", &ResourceMock{})
-	app.Init(InitOptions{})
-	app.Start()
+	app.Init()
 	testCases := []struct {
 		method       string
 		endpoint     string

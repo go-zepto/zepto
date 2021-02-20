@@ -33,7 +33,6 @@ func TestMiddlewareStack_Use_Default(t *testing.T) {
 		}
 		return ctx.RenderJson(map[string]string{"hello": "world"})
 	})
-	app.Init(InitOptions{})
 	assertRequestStatus(t, app, "GET", "/hello", 200)
 }
 
@@ -73,7 +72,6 @@ func TestMiddlewareStack_WithRouter(t *testing.T) {
 		}
 		return ctx.RenderJson(map[string]string{"hello": "world"})
 	})
-	app.Init(InitOptions{})
 	assertRequestStatus(t, app, "GET", "/global/hello", 200)
 	assertRequestStatus(t, app, "GET", "/api/hello", 200)
 }
@@ -91,7 +89,6 @@ func TestMiddlewareStack_RootRouter(t *testing.T) {
 	app.Get("/hello", func(ctx Context) error {
 		return ctx.RenderJson(map[string]string{"hello": "world"})
 	})
-	app.Init(InitOptions{})
 	assertRequestStatus(t, app, "GET", "/hello", 200)
 	assert.Equal(t, 1, runCount)
 }
