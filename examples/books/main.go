@@ -48,17 +48,17 @@ func main() {
 
 	api := app.Router("/api", web.Hosts("localhost:8000"))
 
-	linker := linker.NewLinker(api)
+	lr := linker.NewLinker(api)
 
-	linker.AddResource(
-		"Author",
-		gormds.NewGormDatasource(db, &models.Author{}),
-	)
+	lr.AddResource(linker.Resource{
+		Name:       "Author",
+		Datasource: gormds.NewGormDatasource(db, &models.Author{}),
+	})
 
-	linker.AddResource(
-		"Book",
-		gormds.NewGormDatasource(db, &models.Book{}),
-	)
+	lr.AddResource(linker.Resource{
+		Name:       "Book",
+		Datasource: gormds.NewGormDatasource(db, &models.Book{}),
+	})
 
 	z.SetupHTTP("0.0.0.0:8000", app)
 	z.Start()
