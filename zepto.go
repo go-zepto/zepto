@@ -11,7 +11,9 @@ import (
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
+	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/web"
+	"github.com/go-zepto/zepto/web/renderer"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -24,6 +26,7 @@ type Zepto struct {
 	httpAddr   string
 	httpServer *http.Server
 	broker     *broker.Broker
+	mailer     mailer.Mailer
 	logger     logger.Logger
 	startedAt  *time.Time
 }
@@ -80,6 +83,10 @@ func (z *Zepto) SetupBroker(bp broker.BrokerProvider) {
 	})
 }
 
+func (z *Zepto) SetupMailer(m mailer.Mailer) {
+	z.mailer = m
+}
+
 func (z *Zepto) Broker() *broker.Broker {
 	return z.broker
 }
@@ -93,6 +100,7 @@ func (z *Zepto) InitApp() {
 		z.App.Configure(web.ConfigureOptions{
 			Broker:         z.broker,
 			Logger:         z.logger,
+			Mailer:         z.mailer,
 			Env:            z.opts.Env,
 			TmplEngine:     z.opts.TmplEngine,
 			SessionName:    z.opts.SessionName,
@@ -104,8 +112,21 @@ func (z *Zepto) InitApp() {
 	}
 }
 
+func (z *Zepto) InitMailer() {
+	var engine renderer.Engine
+	if z.App != nil {
+		engine = z.App.RendererEngine()
+	}
+	if z.mailer != nil {
+		z.mailer.Init(&mailer.InitOptions{
+			RendererEngine: engine,
+		})
+	}
+}
+
 func (z *Zepto) Start() {
 	z.InitApp()
+	z.InitMailer()
 	now := time.Now()
 	z.startedAt = &now
 	c := make(chan os.Signal)

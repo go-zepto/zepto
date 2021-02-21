@@ -18,8 +18,8 @@ require (
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/rakyll/gotest v0.0.5 // indirect
-	github.com/sendgrid/rest v2.6.2+incompatible // indirect
-	github.com/sendgrid/sendgrid-go v3.8.0+incompatible // indirect
+	github.com/sendgrid/rest v2.6.2+incompatible
+	github.com/sendgrid/sendgrid-go v3.8.0+incompatible
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/negroni v1.0.0

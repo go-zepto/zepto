@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
+	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/gorilla/mux"
 
@@ -28,6 +29,7 @@ type Context interface {
 	Redirect(url string) error
 	Logger() logger.Logger
 	Broker() *broker.Broker
+	Mailer() *Mailer
 	Cookies() *Cookies
 	Session() *Session
 }
@@ -35,6 +37,7 @@ type Context interface {
 type DefaultContext struct {
 	logger logger.Logger
 	broker *broker.Broker
+	mailer mailer.Mailer
 	context.Context
 	res        http.ResponseWriter
 	req        *http.Request
@@ -115,6 +118,11 @@ func (d *DefaultContext) Logger() logger.Logger {
 // Broker is the broker instance from zepto
 func (d *DefaultContext) Broker() *broker.Broker {
 	return d.broker
+}
+
+// Mailer is the mailer instance from zepto
+func (d *DefaultContext) Mailer() *Mailer {
+	return &Mailer{d.mailer}
 }
 
 // Retrieve a map of URL parameters

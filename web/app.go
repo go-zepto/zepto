@@ -13,6 +13,7 @@ import (
 	"github.com/go-webpack/webpack"
 	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
+	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/utils"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
@@ -28,6 +29,7 @@ type MiddlewareFunc func(RouteHandler) RouteHandler
 type Options struct {
 	broker         *broker.Broker
 	logger         logger.Logger
+	mailer         mailer.Mailer
 	env            string
 	webpackEnabled bool
 	tmplEngine     renderer.Engine
@@ -48,6 +50,7 @@ type App struct {
 type ConfigureOptions struct {
 	Broker         *broker.Broker
 	Logger         logger.Logger
+	Mailer         mailer.Mailer
 	Env            string
 	WebpackEnabled bool
 	TmplEngine     renderer.Engine
@@ -120,6 +123,7 @@ func (app *App) Configure(opts ConfigureOptions) {
 	app.opts = Options{
 		broker:         opts.Broker,
 		logger:         opts.Logger,
+		mailer:         opts.Mailer,
 		env:            opts.Env,
 		sessionName:    opts.SessionName,
 		sessionStore:   opts.SessionStore,

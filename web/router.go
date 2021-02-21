@@ -145,6 +145,7 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 		ctx := NewDefaultContext()
 		ctx.logger = app.opts.logger
 		ctx.broker = app.opts.broker
+		ctx.mailer = app.opts.mailer
 		ctx.res = res
 		ctx.req = req
 		ctx.cookies = &Cookies{
