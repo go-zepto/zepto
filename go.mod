@@ -5,7 +5,6 @@ go 1.13
 require (
 	cloud.google.com/go/pubsub v1.3.1
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4
-	github.com/fatih/color v1.10.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/gertd/go-pluralize v0.1.7
 	github.com/go-webpack/pongo2 v0.0.0-20191123090755-c408ad902faf
@@ -17,7 +16,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/mitchellh/mapstructure v1.3.3
-	github.com/rakyll/gotest v0.0.5 // indirect
+	github.com/satori/go.uuid v1.2.0
 	github.com/sendgrid/rest v2.6.2+incompatible
 	github.com/sendgrid/sendgrid-go v3.8.0+incompatible
 	github.com/sirupsen/logrus v1.4.2
