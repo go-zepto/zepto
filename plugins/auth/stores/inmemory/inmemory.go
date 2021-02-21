@@ -1,8 +1,6 @@
-package stores
+package inmemory
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/go-zepto/zepto/plugins/auth"
@@ -24,6 +22,12 @@ func NewInMemoryStore() *InMemoryStore {
 }
 
 func (ims *InMemoryStore) StoreToken(token *auth.Token, pid auth.PID) error {
+	if token == nil || token.Value == "" || token.Expiration == nil {
+		return auth.ErrInvalidToken
+	}
+	if pid == nil {
+		return auth.ErrInvalidPID
+	}
 	ims.sessions[token.Value] = &Session{
 		Token: token,
 		PID:   pid,
@@ -34,12 +38,12 @@ func (ims *InMemoryStore) StoreToken(token *auth.Token, pid auth.PID) error {
 func (ims *InMemoryStore) GetPIDFromTokenValue(tokenValue string) (auth.PID, error) {
 	session, exists := ims.sessions[tokenValue]
 	if !exists || session.Token == nil {
-		return errors.New("unauthorized"), nil
+		return nil, auth.ErrUnauthorized
 	}
-	fmt.Println(session)
 	exp := *session.Token.Expiration
 	if session.Token.Expiration == nil || exp.Before(time.Now()) {
-		return errors.New("unauthorized"), nil
+		delete(ims.sessions, tokenValue)
+		return nil, auth.ErrUnauthorized
 	}
 	return session.PID, nil
 }
