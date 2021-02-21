@@ -9,7 +9,6 @@ import (
 	"github.com/go-zepto/zepto/examples/books/models"
 	"github.com/go-zepto/zepto/linker"
 	gormds "github.com/go-zepto/zepto/linker/datasource/gorm"
-	"github.com/go-zepto/zepto/web"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -46,11 +45,6 @@ func main() {
 
 	api := z.Router("/api")
 	lr := linker.NewLinker(api)
-
-	api.Get("/hello", func(ctx web.Context) error {
-		ctx.Logger().Debug("Opaaaa")
-		return ctx.RenderJson(map[string]string{"hello": "world"})
-	})
 
 	lr.AddResource(linker.Resource{
 		Name:       "Author",

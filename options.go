@@ -6,7 +6,6 @@ import (
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
 	"github.com/gorilla/sessions"
-	log "github.com/sirupsen/logrus"
 )
 
 type Options struct {
@@ -28,7 +27,6 @@ func newOptions(opts ...Option) Options {
 		Name:           "zepto",
 		Version:        "latest",
 		Env:            env,
-		Logger:         log.New(),
 		WebpackEnabled: true,
 		SessionName:    "zsid",
 		TmplEngine: pongo2.NewPongo2Engine(
