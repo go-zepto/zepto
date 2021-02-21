@@ -10,6 +10,7 @@ require (
 	github.com/go-webpack/pongo2 v0.0.0-20191123090755-c408ad902faf
 	github.com/go-webpack/webpack v1.5.0
 	github.com/golang/protobuf v1.4.2
+	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/sessions v1.2.0
 	github.com/joncalhoun/qson v0.0.0-20200422171543-84433dcd3da0
