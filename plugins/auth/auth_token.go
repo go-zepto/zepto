@@ -7,29 +7,16 @@ import (
 	"github.com/go-zepto/zepto/web"
 )
 
-type AuthTokenDatasource interface {
-	Auth(username string, password string) (PID, error)
-}
-
-type AuthTokenEncoder interface {
-	GenerateTokenFromPID(pid PID) (*Token, error)
-}
-
-type AuthTokenStore interface {
-	StoreToken(token *Token, pid PID) error
-	GetPIDFromTokenValue(token string) (PID, error)
-}
-
 type AuthToken struct {
-	ds           AuthTokenDatasource
-	tokenEncoder AuthTokenEncoder
-	store        AuthTokenStore
+	ds           AuthDatasource
+	tokenEncoder AuthEncoder
+	store        AuthStore
 }
 
 type AuthTokenOptions struct {
-	Datasource   AuthTokenDatasource
-	TokenEncoder AuthTokenEncoder
-	Store        AuthTokenStore
+	Datasource   AuthDatasource
+	TokenEncoder AuthEncoder
+	Store        AuthStore
 }
 
 func NewAuthToken(opts AuthTokenOptions) *AuthToken {
@@ -48,7 +35,7 @@ func (at *AuthToken) Middleware() web.MiddlewareFunc {
 			if tokenValue == "" {
 				return next(ctx)
 			}
-			pid, err := at.store.GetPIDFromTokenValue(tokenValue)
+			pid, err := at.store.GetAuthTokenPID(tokenValue)
 			fmt.Println(pid)
 			if err != nil {
 				return next(ctx)
@@ -93,14 +80,13 @@ func (at *AuthToken) Init(z *zepto.Zepto) {
 				"error": "internal server error",
 			})
 		}
-		err = at.store.StoreToken(token, pid)
+		err = at.store.StoreAuthToken(token, pid)
 		if err != nil {
 			ctx.SetStatus(500)
 			return ctx.RenderJson(map[string]interface{}{
 				"error": err.Error(),
 			})
 		}
-		fmt.Println("Logado com o PID: %v", pid)
 		return ctx.RenderJson(map[string]interface{}{
 			"token": token,
 		})

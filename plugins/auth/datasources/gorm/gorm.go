@@ -125,3 +125,7 @@ func (gads *GormAuthDatasource) Auth(username string, password string) (auth.PID
 	}
 	return auth.PID(id), nil
 }
+
+func (gads *GormAuthDatasource) ResetPassword(pid auth.PID, password string) error {
+	panic("not implemented")
+}

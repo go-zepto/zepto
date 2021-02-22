@@ -21,7 +21,7 @@ func NewInMemoryStore() *InMemoryStore {
 	}
 }
 
-func (ims *InMemoryStore) StoreToken(token *auth.Token, pid auth.PID) error {
+func (ims *InMemoryStore) StoreAuthToken(token *auth.Token, pid auth.PID) error {
 	if token == nil || token.Value == "" || token.Expiration == nil {
 		return auth.ErrInvalidToken
 	}
@@ -35,7 +35,7 @@ func (ims *InMemoryStore) StoreToken(token *auth.Token, pid auth.PID) error {
 	return nil
 }
 
-func (ims *InMemoryStore) GetPIDFromTokenValue(tokenValue string) (auth.PID, error) {
+func (ims *InMemoryStore) GetAuthTokenPID(tokenValue string) (auth.PID, error) {
 	session, exists := ims.sessions[tokenValue]
 	if !exists || session.Token == nil {
 		return nil, auth.ErrUnauthorized
@@ -46,4 +46,12 @@ func (ims *InMemoryStore) GetPIDFromTokenValue(tokenValue string) (auth.PID, err
 		return nil, auth.ErrUnauthorized
 	}
 	return session.PID, nil
+}
+
+func (ims *InMemoryStore) StoreResetPasswordToken(token *auth.Token, pid auth.PID) error {
+	panic("not implemented")
+}
+
+func (ims *InMemoryStore) GetResetPasswordTokenPID(token string) (auth.PID, error) {
+	panic("not implemented")
 }
