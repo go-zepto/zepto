@@ -31,9 +31,21 @@ func NewTestDB() *gorm.DB {
 
 func SetupDB() *gorm.DB {
 	db := NewTestDB()
+	db.Migrator().DropTable(
+		&models.User{},
+		&models.CustomUser{},
+		&models.UserPointerFields{},
+		&models.UserWithInvalidIDField{},
+		&models.UserWithInvalidUsernameField{},
+		&models.UserWithInvalidPasswordHashField{},
+	)
 	db.AutoMigrate(
 		&models.User{},
 		&models.CustomUser{},
+		&models.UserPointerFields{},
+		&models.UserWithInvalidIDField{},
+		&models.UserWithInvalidUsernameField{},
+		&models.UserWithInvalidPasswordHashField{},
 	)
 	return db
 }

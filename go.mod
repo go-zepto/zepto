@@ -24,6 +24,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/negroni v1.0.0
 	go.uber.org/thriftrw v1.25.1
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7 // indirect
 	golang.org/x/sys v0.0.0-20210220050731-9a76102bfb43 // indirect
 	google.golang.org/api v0.25.0
