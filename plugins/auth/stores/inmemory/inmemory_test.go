@@ -11,7 +11,7 @@ import (
 func TestNewInMemory(t *testing.T) {
 	im := NewInMemoryStore()
 	assert.NotNil(t, im)
-	assert.NotNil(t, im.sessions)
+	assert.NotNil(t, im.authSessions)
 }
 
 func TestStoreAuthToken(t *testing.T) {
@@ -23,7 +23,7 @@ func TestStoreAuthToken(t *testing.T) {
 	}
 	err := im.StoreAuthToken(token, 160)
 	assert.NoError(t, err)
-	session := im.sessions[token.Value]
+	session := im.authSessions[token.Value]
 	assert.Equal(t, token, session.Token)
 	assert.Equal(t, 160, session.PID)
 }
@@ -100,5 +100,5 @@ func TestGetAuthTokenPID_ExpiredToken(t *testing.T) {
 	pid, err := im.GetAuthTokenPID(token.Value)
 	assert.EqualError(t, err, auth.ErrUnauthorized.Error())
 	assert.Equal(t, nil, pid)
-	assert.Nil(t, im.sessions[token.Value], "Expired token should be removed from session")
+	assert.Nil(t, im.authSessions[token.Value], "Expired token should be removed from session")
 }
