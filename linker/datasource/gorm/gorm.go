@@ -123,7 +123,6 @@ func (g *GormDatasource) Create(ctx datasource.QueryContext, data interface{}) (
 	obj := g.createModelReflectInstance()
 	createObj := obj.Interface()
 	lutils.DecodeMapToStruct(data, createObj)
-	fmt.Println(createObj)
 	query := g.DB.Model(g.Model)
 	if err := query.Create(createObj).Error; err != nil {
 		return nil, err

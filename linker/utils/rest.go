@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/go-zepto/zepto/linker/filter"
 	"github.com/go-zepto/zepto/web"
@@ -28,7 +27,6 @@ func GetFilterFromQueryArgCtx(ctx web.Context) (*filter.Filter, error) {
 	if rawQuery != "" {
 		err := qson.Unmarshal(&res, rawQuery)
 		if err != nil {
-			fmt.Println(err)
 			return nil, errors.New("could not parse URI filter")
 		}
 		return &res.Filter, nil
