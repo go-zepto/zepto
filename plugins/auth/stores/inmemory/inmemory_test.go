@@ -14,6 +14,34 @@ func TestNewInMemory(t *testing.T) {
 	assert.NotNil(t, im.authSessions)
 }
 
+func TestInMemory_storeToken_authSessions(t *testing.T) {
+	im := NewInMemoryStore()
+	exp := time.Now().Add(time.Hour * 24)
+	token := &auth.Token{
+		Expiration: &exp,
+		Value:      "50559387-6dfa-4282-9d9d-efc5e9af3e72",
+	}
+	err := im.storeToken(im.authSessions, token, 120)
+	assert.NoError(t, err)
+	session := im.authSessions[token.Value]
+	assert.Equal(t, token, session.Token)
+	assert.Equal(t, 120, session.PID)
+}
+
+func TestInMemory_storeToken_resetPasswordSessions(t *testing.T) {
+	im := NewInMemoryStore()
+	exp := time.Now().Add(time.Hour * 24)
+	token := &auth.Token{
+		Expiration: &exp,
+		Value:      "50559387-6dfa-4282-9d9d-efc5e9af3e72",
+	}
+	err := im.storeToken(im.resetPasswordSessions, token, 140)
+	assert.NoError(t, err)
+	session := im.resetPasswordSessions[token.Value]
+	assert.Equal(t, token, session.Token)
+	assert.Equal(t, 140, session.PID)
+}
+
 func TestStoreAuthToken(t *testing.T) {
 	im := NewInMemoryStore()
 	exp := time.Now().Add(time.Hour * 24)
@@ -101,4 +129,32 @@ func TestGetAuthTokenPID_ExpiredToken(t *testing.T) {
 	assert.EqualError(t, err, auth.ErrUnauthorized.Error())
 	assert.Equal(t, nil, pid)
 	assert.Nil(t, im.authSessions[token.Value], "Expired token should be removed from session")
+}
+
+func TestStoreResetPasswordToken(t *testing.T) {
+	im := NewInMemoryStore()
+	exp := time.Now().Add(time.Hour * 24)
+	token := &auth.Token{
+		Expiration: &exp,
+		Value:      "50559387-6dfa-4282-9d9d-efc5e9af3e72",
+	}
+	err := im.StoreResetPasswordToken(token, 160)
+	assert.NoError(t, err)
+	session := im.resetPasswordSessions[token.Value]
+	assert.Equal(t, token, session.Token)
+	assert.Equal(t, 160, session.PID)
+}
+
+func TestGetResetPasswordTokenPID(t *testing.T) {
+	im := NewInMemoryStore()
+	exp := time.Now().Add(time.Hour * 24)
+	token := &auth.Token{
+		Expiration: &exp,
+		Value:      "50559387-6dfa-4282-9d9d-efc5e9af3e72",
+	}
+	err := im.StoreResetPasswordToken(token, 160)
+	assert.NoError(t, err)
+	pid, err := im.GetResetPasswordTokenPID(token.Value)
+	assert.NoError(t, err)
+	assert.Equal(t, 160, pid)
 }

@@ -12,14 +12,14 @@ type Session struct {
 }
 
 type InMemoryStore struct {
-	authSessions             map[string]*Session
-	passwordRecoverySessions map[string]*Session
+	authSessions          map[string]*Session
+	resetPasswordSessions map[string]*Session
 }
 
 func NewInMemoryStore() *InMemoryStore {
 	return &InMemoryStore{
-		authSessions:             make(map[string]*Session),
-		passwordRecoverySessions: make(map[string]*Session),
+		authSessions:          make(map[string]*Session),
+		resetPasswordSessions: make(map[string]*Session),
 	}
 }
 
@@ -59,9 +59,9 @@ func (ims *InMemoryStore) GetAuthTokenPID(tokenValue string) (auth.PID, error) {
 }
 
 func (ims *InMemoryStore) StoreResetPasswordToken(token *auth.Token, pid auth.PID) error {
-	panic("not implemented")
+	return ims.storeToken(ims.resetPasswordSessions, token, pid)
 }
 
-func (ims *InMemoryStore) GetResetPasswordTokenPID(token string) (auth.PID, error) {
-	panic("not implemented")
+func (ims *InMemoryStore) GetResetPasswordTokenPID(tokenValue string) (auth.PID, error) {
+	return ims.getTokenPID(ims.resetPasswordSessions, tokenValue)
 }
