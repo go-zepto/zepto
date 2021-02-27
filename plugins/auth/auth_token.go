@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	"github.com/go-zepto/zepto"
 	"github.com/go-zepto/zepto/web"
 )
@@ -19,6 +17,14 @@ type AuthTokenOptions struct {
 	Store        AuthStore
 }
 
+type AuthTokenResponse struct {
+	Token *Token `json:"token"`
+}
+
+type AuthTokenErrorResponse struct {
+	Error string `json:"error"`
+}
+
 func NewAuthToken(opts AuthTokenOptions) *AuthToken {
 	at := AuthToken{
 		ds:           opts.Datasource,
@@ -28,7 +34,7 @@ func NewAuthToken(opts AuthTokenOptions) *AuthToken {
 	return &at
 }
 
-func (at *AuthToken) Middleware() web.MiddlewareFunc {
+func (at *AuthToken) middleware() web.MiddlewareFunc {
 	return func(next web.RouteHandler) web.RouteHandler {
 		return func(ctx web.Context) error {
 			tokenValue := getTokenFromCtx(ctx)
@@ -36,7 +42,6 @@ func (at *AuthToken) Middleware() web.MiddlewareFunc {
 				return next(ctx)
 			}
 			pid, err := at.store.GetAuthTokenPID(tokenValue)
-			fmt.Println(pid)
 			if err != nil {
 				return next(ctx)
 			}
@@ -47,7 +52,43 @@ func (at *AuthToken) Middleware() web.MiddlewareFunc {
 }
 
 func (at *AuthToken) Create(z *zepto.Zepto) {
-	z.Use(at.Middleware())
+	z.Use(at.middleware())
+}
+
+func (at *AuthToken) SetupAuthEndpoint(z *zepto.Zepto, router *web.Router) {
+	router.Post("/", func(ctx web.Context) error {
+		credentials, err := getCredentialsFromCtx(ctx)
+		if err != nil {
+			ctx.SetStatus(400)
+			return ctx.RenderJson(AuthTokenErrorResponse{
+				Error: ErrMissingUsernameOrPassword.Error(),
+			})
+		}
+		pid, err := at.ds.Auth(credentials.Username, credentials.Password)
+		if err != nil {
+			ctx.SetStatus(401)
+			return ctx.RenderJson(AuthTokenErrorResponse{
+				Error: ErrUnauthorized.Error(),
+			})
+		}
+		token, err := at.tokenEncoder.GenerateTokenFromPID(pid)
+		if err != nil {
+			ctx.SetStatus(500)
+			return ctx.RenderJson(AuthTokenErrorResponse{
+				Error: ErrInternalServerError.Error(),
+			})
+		}
+		err = at.store.StoreAuthToken(token, pid)
+		if err != nil {
+			ctx.SetStatus(500)
+			return ctx.RenderJson(AuthTokenErrorResponse{
+				Error: ErrInternalServerError.Error(),
+			})
+		}
+		return ctx.RenderJson(AuthTokenResponse{
+			Token: token,
+		})
+	})
 }
 
 func (at *AuthToken) Init(z *zepto.Zepto) {
@@ -57,38 +98,6 @@ func (at *AuthToken) Init(z *zepto.Zepto) {
 	if at.store == nil {
 		panic("[auth] you must define a store")
 	}
-	authRouter := z.Router("/auth")
-	authRouter.Post("/", func(ctx web.Context) error {
-		credentials, err := getCredentialsFromCtx(ctx)
-		if err != nil {
-			ctx.SetStatus(400)
-			return ctx.RenderJson(map[string]interface{}{
-				"error": "missing username or password",
-			})
-		}
-		pid, err := at.ds.Auth(credentials.Username, credentials.Password)
-		if err != nil {
-			ctx.SetStatus(401)
-			return ctx.RenderJson(map[string]interface{}{
-				"error": "unauthorized",
-			})
-		}
-		token, err := at.tokenEncoder.GenerateTokenFromPID(pid)
-		if err != nil {
-			ctx.SetStatus(401)
-			return ctx.RenderJson(map[string]interface{}{
-				"error": "internal server error",
-			})
-		}
-		err = at.store.StoreAuthToken(token, pid)
-		if err != nil {
-			ctx.SetStatus(500)
-			return ctx.RenderJson(map[string]interface{}{
-				"error": err.Error(),
-			})
-		}
-		return ctx.RenderJson(map[string]interface{}{
-			"token": token,
-		})
-	})
+	router := z.Router("/auth")
+	at.SetupAuthEndpoint(z, router)
 }
