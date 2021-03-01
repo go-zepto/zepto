@@ -27,14 +27,15 @@ type RouteHandler func(ctx Context) error
 type MiddlewareFunc func(RouteHandler) RouteHandler
 
 type Options struct {
-	broker         *broker.Broker
-	logger         logger.Logger
-	mailer         mailer.Mailer
-	env            string
-	webpackEnabled bool
-	tmplEngine     renderer.Engine
-	sessionName    string
-	sessionStore   sessions.Store
+	broker          *broker.Broker
+	logger          logger.Logger
+	mailer          mailer.Mailer
+	env             string
+	webpackEnabled  bool
+	tmplEngine      renderer.Engine
+	sessionName     string
+	sessionStore    sessions.Store
+	pluginInstances map[string]interface{}
 }
 
 type App struct {
@@ -48,14 +49,15 @@ type App struct {
 }
 
 type ConfigureOptions struct {
-	Broker         *broker.Broker
-	Logger         logger.Logger
-	Mailer         mailer.Mailer
-	Env            string
-	WebpackEnabled bool
-	TmplEngine     renderer.Engine
-	SessionName    string
-	SessionStore   sessions.Store
+	Broker          *broker.Broker
+	Logger          logger.Logger
+	Mailer          mailer.Mailer
+	Env             string
+	WebpackEnabled  bool
+	TmplEngine      renderer.Engine
+	SessionName     string
+	SessionStore    sessions.Store
+	PluginInstances map[string]interface{}
 }
 
 func (app *App) startWebpack() {
@@ -121,14 +123,15 @@ func NewApp() *App {
 
 func (app *App) Configure(opts ConfigureOptions) {
 	app.opts = Options{
-		broker:         opts.Broker,
-		logger:         opts.Logger,
-		mailer:         opts.Mailer,
-		env:            opts.Env,
-		sessionName:    opts.SessionName,
-		sessionStore:   opts.SessionStore,
-		tmplEngine:     opts.TmplEngine,
-		webpackEnabled: opts.WebpackEnabled,
+		broker:          opts.Broker,
+		logger:          opts.Logger,
+		mailer:          opts.Mailer,
+		env:             opts.Env,
+		sessionName:     opts.SessionName,
+		sessionStore:    opts.SessionStore,
+		tmplEngine:      opts.TmplEngine,
+		webpackEnabled:  opts.WebpackEnabled,
+		pluginInstances: opts.PluginInstances,
 	}
 	app.tmplEngine = app.opts.tmplEngine
 }
@@ -208,6 +211,10 @@ func (app *App) Any(path string, routeHandler RouteHandler) *App {
 
 func (app *App) Use(mw ...MiddlewareFunc) {
 	app.rootRouter.middleware.Use(mw...)
+}
+
+func (app *App) UsePrepend(mw ...MiddlewareFunc) {
+	app.rootRouter.middleware.UsePrepend(mw...)
 }
 
 func (app *App) Resource(path string, resource Resource) *App {

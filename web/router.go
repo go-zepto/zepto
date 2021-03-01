@@ -107,6 +107,10 @@ func (router *Router) Use(mw ...MiddlewareFunc) {
 	router.middleware.Use(mw...)
 }
 
+func (router *Router) UsePrepend(mw ...MiddlewareFunc) {
+	router.middleware.UsePrepend(mw...)
+}
+
 func (router *Router) Resource(path string, resource Resource) *Router {
 	id_path := pathlib.Join(path, "/{id}")
 	router.Get(path, resource.List)
@@ -154,6 +158,7 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 		}
 		ctx.session = app.getSession(res, req)
 		ctx.tmplEngine = app.tmplEngine
+		ctx.pluginsInstances = app.opts.pluginInstances
 		// Handle Controller Panic
 		defer func() {
 			if r := recover(); r != nil {

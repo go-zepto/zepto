@@ -9,6 +9,10 @@ func (ms *MiddlewareStack) Use(mw ...MiddlewareFunc) {
 	ms.stack = append(ms.stack, mw...)
 }
 
+func (ms *MiddlewareStack) UsePrepend(mw ...MiddlewareFunc) {
+	ms.stack = append(mw, ms.stack...)
+}
+
 func (ms *MiddlewareStack) handle(handler RouteHandler) RouteHandler {
 	if len(ms.stack) == 0 {
 		return handler

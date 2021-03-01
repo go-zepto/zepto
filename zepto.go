@@ -29,12 +29,14 @@ type Zepto struct {
 	mailer     mailer.Mailer
 	logger     logger.Logger
 	startedAt  *time.Time
+	plugins    map[string]Plugin
 }
 
 func NewZepto(opts ...Option) *Zepto {
 	options := newOptions(opts...)
 	z := &Zepto{
-		opts: options,
+		opts:    options,
+		plugins: make(map[string]Plugin),
 	}
 	if options.Logger == nil {
 		// Logger not set. Using default logger (logrus)
@@ -95,9 +97,27 @@ func (z *Zepto) Logger() logger.Logger {
 	return z.logger
 }
 
+func (z *Zepto) Mailer() mailer.Mailer {
+	return z.mailer
+}
+
+func (z *Zepto) AddPlugin(plugin Plugin) {
+	z.plugins[plugin.Name()] = plugin
+	plugin.OnCreated(z)
+	z.UsePrepend(plugin.PrependMiddlewares()...)
+	z.Use(plugin.AppendMiddlewares()...)
+}
+
+func (z *Zepto) Plugins() map[string]Plugin {
+	return z.plugins
+}
+
 func (z *Zepto) InitApp() {
+	for _, p := range z.plugins {
+		p.OnZeptoInit(z)
+	}
 	if z.App != nil {
-		z.App.Configure(web.ConfigureOptions{
+		opts := web.ConfigureOptions{
 			Broker:         z.broker,
 			Logger:         z.logger,
 			Mailer:         z.mailer,
@@ -106,7 +126,13 @@ func (z *Zepto) InitApp() {
 			SessionName:    z.opts.SessionName,
 			SessionStore:   z.opts.SessionStore,
 			WebpackEnabled: z.opts.WebpackEnabled,
-		})
+		}
+		pluginInstances := make(map[string]interface{})
+		for _, p := range z.plugins {
+			pluginInstances[p.Name()] = p.Instance()
+		}
+		opts.PluginInstances = pluginInstances
+		z.App.Configure(opts)
 		z.Init()
 		z.App.StartWebpackServer()
 	}
@@ -140,13 +166,17 @@ func (z *Zepto) Start() {
 				z.logger.Info("Stopping gRPC server...")
 				z.grpcServer.GracefulStop()
 			}
-			if z.grpcServer != nil {
+			if z.httpServer != nil {
 				z.logger.Info("Stopping HTTP server...")
 				z.httpServer.Shutdown(context.Background())
 			}
 			if z.broker != nil {
 				z.logger.Info("Stopping Broker subscriptions...")
 				_ = z.broker.GracefulStop(context.Background())
+			}
+			for pluginName, p := range z.plugins {
+				z.logger.Infof("Stopping plugin %s...", pluginName)
+				p.OnZeptoStop(z)
 			}
 			os.Exit(0)
 		}
@@ -169,6 +199,10 @@ func (z *Zepto) Start() {
 			z.Logger().Infof("HTTP server is listening on %s", z.httpAddr)
 			z.httpServer.ListenAndServe()
 		}()
+	}
+
+	for _, p := range z.plugins {
+		p.OnZeptoStart(z)
 	}
 
 	errors := make(chan error)

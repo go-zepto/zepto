@@ -32,6 +32,7 @@ type Context interface {
 	Mailer() *Mailer
 	Cookies() *Cookies
 	Session() *Session
+	PluginInstance(name string) interface{}
 }
 
 type DefaultContext struct {
@@ -39,13 +40,14 @@ type DefaultContext struct {
 	broker *broker.Broker
 	mailer mailer.Mailer
 	context.Context
-	res        http.ResponseWriter
-	req        *http.Request
-	status     int
-	data       *sync.Map
-	tmplEngine renderer.Engine
-	cookies    *Cookies
-	session    *Session
+	res              http.ResponseWriter
+	req              *http.Request
+	status           int
+	data             *sync.Map
+	tmplEngine       renderer.Engine
+	cookies          *Cookies
+	session          *Session
+	pluginsInstances map[string]interface{}
 }
 
 func NewDefaultContext() *DefaultContext {
@@ -138,4 +140,8 @@ func (d *DefaultContext) Cookies() *Cookies {
 // Retrieve request session instance
 func (d *DefaultContext) Session() *Session {
 	return d.session
+}
+
+func (d *DefaultContext) PluginInstance(name string) interface{} {
+	return d.pluginsInstances[name]
 }
