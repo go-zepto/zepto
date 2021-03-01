@@ -1,8 +1,12 @@
 package main
 
 import (
+	"os"
+
 	"github.com/go-zepto/zepto"
 	"github.com/go-zepto/zepto/examples/auth/models"
+	"github.com/go-zepto/zepto/mailer"
+	"github.com/go-zepto/zepto/mailer/providers/sendgrid"
 	"github.com/go-zepto/zepto/plugins/auth"
 	gormds "github.com/go-zepto/zepto/plugins/auth/datasources/gorm"
 	"github.com/go-zepto/zepto/web"
@@ -11,9 +15,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(db *gorm.DB, username string, password string) {
+func CreateUser(db *gorm.DB, email string, username string, password string) {
 	pwd, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
 	u := models.User{
+		Email:        email,
 		Username:     username,
 		PasswordHash: string(pwd),
 	}
@@ -28,8 +33,8 @@ func SetupDB() *gorm.DB {
 	db.AutoMigrate(
 		&models.User{},
 	)
-	CreateUser(db, "clark.kent", "i.am.superman")
-	CreateUser(db, "bruce.wayne", "i.am.batman")
+	CreateUser(db, "carlosstrand@gmail.com", "clark.kent", "i.am.superman")
+	CreateUser(db, "bruce.wayne@gozepto.com", "bruce.wayne", "i.am.batman")
 	return db
 }
 
@@ -39,6 +44,14 @@ func main() {
 		zepto.Name("auth-api"),
 		zepto.Version("0.0.1"),
 	)
+
+	z.SetupMailer(sendgrid.NewSendgridProvider(sendgrid.Settings{
+		ApiKey: os.Getenv("SENDGRID_API_TOKEN"),
+		DefaultFrom: &mailer.Email{
+			Name:    "Go Zepto",
+			Address: "no-reply@gozepto.com",
+		},
+	}))
 
 	auth := auth.NewAuthToken(auth.AuthTokenOptions{
 		Datasource: gormds.NewGormAuthDatasoruce(gormds.GormAuthDatasourceOptions{

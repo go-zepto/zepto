@@ -94,14 +94,14 @@ func (at *AuthToken) SetupRecoveryPasswordEndpoint(z *zepto.Zepto, router *web.R
 			at.core.Store.StoreResetPasswordToken(token, pid)
 			err := at.core.Notifier.NotifyResetPasswordToken(req.Email, token, pid)
 			if err != nil {
-				ctx.SetStatus(400)
-				return ctx.RenderJson(authcore.AuthResetPasswordResponse{
+				ctx.SetStatus(500)
+				return ctx.RenderJson(authcore.AuthRecoveryPasswordResponse{
 					Status: false,
-					Error:  ptr.String(authcore.ErrBadRequest.Error()),
+					Error:  ptr.String(authcore.ErrInternalServerError.Error()),
 				})
 			}
 		}
-		return ctx.RenderJson(authcore.AuthResetPasswordResponse{
+		return ctx.RenderJson(authcore.AuthRecoveryPasswordResponse{
 			Status: true,
 			Error:  nil,
 		})
