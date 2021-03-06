@@ -29,7 +29,7 @@ type Order struct {
 type Person struct {
 	Model
 	Name     string     `json:"name"`
-	Email    *string    `json:"email"`
+	Email    *string    `json:"email" gorm:"type:varchar(60)"`
 	Age      uint8      `json:"age"`
 	Birthday *time.Time `json:"birthday"`
 	Active   bool       `json:"active"`

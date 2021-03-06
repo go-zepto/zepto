@@ -3,6 +3,7 @@ package gorm
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/go-zepto/zepto/linker/datasource"
 	"github.com/go-zepto/zepto/linker/filter/where"
@@ -14,9 +15,31 @@ type GormDatasource struct {
 	DB         *gorm.DB
 	Model      interface{}
 	Properties datasource.Properties
+	fields     map[string]datasource.Field
+}
+
+func getFields(db *gorm.DB, model interface{}) (*map[string]datasource.Field, error) {
+	types, err := db.Migrator().ColumnTypes(model)
+	if err != nil {
+		return nil, err
+	}
+	fields := make(map[string]datasource.Field)
+	for _, t := range types {
+		nullable, _ := t.Nullable()
+		fields[t.Name()] = datasource.Field{
+			Name:     t.Name(),
+			Type:     strings.ToLower(t.DatabaseTypeName()),
+			Nullable: nullable,
+		}
+	}
+	return &fields, nil
 }
 
 func NewGormDatasource(db *gorm.DB, model interface{}) *GormDatasource {
+	fields, err := getFields(db, model)
+	if err != nil {
+		panic(err)
+	}
 	return &GormDatasource{
 		DB:    db,
 		Model: model,
@@ -24,12 +47,22 @@ func NewGormDatasource(db *gorm.DB, model interface{}) *GormDatasource {
 			Skip:  0,
 			Limit: 10,
 		},
+		fields: *fields,
 	}
+}
+
+func (g *GormDatasource) getFieldList() []string {
+	fieldList := make([]string, 0)
+	for fieldName := range g.fields {
+		fieldList = append(fieldList, fieldName)
+	}
+	return fieldList
 }
 
 func (g *GormDatasource) ApplyWhere(ctx datasource.QueryContext, query *gorm.DB) (*gorm.DB, error) {
 	if ctx.Filter != nil && ctx.Filter.Where != nil {
-		where := where.NewFromMap(*ctx.Filter.Where)
+		allowedFields := g.getFieldList()
+		where := where.NewFromMapWithAllowedFields(*ctx.Filter.Where, allowedFields)
 		sqlWhere, err := where.ToSQL()
 		if err != nil {
 			return nil, err
@@ -70,6 +103,10 @@ func (g *GormDatasource) createModelReflectInstance() reflect.Value {
 func (g *GormDatasource) createModelReflectInstanceSlice() reflect.Value {
 	elemType := reflect.TypeOf(g.Model)
 	return reflect.New(reflect.SliceOf(elemType))
+}
+
+func (g *GormDatasource) Fields() map[string]datasource.Field {
+	return g.fields
 }
 
 func (g *GormDatasource) Find(ctx datasource.QueryContext) (*datasource.ListResult, error) {

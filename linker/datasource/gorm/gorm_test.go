@@ -18,6 +18,35 @@ func SetupTestDatasource() datasource.Datasource {
 	return gds
 }
 
+func TestFields(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	fields := gds.Fields()
+	var assertType = func(name string, fieldType string) {
+		assert.Equal(
+			t,
+			datasource.Field{
+				Name:     name,
+				Type:     fieldType,
+				Nullable: true,
+			},
+			fields[name],
+		)
+	}
+	// Model Base
+	assertType("id", "integer")
+	assertType("created_at", "datetime")
+	assertType("updated_at", "datetime")
+	assertType("deleted_at", "datetime")
+	// Person
+	assertType("name", "text")
+	assertType("email", "varchar(60)")
+	assertType("age", "integer")
+	assertType("birthday", "datetime")
+	assertType("active", "numeric")
+	assertType("city_id", "integer")
+}
+
 func TestFind(t *testing.T) {
 	db := testutils.SetupGorm()
 	gds := NewGormDatasource(db, &testutils.Person{})
@@ -41,6 +70,21 @@ func TestFind_Where(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), res.Count)
 	assert.Equal(t, res.Data[0]["name"], "Carlos Strand")
+}
+
+func TestFind_Where_Not_Allowed_Field(t *testing.T) {
+	db := testutils.SetupGorm()
+	gds := NewGormDatasource(db, &testutils.Person{})
+	_, err := gds.Find(datasource.QueryContext{
+		Filter: &filter.Filter{
+			Where: &map[string]interface{}{
+				"some_unknown": map[string]interface{}{
+					"eq": "Carlos Strand",
+				},
+			},
+		},
+	})
+	assert.EqualError(t, err, "some_unknown field is not allowed")
 }
 
 func TestFind_Where_Include_1(t *testing.T) {

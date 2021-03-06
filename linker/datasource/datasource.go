@@ -22,6 +22,7 @@ type ManyAffectedResult struct {
 }
 
 type Datasource interface {
+	Fields() map[string]Field
 	Find(ctx QueryContext) (*ListResult, error)
 	FindOne(ctx QueryContext) (*map[string]interface{}, error)
 	Create(ctx QueryContext, data interface{}) (*map[string]interface{}, error)
@@ -48,4 +49,10 @@ func (d *Properties) GetLimit(ctx QueryContext) int64 {
 		return *f.Limit
 	}
 	return d.Limit
+}
+
+type Field struct {
+	Name     string
+	Type     string
+	Nullable bool
 }
