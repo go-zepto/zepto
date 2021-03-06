@@ -38,7 +38,8 @@ func DecodeMapToStruct(input interface{}, output interface{}) error {
 		Squash:   true,
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			ToTimeHookFunc()),
-		TagName: "json",
+		TagName:          "json",
+		WeaklyTypedInput: true,
 	}
 	decoder, err := mapstructure.NewDecoder(config)
 	if err != nil {

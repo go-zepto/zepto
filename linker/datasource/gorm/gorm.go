@@ -103,7 +103,7 @@ func (g *GormDatasource) Find(ctx datasource.QueryContext) (*datasource.ListResu
 func (g *GormDatasource) FindOne(ctx datasource.QueryContext) (*map[string]interface{}, error) {
 	obj := g.createModelReflectInstance()
 	dest := obj.Interface()
-	query := g.DB
+	query := g.DB.Model(g.Model)
 	query, err := g.ApplyInclude(ctx, query)
 	if err != nil {
 		return nil, err
@@ -132,12 +132,15 @@ func (g *GormDatasource) Create(ctx datasource.QueryContext, data interface{}) (
 }
 
 func (g *GormDatasource) Update(ctx datasource.QueryContext, data interface{}) (datasource.ManyAffectedResult, error) {
+	obj := g.createModelReflectInstance()
+	updateObj := obj.Interface()
+	lutils.DecodeMapToStruct(data, updateObj)
 	query := g.DB.Model(g.Model)
 	query, err := g.ApplyWhere(ctx, query)
 	if err != nil {
 		return datasource.ManyAffectedResult{}, err
 	}
-	res := query.Updates(data)
+	res := query.Updates(updateObj)
 	if res.Error != nil {
 		return datasource.ManyAffectedResult{}, res.Error
 	}
