@@ -7,7 +7,9 @@ import (
 )
 
 type Where struct {
-	Root *Node
+	Root             *Node
+	allowedFields    []string
+	allowedFieldsMap map[string]bool
 }
 
 func (w *Where) GetWhereType(key string) WhereType {
@@ -19,11 +21,23 @@ func (w *Where) GetWhereType(key string) WhereType {
 
 func NewFromMap(filter map[string]interface{}) *Where {
 	v := reflect.ValueOf(filter)
-	w := Where{}
+	w := Where{
+		allowedFields: []string{"*"},
+	}
 	root := Node{Type: TYPES["__root__"]}
 	w.walk(&root, v)
 	w.Root = &root
 	return &w
+}
+
+func NewFromMapWithAllowedFields(filter map[string]interface{}, allowedFields []string) *Where {
+	w := NewFromMap(filter)
+	w.allowedFields = allowedFields
+	w.allowedFieldsMap = make(map[string]bool)
+	for _, f := range allowedFields {
+		w.allowedFieldsMap[f] = true
+	}
+	return w
 }
 
 func (w *Where) walk(parent *Node, v reflect.Value) {
@@ -50,6 +64,14 @@ func (w *Where) walk(parent *Node, v reflect.Value) {
 	}
 }
 
+func (f *Where) isFieldAllowed(fieldName string) bool {
+	if len(f.allowedFields) == 1 && f.allowedFields[0] == "*" {
+		return true
+	}
+	allowed, ok := f.allowedFieldsMap[fieldName]
+	return ok && allowed
+}
+
 func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 	if query.Error != nil {
 		return
@@ -62,6 +84,10 @@ func (f *Where) walkGenerateSQLQuery(node *Node, query *Query) {
 		}
 	case "__field__":
 		for _, n := range node.Nodes {
+			if !f.isFieldAllowed(n.Parent.Key) {
+				query.Error = errors.New(node.Key + " field is not allowed")
+				return
+			}
 			f.walkGenerateSQLQuery(n, query)
 		}
 		if node.Parent != nil && node.Parent.LastChild() != node {

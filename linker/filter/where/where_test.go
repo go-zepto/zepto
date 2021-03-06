@@ -36,6 +36,42 @@ func TestWhere(t *testing.T) {
 	assert.Equal(t, "first_name = ? AND last_name <> ?", query.Text)
 }
 
+func TestWhereWithAllowedFields_1(t *testing.T) {
+	filterJson := `
+		{
+			"first_name": {
+				"eq": "Carlos"
+			},
+			"last_name": {
+				"neq": "Strand"
+			}
+		}
+	`
+	w := NewFromMapWithAllowedFields(jsonToMap(filterJson), []string{"first_name"})
+	_, err := w.ToSQL()
+	assert.EqualError(t, err, "last_name field is not allowed")
+}
+
+func TestWhereWithAllowedFields_2(t *testing.T) {
+	filterJson := `
+		{
+			"first_name": {
+				"eq": "Carlos"
+			},
+			"last_name": {
+				"neq": "Strand"
+			}
+		}
+	`
+	w := NewFromMapWithAllowedFields(jsonToMap(filterJson), []string{"first_name", "last_name"})
+	query, err := w.ToSQL()
+	assert.NoError(t, err)
+	assert.Len(t, query.Vars, 2)
+	assert.Equal(t, query.Vars[0].(string), "Carlos")
+	assert.Equal(t, query.Vars[1].(string), "Strand")
+	assert.Equal(t, "first_name = ? AND last_name <> ?", query.Text)
+}
+
 func TestWhereOR(t *testing.T) {
 	filterJson := `
 		{
