@@ -11,9 +11,9 @@ func main() {
 	z.AddPlugin(counter.NewCounterPlugin())
 	z.SetupHTTP("0.0.0.0:8000")
 
-	// You can access the plugin instance using the Controller Context
+	// You can access the plugin instance using the method InstanceFromCtx
 	z.Get("/", func(ctx web.Context) error {
-		counter := (ctx.PluginInstance("counter")).(*counter.Counter)
+		counter := counter.InstanceFromCtx(ctx)
 		counter.Add(100)
 		return ctx.RenderJson(map[string]int{
 			"counter": counter.Value(),
