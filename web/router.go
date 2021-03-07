@@ -148,7 +148,6 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 	muxRouter.HandleFunc(path.Join(routerPath, h.path), func(res http.ResponseWriter, req *http.Request) {
 		ctx := NewDefaultContext()
 		ctx.logger = app.opts.logger
-		ctx.mailer = app.opts.mailer
 		ctx.res = res
 		ctx.req = req
 		ctx.cookies = &Cookies{

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-zepto/zepto/mailer"
-	"github.com/go-zepto/zepto/mailer/utils"
+	"github.com/go-zepto/zepto/plugins/mailer"
+	"github.com/go-zepto/zepto/plugins/mailer/utils"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"

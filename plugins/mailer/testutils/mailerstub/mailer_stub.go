@@ -1,6 +1,6 @@
 package mailerstub
 
-import "github.com/go-zepto/zepto/mailer"
+import "github.com/go-zepto/zepto/plugins/mailer"
 
 type SendFromHtmlStackItem struct {
 	Html string

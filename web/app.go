@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-webpack/webpack"
 	"github.com/go-zepto/zepto/logger"
-	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/utils"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
@@ -27,7 +26,6 @@ type MiddlewareFunc func(RouteHandler) RouteHandler
 
 type Options struct {
 	logger          logger.Logger
-	mailer          mailer.Mailer
 	env             string
 	webpackEnabled  bool
 	tmplEngine      renderer.Engine
@@ -48,7 +46,6 @@ type App struct {
 
 type ConfigureOptions struct {
 	Logger          logger.Logger
-	Mailer          mailer.Mailer
 	Env             string
 	WebpackEnabled  bool
 	TmplEngine      renderer.Engine
@@ -121,7 +118,6 @@ func NewApp() *App {
 func (app *App) Configure(opts ConfigureOptions) {
 	app.opts = Options{
 		logger:          opts.Logger,
-		mailer:          opts.Mailer,
 		env:             opts.Env,
 		sessionName:     opts.SessionName,
 		sessionStore:    opts.SessionStore,

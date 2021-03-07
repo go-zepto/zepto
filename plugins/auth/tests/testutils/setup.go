@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 
 	"github.com/go-zepto/zepto"
-	"github.com/go-zepto/zepto/mailer/testutils/mailerstub"
 	"github.com/go-zepto/zepto/plugins/auth"
 	gormds "github.com/go-zepto/zepto/plugins/auth/datasources/gorm"
 	"github.com/go-zepto/zepto/plugins/auth/datasources/gorm/testutils"
@@ -13,6 +12,7 @@ import (
 	"github.com/go-zepto/zepto/plugins/auth/encoders/uuid"
 	mailernotifier "github.com/go-zepto/zepto/plugins/auth/notifiers/mailer"
 	"github.com/go-zepto/zepto/plugins/auth/stores/inmemory"
+	"github.com/go-zepto/zepto/plugins/mailer/testutils/mailerstub"
 	"github.com/go-zepto/zepto/web"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -59,7 +59,7 @@ func NewAuthTokenTestKit() *AuthTokenTestKit {
 		TokenEncoder: uuid.NewUUIDTokenEncoder(),
 		Store:        inmemory.NewInMemoryStore(),
 		Notifier: mailernotifier.NewMailerNotifier(mailernotifier.Options{
-			Mailer: mailerStub,
+			MailerInstance: mailerStub,
 		}),
 	})
 	z.AddPlugin(authToken)
