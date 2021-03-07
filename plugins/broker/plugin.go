@@ -9,12 +9,12 @@ import (
 
 type SubscriptionsMap map[string]interface{}
 
-type BrokerPluginOptions struct {
+type Options struct {
 	Provider      BrokerProvider
 	Subscriptions SubscriptionsMap
 }
 
-func NewBrokerPlugin(opts BrokerPluginOptions) *BrokerPlugin {
+func NewBrokerPlugin(opts Options) *BrokerPlugin {
 	return &BrokerPlugin{
 		broker: NewBroker(opts.Provider),
 		subs:   opts.Subscriptions,

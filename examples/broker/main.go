@@ -24,7 +24,7 @@ func main() {
 		zepto.Version("0.0.1"),
 	)
 
-	z.AddPlugin(broker.NewBrokerPlugin(broker.BrokerPluginOptions{
+	z.AddPlugin(broker.NewBrokerPlugin(broker.Options{
 		Provider: gcp.NewBroker(gcp.ProjectID("YOUR_GOOGLE_PROJECT_ID")),
 		Subscriptions: broker.SubscriptionsMap{
 			"app.example.my_message": MyMessageSubscriptionHandler,
