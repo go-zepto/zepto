@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-zepto/zepto"
-	"github.com/go-zepto/zepto/mailer"
+	"github.com/go-zepto/zepto/plugins/mailer"
 	"github.com/go-zepto/zepto/web"
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -44,7 +44,9 @@ func setupZeptoWithMailMock() (*zepto.Zepto, *clientMock) {
 	})
 	cm := &clientMock{}
 	sg.client = cm
-	z.SetupMailer(sg)
+	z.AddPlugin(mailer.NewMailerPlugin(mailer.Options{
+		Mailer: sg,
+	}))
 	return z, cm
 }
 
@@ -71,7 +73,8 @@ func TestSendgridSendMail(t *testing.T) {
 	z, cm := setupZeptoWithMailMock()
 	cm.setStatus(200)
 	z.Post("/send-mail", func(ctx web.Context) error {
-		err := ctx.Mailer().SendFromHTML("<bold>Some email in HTML format</bold>", DEFAULT_SEND_OPTIONS)
+		m := mailer.InstanceFromCtx(ctx)
+		err := m.SendFromHTML("<bold>Some email in HTML format</bold>", DEFAULT_SEND_OPTIONS)
 		if err != nil {
 			return err
 		}
@@ -110,7 +113,8 @@ func TestSendgridSendMail_Error(t *testing.T) {
 	z, cm := setupZeptoWithMailMock()
 	cm.setStatus(401)
 	z.Post("/send-mail", func(ctx web.Context) error {
-		err := ctx.Mailer().SendFromHTML("<bold>Some email in HTML format</bold>", DEFAULT_SEND_OPTIONS)
+		m := mailer.InstanceFromCtx(ctx)
+		err := m.SendFromHTML("<bold>Some email in HTML format</bold>", DEFAULT_SEND_OPTIONS)
 		if err != nil {
 			return err
 		}
