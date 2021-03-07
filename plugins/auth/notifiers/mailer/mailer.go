@@ -1,8 +1,8 @@
 package mailernotifier
 
 import (
-	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/plugins/auth/authcore"
+	"github.com/go-zepto/zepto/plugins/mailer"
 )
 
 type TemplateOptions struct {
@@ -16,12 +16,12 @@ type Templates struct {
 }
 
 type Options struct {
-	Mailer    mailer.Mailer
-	Templates *Templates
+	MailerInstance mailer.MailerInstance
+	Templates      *Templates
 }
 
 type MailerNotifier struct {
-	mailer    mailer.Mailer
+	mailer    mailer.MailerInstance
 	templates *Templates
 }
 
@@ -45,7 +45,7 @@ func NewMailerNotifier(opts Options) *MailerNotifier {
 	}
 
 	return &MailerNotifier{
-		mailer:    opts.Mailer,
+		mailer:    opts.MailerInstance,
 		templates: opts.Templates,
 	}
 }

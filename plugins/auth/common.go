@@ -6,6 +6,7 @@ import (
 	"github.com/go-zepto/zepto/plugins/auth/encoders/uuid"
 	mailernotifier "github.com/go-zepto/zepto/plugins/auth/notifiers/mailer"
 	"github.com/go-zepto/zepto/plugins/auth/stores/inmemory"
+	"github.com/go-zepto/zepto/plugins/mailer"
 )
 
 func CreateAuthCore(z *zepto.Zepto, opts authcore.AuthCore) *authcore.AuthCore {
@@ -17,8 +18,17 @@ func CreateAuthCore(z *zepto.Zepto, opts authcore.AuthCore) *authcore.AuthCore {
 		opts.Store = inmemory.NewInMemoryStore()
 	}
 	if opts.Notifier == nil {
+		mailerPlugin := z.Plugins()["mailer"]
+		if mailerPlugin == nil {
+			panic("[auth] mailer plugin is required when using mailer notifier")
+		}
+		i := mailerPlugin.Instance()
+		mailerInstance, ok := i.(mailer.MailerInstance)
+		if !ok {
+			panic("[auth] could not load mailer plugin")
+		}
 		opts.Notifier = mailernotifier.NewMailerNotifier(mailernotifier.Options{
-			Mailer: z.Mailer(),
+			MailerInstance: mailerInstance,
 		})
 	}
 	ac.DS = opts.DS
