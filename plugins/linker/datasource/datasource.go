@@ -3,7 +3,7 @@ package datasource
 import (
 	"context"
 
-	"github.com/go-zepto/zepto/linker/filter"
+	"github.com/go-zepto/zepto/plugins/linker/filter"
 )
 
 type QueryContext struct {

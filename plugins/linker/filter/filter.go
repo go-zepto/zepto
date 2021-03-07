@@ -1,6 +1,6 @@
 package filter
 
-import "github.com/go-zepto/zepto/linker/filter/include"
+import "github.com/go-zepto/zepto/plugins/linker/filter/include"
 
 type Filter struct {
 	Skip    *int64                  `json:"skip"`

@@ -3,7 +3,7 @@ package where
 import (
 	"testing"
 
-	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
+	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,7 +1,7 @@
 package hooks
 
 import (
-	"github.com/go-zepto/zepto/linker/datasource"
+	"github.com/go-zepto/zepto/plugins/linker/datasource"
 	"github.com/go-zepto/zepto/web"
 )
 

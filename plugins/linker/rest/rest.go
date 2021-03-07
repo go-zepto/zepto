@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/go-zepto/zepto/linker/hooks"
-	"github.com/go-zepto/zepto/linker/repository"
-	"github.com/go-zepto/zepto/linker/utils"
+	"github.com/go-zepto/zepto/plugins/linker/hooks"
+	"github.com/go-zepto/zepto/plugins/linker/repository"
+	"github.com/go-zepto/zepto/plugins/linker/utils"
 	"github.com/go-zepto/zepto/web"
 )
 

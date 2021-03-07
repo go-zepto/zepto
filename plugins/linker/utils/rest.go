@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/go-zepto/zepto/linker/filter"
+	"github.com/go-zepto/zepto/plugins/linker/filter"
 	"github.com/go-zepto/zepto/web"
 	"github.com/joncalhoun/qson"
 )

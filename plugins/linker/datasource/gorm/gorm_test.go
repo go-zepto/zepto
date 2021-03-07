@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-zepto/zepto/linker/datasource"
-	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
-	"github.com/go-zepto/zepto/linker/filter"
-	"github.com/go-zepto/zepto/linker/filter/include"
+	"github.com/go-zepto/zepto/plugins/linker/datasource"
+	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
+	"github.com/go-zepto/zepto/plugins/linker/filter"
+	"github.com/go-zepto/zepto/plugins/linker/filter/include"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/thriftrw/ptr"
 )

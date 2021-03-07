@@ -2,11 +2,11 @@ package linker
 
 import (
 	"github.com/gertd/go-pluralize"
-	"github.com/go-zepto/zepto/linker/datasource"
-	"github.com/go-zepto/zepto/linker/hooks"
-	"github.com/go-zepto/zepto/linker/repository"
-	"github.com/go-zepto/zepto/linker/rest"
-	"github.com/go-zepto/zepto/linker/utils"
+	"github.com/go-zepto/zepto/plugins/linker/datasource"
+	"github.com/go-zepto/zepto/plugins/linker/hooks"
+	"github.com/go-zepto/zepto/plugins/linker/repository"
+	"github.com/go-zepto/zepto/plugins/linker/rest"
+	"github.com/go-zepto/zepto/plugins/linker/utils"
 	"github.com/go-zepto/zepto/web"
 )
 

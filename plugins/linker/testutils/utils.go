@@ -3,8 +3,8 @@ package testutils
 import (
 	"testing"
 
-	"github.com/go-zepto/zepto/linker"
-	"github.com/go-zepto/zepto/linker/datasource/gorm/testutils"
+	"github.com/go-zepto/zepto/plugins/linker"
+	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/web"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"

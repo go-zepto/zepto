@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-zepto/zepto/linker/datasource"
-	"github.com/go-zepto/zepto/linker/filter/where"
-	lutils "github.com/go-zepto/zepto/linker/utils"
+	"github.com/go-zepto/zepto/plugins/linker/datasource"
+	"github.com/go-zepto/zepto/plugins/linker/filter/where"
+	lutils "github.com/go-zepto/zepto/plugins/linker/utils"
 	"gorm.io/gorm"
 )
 

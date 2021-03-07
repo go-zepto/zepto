@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/go-zepto/zepto/linker/utils"
+	"github.com/go-zepto/zepto/plugins/linker/utils"
 )
 
 type SingleResult map[string]interface{}
