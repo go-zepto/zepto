@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-zepto/zepto"
 	"github.com/go-zepto/zepto/examples/auth/models"
-	"github.com/go-zepto/zepto/mailer"
-	"github.com/go-zepto/zepto/mailer/providers/sendgrid"
 	"github.com/go-zepto/zepto/plugins/auth"
 	gormds "github.com/go-zepto/zepto/plugins/auth/datasources/gorm"
+	"github.com/go-zepto/zepto/plugins/mailer"
+	"github.com/go-zepto/zepto/plugins/mailer/providers/sendgrid"
 	"github.com/go-zepto/zepto/web"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
@@ -33,7 +33,7 @@ func SetupDB() *gorm.DB {
 	db.AutoMigrate(
 		&models.User{},
 	)
-	CreateUser(db, "carlosstrand@gmail.com", "clark.kent", "i.am.superman")
+	CreateUser(db, "clark.kent@gozepto.com", "clark.kent", "i.am.superman")
 	CreateUser(db, "bruce.wayne@gozepto.com", "bruce.wayne", "i.am.batman")
 	return db
 }
@@ -45,21 +45,22 @@ func main() {
 		zepto.Version("0.0.1"),
 	)
 
-	z.SetupMailer(sendgrid.NewSendgridProvider(sendgrid.Settings{
-		ApiKey: os.Getenv("SENDGRID_API_TOKEN"),
-		DefaultFrom: &mailer.Email{
-			Name:    "Go Zepto",
-			Address: "no-reply@gozepto.com",
-		},
+	z.AddPlugin(mailer.NewMailerPlugin(mailer.Options{
+		Mailer: sendgrid.NewSendgridProvider(sendgrid.Settings{
+			ApiKey: os.Getenv("SENDGRID_API_TOKEN"),
+			DefaultFrom: &mailer.Email{
+				Name:    "Go Zepto",
+				Address: "no-reply@gozepto.com",
+			},
+		}),
 	}))
 
-	auth := auth.NewAuthToken(auth.AuthTokenOptions{
+	z.AddPlugin(auth.NewAuthTokenPlugin(auth.AuthTokenOptions{
 		Datasource: gormds.NewGormAuthDatasoruce(gormds.GormAuthDatasourceOptions{
 			DB:        db,
 			UserModel: &models.User{},
 		}),
-	})
-	z.AddPlugin(auth)
+	}))
 
 	z.Get("/me", func(ctx web.Context) error {
 		auth_user_pid := ctx.Value("auth_user_pid")

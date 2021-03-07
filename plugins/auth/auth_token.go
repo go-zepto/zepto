@@ -19,7 +19,7 @@ type AuthToken struct {
 	opts *AuthTokenOptions
 }
 
-func NewAuthToken(opts AuthTokenOptions) *AuthToken {
+func NewAuthTokenPlugin(opts AuthTokenOptions) *AuthToken {
 	at := AuthToken{
 		opts: &opts,
 	}
@@ -43,7 +43,7 @@ func (at *AuthToken) middleware() web.MiddlewareFunc {
 	}
 }
 
-func (at *AuthToken) SetupAuthEndpoint(z *zepto.Zepto, router *web.Router) {
+func (at *AuthToken) setupAuthEndpoint(z *zepto.Zepto, router *web.Router) {
 	router.Post("/", func(ctx web.Context) error {
 		credentials, err := getCredentialsFromCtx(ctx)
 		if err != nil {
@@ -79,7 +79,7 @@ func (at *AuthToken) SetupAuthEndpoint(z *zepto.Zepto, router *web.Router) {
 	})
 }
 
-func (at *AuthToken) SetupRecoveryPasswordEndpoint(z *zepto.Zepto, router *web.Router) {
+func (at *AuthToken) setupRecoveryPasswordEndpoint(z *zepto.Zepto, router *web.Router) {
 	router.Post("/recovery-password", func(ctx web.Context) error {
 		req, err := getRecoveryPasswordRequestFromCtx(ctx)
 		if err != nil {
@@ -108,7 +108,7 @@ func (at *AuthToken) SetupRecoveryPasswordEndpoint(z *zepto.Zepto, router *web.R
 	})
 }
 
-func (at *AuthToken) SetupResetPasswordEndpoint(z *zepto.Zepto, router *web.Router) {
+func (at *AuthToken) setupResetPasswordEndpoint(z *zepto.Zepto, router *web.Router) {
 	router.Post("/reset-password", func(ctx web.Context) error {
 		req, err := getResetPasswordRequestFromCtx(ctx)
 		if err != nil {
@@ -162,9 +162,9 @@ func (at *AuthToken) OnZeptoInit(z *zepto.Zepto) {
 	})
 	at.core.AssertConfigured()
 	router := z.Router("/auth")
-	at.SetupAuthEndpoint(z, router)
-	at.SetupRecoveryPasswordEndpoint(z, router)
-	at.SetupResetPasswordEndpoint(z, router)
+	at.setupAuthEndpoint(z, router)
+	at.setupRecoveryPasswordEndpoint(z, router)
+	at.setupResetPasswordEndpoint(z, router)
 }
 
 func (at *AuthToken) OnZeptoStart(z *zepto.Zepto) {
