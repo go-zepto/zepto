@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/go-zepto/zepto/logger"
-	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/gorilla/mux"
 
@@ -27,7 +26,6 @@ type Context interface {
 	RenderJson(data interface{}) error
 	Redirect(url string) error
 	Logger() logger.Logger
-	Mailer() *Mailer
 	Cookies() *Cookies
 	Session() *Session
 	PluginInstance(name string) interface{}
@@ -35,7 +33,6 @@ type Context interface {
 
 type DefaultContext struct {
 	logger logger.Logger
-	mailer mailer.Mailer
 	context.Context
 	res              http.ResponseWriter
 	req              *http.Request
@@ -112,11 +109,6 @@ func (d *DefaultContext) Redirect(url string) error {
 // Logger is the logger instance from zepto
 func (d *DefaultContext) Logger() logger.Logger {
 	return d.logger
-}
-
-// Mailer is the mailer instance from zepto
-func (d *DefaultContext) Mailer() *Mailer {
-	return &Mailer{d.mailer}
 }
 
 // Retrieve a map of URL parameters
