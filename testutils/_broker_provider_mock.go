@@ -2,7 +2,8 @@ package testutils
 
 import (
 	"context"
-	"github.com/go-zepto/zepto/broker"
+
+	"github.com/go-zepto/zepto/plugins/broker"
 )
 
 type PublishCallArgs struct {

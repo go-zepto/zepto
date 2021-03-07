@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,19 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-zepto/zepto/broker"
-	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/testutils"
-	log "github.com/sirupsen/logrus"
 )
 
-func CreateAppWithBrokerTest() (*App, *testutils.BrokerProviderMock) {
-	l := logrus.NewLogrus(log.New())
-	bp := &testutils.BrokerProviderMock{}
-	b := broker.NewBroker(l, bp)
+func CreateAppTest() *App {
 	app := NewApp()
-	app.opts.broker = b
-	return app, bp
+	return app
 }
 
 func TestApp_NewApp(t *testing.T) {
@@ -35,66 +27,8 @@ func TestApp_NewApp(t *testing.T) {
 	}
 }
 
-func TestApp_Broker_Init(t *testing.T) {
-	app, bp := CreateAppWithBrokerTest()
-	if app.opts.broker == nil {
-		t.Fatal("app broker should not be nil")
-	}
-	if bp.InitCalled {
-		t.Fatal("broker init should not be called at this moment")
-	}
-	bp.Init(&broker.InitOptions{
-		Logger: app.opts.logger,
-	})
-	if !bp.InitCalled {
-		t.Fatal("broker init should be called at this moment")
-	}
-}
-
-func TestApp_Broker_Publish(t *testing.T) {
-	_, bp := CreateAppWithBrokerTest()
-	if bp.PublishCalled {
-		t.Fatal("broker publish should not be called at this moment")
-	}
-	msg := &broker.Message{
-		Header: map[string]string{"hello": "world"},
-		Body:   []byte("[]"),
-	}
-	err := bp.Publish(context.Background(), "my.topic", msg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bp.PublishCalled {
-		t.Fatal("broker publish should be called at this moment")
-	}
-	if bp.PublishCallArgs.Topic != "my.topic" {
-		t.Fatal("broker publish should have topic=my.topic")
-	}
-	if bp.PublishCallArgs.Msg != msg {
-		t.Errorf("broker publish should have message=%s", msg)
-	}
-}
-
-func TestApp_Broker_Subscribe(t *testing.T) {
-	_, bp := CreateAppWithBrokerTest()
-	if bp.SubscribeCalled {
-		t.Fatal("broker subscribe should not be called at this moment")
-	}
-	handler := func(ctx context.Context, msg *broker.Message) {}
-	err := bp.Subscribe(context.Background(), "my.topic", handler)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bp.SubscribeCalled {
-		t.Fatal("broker subscribe should be called at this moment")
-	}
-	if bp.SubscribeCallArgs.Topic != "my.topic" {
-		t.Fatal("broker subscribe should have topic=my.topic")
-	}
-}
-
 func setupAppTest() *App {
-	app, _ := CreateAppWithBrokerTest()
+	app := CreateAppTest()
 	app.tmplEngine = &testutils.EngineMock{}
 	app.opts.env = "development"
 	return app

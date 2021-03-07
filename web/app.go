@@ -11,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/go-webpack/webpack"
-	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/utils"
@@ -27,7 +26,6 @@ type RouteHandler func(ctx Context) error
 type MiddlewareFunc func(RouteHandler) RouteHandler
 
 type Options struct {
-	broker          *broker.Broker
 	logger          logger.Logger
 	mailer          mailer.Mailer
 	env             string
@@ -49,7 +47,6 @@ type App struct {
 }
 
 type ConfigureOptions struct {
-	Broker          *broker.Broker
 	Logger          logger.Logger
 	Mailer          mailer.Mailer
 	Env             string
@@ -123,7 +120,6 @@ func NewApp() *App {
 
 func (app *App) Configure(opts ConfigureOptions) {
 	app.opts = Options{
-		broker:          opts.Broker,
 		logger:          opts.Logger,
 		mailer:          opts.Mailer,
 		env:             opts.Env,
