@@ -8,10 +8,11 @@ import (
 )
 
 type AuthTokenOptions struct {
-	Datasource   authcore.AuthDatasource
-	TokenEncoder authcore.AuthEncoder
-	Store        authcore.AuthStore
-	Notifier     authcore.AuthNotifier
+	Datasource     authcore.AuthDatasource
+	TokenEncoder   authcore.AuthEncoder
+	Store          authcore.AuthStore
+	Notifier       authcore.AuthNotifier
+	AuthContextKey string
 }
 
 type AuthToken struct {
@@ -20,6 +21,9 @@ type AuthToken struct {
 }
 
 func NewAuthTokenPlugin(opts AuthTokenOptions) *AuthToken {
+	if opts.AuthContextKey == "" {
+		opts.AuthContextKey = "auth_user_pid"
+	}
 	at := AuthToken{
 		opts: &opts,
 	}
@@ -37,7 +41,7 @@ func (at *AuthToken) middleware() web.MiddlewareFunc {
 			if err != nil {
 				return next(ctx)
 			}
-			ctx.Set("auth_user_pid", pid)
+			ctx.Set(at.opts.AuthContextKey, pid)
 			return next(ctx)
 		}
 	}
@@ -138,7 +142,10 @@ func (at *AuthToken) Name() string {
 }
 
 func (at *AuthToken) Instance() interface{} {
-	return at.core
+	return &DefaultAuthTokenInstance{
+		AuthCore:       at.core,
+		AuthContextKey: "auth_user_pid",
+	}
 }
 
 func (at *AuthToken) PrependMiddlewares() []web.MiddlewareFunc {

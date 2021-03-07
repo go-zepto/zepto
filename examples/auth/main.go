@@ -63,14 +63,14 @@ func main() {
 	}))
 
 	z.Get("/me", func(ctx web.Context) error {
-		auth_user_pid := ctx.Value("auth_user_pid")
-		if auth_user_pid == nil {
+		a := auth.InstanceFromCtx(ctx)
+		pid := a.LoggedPIDFromCtx(ctx)
+		if pid == nil {
 			ctx.SetStatus(401)
 			return ctx.RenderJson(map[string]string{
 				"error": "unauthorized",
 			})
 		}
-		pid := auth_user_pid.(uint)
 		var me models.User
 		err := db.First(&me, pid).Error
 		if err != nil {
