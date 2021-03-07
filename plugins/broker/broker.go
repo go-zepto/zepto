@@ -2,15 +2,17 @@ package broker
 
 import (
 	"context"
-	"github.com/go-zepto/zepto/logger"
 	"reflect"
 	"sync"
+
+	"github.com/go-zepto/zepto/logger"
 )
 
-type SubscribeHandler func(ctx context.Context, msg *Message)
+type SubscribeHandler func(ctx SubscriptionContext, msg *Message)
 
 type InitOptions struct {
-	Logger logger.Logger
+	Logger   logger.Logger
+	Instance BrokerInstance
 }
 
 type BrokerProvider interface {
@@ -25,26 +27,42 @@ type Message struct {
 	Body   []byte
 }
 
-// BrokerWrapper is a struct that wrap the broker provider (gcp, rabbitmq, etc) and handle with message encode/decode
-type Broker struct {
-	logger logger.Logger
-	p      BrokerProvider
-	mux    sync.Mutex
+type SubscriptionContext interface {
+	context.Context
+	Broker() BrokerInstance
 }
 
-func NewBroker(logger logger.Logger, provider BrokerProvider) *Broker {
+type DefaultSubscriptionContext struct {
+	context.Context
+	BrokerInstance BrokerInstance
+}
+
+func (sc *DefaultSubscriptionContext) Broker() BrokerInstance {
+	return sc.BrokerInstance
+}
+
+// BrokerWrapper is a struct that wrap the broker provider (gcp, rabbitmq, etc) and handle with message encode/decode
+type Broker struct {
+	logger   logger.Logger
+	p        BrokerProvider
+	mux      sync.Mutex
+	instance BrokerInstance
+}
+
+func NewBroker(provider BrokerProvider) *Broker {
 	return &Broker{
-		logger: logger,
-		p:      provider,
+		p: provider,
 	}
 }
 
 func (b *Broker) Init(opts *InitOptions) {
+	b.logger = opts.Logger
+	b.instance = opts.Instance
 	b.p.Init(opts)
 }
 
 // Publish is a call to the broker publish with encoded message
-func (b *Broker) Publish(ctx context.Context, topic string, m interface{}) error {
+func (b *Broker) publish(ctx context.Context, topic string, m interface{}) error {
 	msg, err := encodeMessage(m)
 	if err != nil {
 		return err
@@ -53,8 +71,8 @@ func (b *Broker) Publish(ctx context.Context, topic string, m interface{}) error
 }
 
 // Publish is a call to the broker publish with encoded message
-func (b *Broker) Subscribe(ctx context.Context, topic string, handler interface{}) {
-	h := func(ctx context.Context, message *Message) {
+func (b *Broker) subscribe(ctx context.Context, topic string, handler interface{}) {
+	h := func(ctx SubscriptionContext, message *Message) {
 		objArg := reflect.TypeOf(handler).In(1)
 		if objArg.Kind() != reflect.Ptr {
 			b.logger.Errorf("Subscription decode error: %s should be a pointer\n", objArg)

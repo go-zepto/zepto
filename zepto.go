@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/mailer"
@@ -25,7 +24,6 @@ type Zepto struct {
 	grpcAddr   string
 	httpAddr   string
 	httpServer *http.Server
-	broker     *broker.Broker
 	mailer     mailer.Mailer
 	logger     logger.Logger
 	startedAt  *time.Time
@@ -78,20 +76,20 @@ func (z *Zepto) createApp() {
 	z.App = web.NewApp()
 }
 
-func (z *Zepto) SetupBroker(bp broker.BrokerProvider) {
-	z.broker = broker.NewBroker(z.logger, bp)
-	z.broker.Init(&broker.InitOptions{
-		Logger: z.logger,
-	})
-}
+// func (z *Zepto) SetupBroker(bp broker.BrokerProvider) {
+// 	z.broker = broker.NewBroker(z.logger, bp)
+// 	z.broker.Init(&broker.InitOptions{
+// 		Logger: z.logger,
+// 	})
+// }
 
 func (z *Zepto) SetupMailer(m mailer.Mailer) {
 	z.mailer = m
 }
 
-func (z *Zepto) Broker() *broker.Broker {
-	return z.broker
-}
+// func (z *Zepto) Broker() *broker.Broker {
+// 	return z.broker
+// }
 
 func (z *Zepto) Logger() logger.Logger {
 	return z.logger
@@ -118,7 +116,6 @@ func (z *Zepto) InitApp() {
 	}
 	if z.App != nil {
 		opts := web.ConfigureOptions{
-			Broker:         z.broker,
 			Logger:         z.logger,
 			Mailer:         z.mailer,
 			Env:            z.opts.Env,
@@ -169,10 +166,6 @@ func (z *Zepto) Start() {
 			if z.httpServer != nil {
 				z.logger.Info("Stopping HTTP server...")
 				z.httpServer.Shutdown(context.Background())
-			}
-			if z.broker != nil {
-				z.logger.Info("Stopping Broker subscriptions...")
-				_ = z.broker.GracefulStop(context.Background())
 			}
 			for pluginName, p := range z.plugins {
 				z.logger.Infof("Stopping plugin %s...", pluginName)

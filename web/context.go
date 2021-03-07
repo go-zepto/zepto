@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/mailer"
 	"github.com/go-zepto/zepto/web/renderer"
@@ -28,7 +27,6 @@ type Context interface {
 	RenderJson(data interface{}) error
 	Redirect(url string) error
 	Logger() logger.Logger
-	Broker() *broker.Broker
 	Mailer() *Mailer
 	Cookies() *Cookies
 	Session() *Session
@@ -37,7 +35,6 @@ type Context interface {
 
 type DefaultContext struct {
 	logger logger.Logger
-	broker *broker.Broker
 	mailer mailer.Mailer
 	context.Context
 	res              http.ResponseWriter
@@ -115,11 +112,6 @@ func (d *DefaultContext) Redirect(url string) error {
 // Logger is the logger instance from zepto
 func (d *DefaultContext) Logger() logger.Logger {
 	return d.logger
-}
-
-// Broker is the broker instance from zepto
-func (d *DefaultContext) Broker() *broker.Broker {
-	return d.broker
 }
 
 // Mailer is the mailer instance from zepto

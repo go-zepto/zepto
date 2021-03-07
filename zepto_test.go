@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-zepto/zepto/testutils"
 	"google.golang.org/grpc"
 )
 
@@ -54,13 +53,4 @@ func TestSetupGRPC(t *testing.T) {
 			t.Fatal("grpc.Server should not be nil")
 		}
 	})
-}
-
-func TestSetupBroker(t *testing.T) {
-	z := NewZepto()
-	bp := &testutils.BrokerProviderMock{}
-	z.SetupBroker(bp)
-	if z.broker == nil {
-		t.Fatal("zepto broker should not be nil")
-	}
 }

@@ -1,15 +1,16 @@
 package gcp
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
+	"time"
+
+	"cloud.google.com/go/pubsub"
 	"github.com/dustin/go-humanize"
-	"github.com/go-zepto/zepto/broker"
 	"github.com/go-zepto/zepto/logger"
+	"github.com/go-zepto/zepto/plugins/broker"
 	goption "google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
 type Broker struct {
@@ -18,6 +19,7 @@ type Broker struct {
 	client *pubsub.Client
 	// subscriptions is a map of subId -> subscription
 	subscriptions map[string]*subscription
+	instance      broker.BrokerInstance
 }
 
 type subscription struct {
@@ -48,6 +50,7 @@ func NewBroker(opts ...Option) broker.BrokerProvider {
 
 func (b *Broker) Init(opts *broker.InitOptions) {
 	b.logger = opts.Logger
+	b.instance = opts.Instance
 }
 
 func (b *Broker) getOrCreateTopic(ctx context.Context, topicId string) (*pubsub.Topic, error) {
@@ -140,7 +143,10 @@ func (s *subscription) Run() {
 					Header: pm.Attributes,
 					Body:   pm.Data,
 				}
-				go s.handler(ctx, m)
+				go s.handler(&broker.DefaultSubscriptionContext{
+					Context:        ctx,
+					BrokerInstance: s.b.instance,
+				}, m)
 				pm.Ack()
 			}); err != nil {
 				s.b.logger.Error(err)
@@ -156,7 +162,7 @@ func (s *subscription) Unsubscribe(ctx context.Context) error {
 	return s.sub.Delete(ctx)
 }
 
-func (b Broker) GracefulStop(ctx context.Context) error {
+func (b *Broker) GracefulStop(ctx context.Context) error {
 	// TODO: Maybe we can use goroutines to stop all subs
 	for _, s := range b.subscriptions {
 		close(s.exit)
