@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-zepto/zepto"
 	"github.com/go-zepto/zepto/plugins/broker"
-	"github.com/go-zepto/zepto/plugins/broker/gcp"
+	"github.com/go-zepto/zepto/plugins/broker/providers/gcp"
 	"github.com/go-zepto/zepto/web"
 )
 

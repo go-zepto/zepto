@@ -51,7 +51,7 @@ func NewAuthTokenTestKit() *AuthTokenTestKit {
 	)
 	db := testutils.SetupDB()
 	mailerStub := mailerstub.NewMailerStub()
-	authToken := auth.NewAuthToken(auth.AuthTokenOptions{
+	authToken := auth.NewAuthTokenPlugin(auth.AuthTokenOptions{
 		Datasource: gormds.NewGormAuthDatasoruce(gormds.GormAuthDatasourceOptions{
 			DB:        db,
 			UserModel: &models.User{},
