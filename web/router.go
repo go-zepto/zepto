@@ -175,7 +175,7 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 		h := h.routeHandler
 		// Apply Root Middlewares
 		if router != app.rootRouter {
-			h = app.rootRouter.middleware.handle(h)
+			router.middleware.UsePrepend(app.rootRouter.middleware.stack...)
 		}
 		// Apply Router (Scoped) Middlewares
 		h = router.middleware.handle(h)

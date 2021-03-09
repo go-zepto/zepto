@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -91,4 +92,63 @@ func TestMiddlewareStack_RootRouter(t *testing.T) {
 	})
 	assertRequestStatus(t, app, "GET", "/hello", 200)
 	assert.Equal(t, 1, runCount)
+}
+
+func assertCalledMiddlewares(t *testing.T, path string, expectedCalledMiddlewares []string) {
+	calledMiddlewares := make([]string, 0)
+	var createMiddleware = func(name string) MiddlewareFunc {
+		return func(next RouteHandler) RouteHandler {
+			return func(ctx Context) error {
+				calledMiddlewares = append(calledMiddlewares, name)
+				return next(ctx)
+			}
+		}
+	}
+
+	// App (Root)
+	app := setupAppTest()
+	app.Use(createMiddleware("root-middleware-1"))
+	app.Use(createMiddleware("root-middleware-2"))
+
+	// Router
+	router := app.Router("/router")
+	router.Use(createMiddleware("router-middleware-1"))
+	router.Use(createMiddleware("router-middleware-2"))
+
+	// Root Route [GET /hello]
+	app.Get("/hello", func(ctx Context) error {
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	})
+	// Router Route [GET /router/hello]
+	router.Get("/hello", func(ctx Context) error {
+		return ctx.RenderJson(map[string]string{"hello": "world"})
+	})
+	w := httptest.NewRecorder()
+	app.Init()
+	req := httptest.NewRequest("GET", path, nil)
+	req.Header.Add("Authorization", "Bearer 123")
+	app.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, expectedCalledMiddlewares, calledMiddlewares)
+}
+
+func TestMiddlewareStack_RootRouter_With_Router(t *testing.T) {
+	assertCalledMiddlewares(
+		t,
+		"/hello",
+		[]string{
+			"root-middleware-1",
+			"root-middleware-2",
+		},
+	)
+	assertCalledMiddlewares(
+		t,
+		"/router/hello",
+		[]string{
+			"root-middleware-1",
+			"root-middleware-2",
+			"router-middleware-1",
+			"router-middleware-2",
+		},
+	)
 }
