@@ -31,6 +31,7 @@ type TextInputOptions struct {
 	HelperText   string
 	FullWidth    *bool
 	InitialValue string
+	Disabled     *bool
 }
 
 func NewTextInput(name string, opts *TextInputOptions) linkeradmin.Input {
@@ -48,6 +49,9 @@ func NewTextInput(name string, opts *TextInputOptions) linkeradmin.Input {
 		}
 		if opts.InitialValue != "" {
 			props["initialValue"] = opts.InitialValue
+		}
+		if opts.Disabled != nil {
+			props["disabled"] = opts.Disabled
 		}
 	}
 	o["props"] = props
