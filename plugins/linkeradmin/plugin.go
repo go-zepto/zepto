@@ -13,10 +13,16 @@ type Field struct {
 	Options FieldOptions `json:"options"`
 }
 
+// Currently Input and Field are the same object, but it can change in future.
+type InputOptions FieldOptions
+type Input Field
+
 type LinkerResource struct {
-	Name     string  `json:"name"`
-	Endpoint string  `json:"endpoint"`
-	Fields   []Field `json:"fields"`
+	Name         string  `json:"name"`
+	Endpoint     string  `json:"endpoint"`
+	ListFields   []Field `json:"list_fields"`
+	CreateInputs []Input `json:"create_inputs"`
+	UpdateInputs []Input `json:"update_inputs"`
 }
 
 type Options struct {
@@ -33,9 +39,22 @@ type LinkerAdminPlugin struct {
 }
 
 func NewLinkerAdminPlugin(opts Options) *LinkerAdminPlugin {
+	res := make([]LinkerResource, 0)
+	for _, r := range opts.LinkerResources {
+		if r.ListFields == nil {
+			r.ListFields = make([]Field, 0)
+		}
+		if r.CreateInputs == nil {
+			r.CreateInputs = make([]Input, 0)
+		}
+		if r.UpdateInputs == nil {
+			r.UpdateInputs = make([]Input, 0)
+		}
+		res = append(res, r)
+	}
 	return &LinkerAdminPlugin{
 		Schema: &Schema{
-			Resources: opts.LinkerResources,
+			Resources: res,
 		},
 	}
 }

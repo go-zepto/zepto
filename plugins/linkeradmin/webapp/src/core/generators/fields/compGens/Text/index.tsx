@@ -4,7 +4,6 @@ import { Field } from '../../../../../types/schema';
 
 
 export const TextFieldGenerator: ComponentGenerator = (f: Field) => (props: any) => {
-  console.log("EI. PARE DE GERAR!!");
   return <TextField {...props} />;
 }
 

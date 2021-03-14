@@ -6,10 +6,12 @@ import { generateFieldCompFromField } from "../../../fields";
 
 
 const ListGenerator: ResourceGenerator =  (r: Resource) => {
-  const comps = r.fields.map((f: Field) => {
+  const fields = r.list_fields;
+  const comps = fields.map((f: Field) => {
     const Comp = generateFieldCompFromField(f);
+    const optProps = (f.options && f.options.props) || {};
     return (
-      <Comp source={f.name} />
+      <Comp key={f.name} source={f.name} {...optProps} />
     );
   })
   return (props: any) => (

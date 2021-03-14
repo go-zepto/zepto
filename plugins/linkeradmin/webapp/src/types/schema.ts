@@ -1,14 +1,17 @@
 export interface Field {
   name: string;
   type: string;
-  options: Object; 
+  options: any; 
 }
 
+type Input = Field
 
 export interface Resource {
   name: string;
   endpoint: string;
-  fields: Field[];
+  list_fields: Field[];
+  create_inputs: Input[];
+  update_inputs: Input[];
 }
 
 export default interface Schema {

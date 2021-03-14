@@ -20,11 +20,17 @@ const Generator: ResourceGenerators = {
   edit: EditGenerator
 };
 
-export const generateResourceComp: GenerateResourceCompType = (res: Resource) => (
-  <RAResource
-    name={res.endpoint.toLowerCase()}
-    list={Generator.list(res)}
-    create={Generator.create(res)}
-    edit={Generator.edit(res)}
-  />
-);
+export const generateResourceComp: GenerateResourceCompType = (res: Resource) => {
+  const list = Generator.list(res);
+  const create = Generator.create(res);
+  const edit = Generator.edit(res);
+  return (
+    <RAResource
+      key={res.name}
+      name={res.endpoint.toLowerCase()}
+      list={list}
+      create={create}
+      edit={edit}
+    />
+  );
+}
