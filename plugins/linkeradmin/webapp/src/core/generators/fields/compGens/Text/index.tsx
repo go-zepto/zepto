@@ -1,12 +1,12 @@
 import { TextInput, TextField } from 'react-admin';
 import { ComponentGenerator } from '../../../../../types/generators';
-import { Field } from '../../../../../types/schema';
+import { Field, Schema } from '../../../../../types/schema';
 
 
-export const TextFieldGenerator: ComponentGenerator = (f: Field) => (props: any) => {
+export const TextFieldGenerator: ComponentGenerator = (s: Schema, f: Field) => (props: any) => {
   return <TextField {...props} />;
 }
 
-export const TextInputGenerator: ComponentGenerator = (f: Field) => (props: any) => (
+export const TextInputGenerator: ComponentGenerator = (s: Schema, f: Field) => (props: any) => (
   <TextInput {...props} />
 );

@@ -1,12 +1,59 @@
 import { fetchUtils, DataProvider } from 'ra-core';
 import { stringify } from 'query-string';
 
+const VALID_WHERE_FILTER_REGEX = /(or_)?([a-zA-Z0-9]+)_(eq|gt|gte|lt|lte|between|in|nin|like|nlike)/
+
+// Linker Filter
+type LinkerFilter = {
+  skip?: number;
+  limit?: number;
+  where?: any;
+  include?: {
+    relation: string;
+    where: any;
+  }[]
+};
+
+// React-Admin filter
+type RAFilter = {
+  [key: string]: string;
+};
+
+const parseWhereFromFilter = (filter: RAFilter): any => {
+  const where = {} as any;
+  Object.keys(filter).forEach(f => {
+    const match = VALID_WHERE_FILTER_REGEX.exec(f);
+    if (match?.length === 4) {
+      const boolOperator = match[1] === "or_" ? "or" : "and";
+      const fieldName = match[2] as string;
+      const filterType = match[3] as string;
+      const item: any = {};
+      item[fieldName] = {};
+      item[fieldName][filterType] = filter[f];
+      if (!where[boolOperator]) {
+        where[boolOperator] = [];
+      }
+      where[boolOperator].push(item);
+    }
+  });
+  return where;
+};
+
 export const LinkerDataProvider = (
   baseURL: string,
   httpClient = fetchUtils.fetchJson,
 ): DataProvider => ({
   getList: (resource, params) => {
-    const query = {};
+    const where = parseWhereFromFilter(params.filter);
+    const { page, perPage } = params.pagination;
+    const linkerFilter: LinkerFilter = {
+      skip: (page-1) * perPage,
+      limit: perPage,
+      where,
+    };
+    const query = {
+      filter: JSON.stringify(linkerFilter),
+    }
     const url = `${baseURL}/${resource}?${stringify(query)}`;
     return httpClient(url).then(({ headers, json }) => ({
       data: json.data,

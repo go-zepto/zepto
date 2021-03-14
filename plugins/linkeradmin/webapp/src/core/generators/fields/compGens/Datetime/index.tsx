@@ -1,12 +1,12 @@
 import { DateField, DateTimeInput } from 'react-admin';
 import { ComponentGenerator } from '../../../../../types/generators';
-import { Field } from '../../../../../types/schema';
+import { Field, Schema } from '../../../../../types/schema';
 
 
-export const DatetimeFieldGenerator: ComponentGenerator = (f: Field) => (props: any) => {
+export const DatetimeFieldGenerator: ComponentGenerator = (s: Schema, f: Field) => (props: any) => {
   return <DateField {...props} />;
 }
 
-export const DatetimeInputGenerator: ComponentGenerator = (f: Field) => (props: any) => (
+export const DatetimeInputGenerator: ComponentGenerator = (s: Schema, f: Field) => (props: any) => (
   <DateTimeInput {...props} />
 );

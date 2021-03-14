@@ -14,6 +14,6 @@ export interface Resource {
   update_inputs: Input[];
 }
 
-export default interface Schema {
+export interface Schema {
   resources: Resource[];
 }

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Admin } from 'react-admin';
 import { LinkerDataProvider } from './dataProvider';
 import { fetchUtils } from 'ra-core';
-import Schema, { Resource } from './types/schema';
+import { Schema, Resource } from './types/schema';
 import { generateResourceComp } from './core/generators/resources';
 
 
@@ -13,7 +13,7 @@ export const App = () => {
   useEffect(() => {
     fetchUtils.fetchJson('/admin/_schema').then(res => {
       const schema: Schema = res.json;
-      const resComponents = schema.resources.map((r: Resource) =>  generateResourceComp(r));
+      const resComponents = schema.resources.map((r: Resource) =>  generateResourceComp(schema, r));
       if (resources.length === 0) {
         setResources(resComponents);
       }

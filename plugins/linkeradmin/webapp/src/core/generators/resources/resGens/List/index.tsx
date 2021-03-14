@@ -1,14 +1,14 @@
 import React from "react";
 import { Datagrid, List } from "react-admin";
 import { ResourceGenerator } from "../../../../../types/generators";
-import { Field, Resource } from "../../../../../types/schema";
+import { Field, Resource, Schema } from "../../../../../types/schema";
 import { generateFieldCompFromField } from "../../../fields";
 
 
-const ListGenerator: ResourceGenerator =  (r: Resource) => {
+const ListGenerator: ResourceGenerator =  (s: Schema, r: Resource) => {
   const fields = r.list_fields;
   const comps = fields.map((f: Field) => {
-    const Comp = generateFieldCompFromField(f);
+    const Comp = generateFieldCompFromField(s, f);
     const optProps = (f.options && f.options.props) || {};
     return (
       <Comp key={f.name} source={f.name} {...optProps} />

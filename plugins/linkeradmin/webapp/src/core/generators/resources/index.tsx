@@ -1,12 +1,12 @@
 import React from "react";
 import { Resource as RAResource } from "react-admin";
 import { ResourceGenerator } from "../../../types/generators";
-import { Resource } from "../../../types/schema";
+import { Resource, Schema } from "../../../types/schema";
 import CreateGenerator from "./resGens/Create";
 import EditGenerator from "./resGens/Edit";
 import ListGenerator from "./resGens/List";
 
-type GenerateResourceCompType = (res: Resource) => any;
+type GenerateResourceCompType = (schema: Schema, res: Resource) => any;
 
 interface ResourceGenerators {
   list: ResourceGenerator
@@ -20,10 +20,10 @@ const Generator: ResourceGenerators = {
   edit: EditGenerator
 };
 
-export const generateResourceComp: GenerateResourceCompType = (res: Resource) => {
-  const list = Generator.list(res);
-  const create = Generator.create(res);
-  const edit = Generator.edit(res);
+export const generateResourceComp: GenerateResourceCompType = (schema: Schema, res: Resource) => {
+  const list = Generator.list(schema, res);
+  const create = Generator.create(schema, res);
+  const edit = Generator.edit(schema, res);
   return (
     <RAResource
       key={res.name}
