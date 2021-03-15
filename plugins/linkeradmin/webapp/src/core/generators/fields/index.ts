@@ -4,6 +4,7 @@ import { Field, Schema } from "../../../types/schema";
 import { DatetimeFieldGenerator, DatetimeInputGenerator } from "./compGens/Datetime";
 import { NumberFieldGenerator, NumberInputGenerator } from "./compGens/Number";
 import { ReferenceFieldGenerator, ReferenceInputGenerator } from "./compGens/Reference";
+import { ReferenceListFieldGenerator, ReferenceListInputGenerator } from "./compGens/ReferenceList";
 import { TextFieldGenerator, TextInputGenerator } from "./compGens/Text";
 
 interface FieldGenerator {
@@ -32,6 +33,10 @@ export const DEFAULT_FIELD_GENERATORS: FieldGenerators = {
   "reference": {
     fieldCompGen: ReferenceFieldGenerator,
     inputCompGen: ReferenceInputGenerator,
+  },
+  "reference_list": {
+    fieldCompGen: ReferenceListFieldGenerator,
+    inputCompGen: ReferenceListInputGenerator,
   }
 };
 
