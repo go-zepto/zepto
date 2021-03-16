@@ -23,7 +23,6 @@ const parseWhereFromFilter = (filter: RAFilter): any => {
   const where = {} as any;
   Object.keys(filter).forEach(f => {
     const match = VALID_WHERE_FILTER_REGEX.exec(f);
-    console.log(match);
     if (match?.length === 4) {
       const boolOperator = match[1] === "or_" ? "or" : "and";
       const fieldName = match[2] as string;

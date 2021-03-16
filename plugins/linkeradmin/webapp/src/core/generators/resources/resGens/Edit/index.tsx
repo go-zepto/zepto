@@ -7,11 +7,11 @@ import { generateInputCompFromField } from "../../../fields";
 
 const EditGenerator: ResourceGenerator =  (s: Schema, r: Resource) => {
   const fields = r.update_inputs.length > 0 ? r.update_inputs : r.create_inputs;
-  const comps = fields.map((f: Field) => {
+  const comps = fields.map((f: Field, idx: number) => {
     const Comp = generateInputCompFromField(s, f);
     const optProps = (f.options && f.options.props) || {};
     return (
-      <Comp key={f.name} source={f.name} {...optProps} />
+      <Comp key={idx} source={f.name} {...optProps} />
     );
   })
   return (props: any) => (

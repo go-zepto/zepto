@@ -9,14 +9,16 @@ import { generateResourceComp } from './core/generators/resources';
 
 
 
-fetchUtils.fetchJson('/admin/_schema').then(res => {
+const rootEl = document.getElementById('root');
+const schemaPath = rootEl?.getAttribute("schema");
+fetchUtils.fetchJson(schemaPath).then(res => {
   const schema: Schema = res.json;
   const resComponents = schema.resources.map((r: Resource) =>  generateResourceComp(schema, r));
   ReactDOM.render(
     <React.StrictMode>
       <App resComponents={resComponents} />
     </React.StrictMode>,
-    document.getElementById('root')
+    rootEl,
   );
 })
 
