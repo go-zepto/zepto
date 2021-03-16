@@ -23,7 +23,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "PUBLIC_URL=/admin react-scripts build",
+    "clean": "rm -rf ./build",
+    "build": "PUBLIC_URL=/admin npm run clean && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
