@@ -19,18 +19,13 @@ interface DatagridColumn {
 interface ReferenceListDatagridProps {
   resource: Resource;
   refResourceFieldName: string;
-  record: any;
+  recordID: string;
 }
 
 const ReferenceListDatagrid = (props: ReferenceListDatagridProps) => {
-  const recordID = props.record?.id;
+  const recordID = props.recordID;
   const redirect = useRedirect();
   const [rows, setRows] = useState<any[]>([]);
-  const columns: DatagridColumn[] = props.resource.list_fields.map(f => ({
-    field: f.name,
-    headerName: f.options["label"],
-    flex: f.name === "id" ? 0.3 : 1,
-  })); 
   const dp = useDataProvider();
   useEffect(() => {
     const filter: any = {};
@@ -46,9 +41,14 @@ const ReferenceListDatagrid = (props: ReferenceListDatagridProps) => {
         order: "ASC",
       }
     }).then(res => {
-      setRows(res.data);
+      setRows(res?.data || []);
     })
   }, [dp, props.refResourceFieldName, props.resource.endpoint, recordID, setRows]);
+  const columns: DatagridColumn[] = props.resource.list_fields.map(f => ({
+    field: f.name,
+    headerName: f.options["label"],
+    flex: f.name === "id" ? 0.3 : 1,
+  })); 
   return(
     <div style={{ height: 400, width: '100%', marginBottom: '32px' }}>
       <DataGrid
@@ -111,7 +111,7 @@ const ReferenceListDatagridGenerator: ComponentGenerator = (s: Schema, f: Field)
   }
   const { ref_resource_field_name } = f.options;
   return (
-    <ReferenceListDatagrid resource={resource} refResourceFieldName={ref_resource_field_name} record={props.record} />
+    <ReferenceListDatagrid resource={resource} refResourceFieldName={ref_resource_field_name} recordID={props.recordID} />
   );
 }
 
@@ -131,14 +131,11 @@ export const ReferenceListFieldGenerator: ComponentGenerator = (s: Schema, f: Fi
   );
 }
 
-export const ReferenceListInputGenerator: ComponentGenerator = (s: Schema, f: Field) => (props: any) => {
-  const resource = s.resources.find(r => r.name === f.options["ref_resource"]);
-  if (!resource) {
-    console.error(`[ReferenceInput] Resource not found "${resource}"`);
-    return null;
-  }
+export const ReferenceListInputGenerator: ComponentGenerator = (s: Schema, f: Field) => {
   const Comp = ReferenceListDatagridGenerator(s, f);
-  return (
-    <Comp {...props} />
-  );
-}
+  return (props: any) => {
+    return (
+      <Comp {...props} recordID={props.record.id} />
+    );
+  };
+};
