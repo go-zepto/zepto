@@ -7,3 +7,4 @@ export interface FieldProps {
 
 export type ComponentGenerator = (schema: Schema, field: Field) => React.FC<FieldProps>;
 export type ResourceGenerator = (schema: Schema, resource: Resource) => React.FC;
+export type LayoutComponentGenerator = (schema: Schema) => React.FC;

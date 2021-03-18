@@ -4,10 +4,9 @@ import { Admin } from 'react-admin';
 import { LinkerDataProvider } from './dataProvider';
 
 
-
 export const App = (props: any) => {
   return (
-    <Admin dataProvider={LinkerDataProvider('http://localhost:8000/api')}>
+    <Admin dataProvider={LinkerDataProvider('http://localhost:8000/api')} layout={props.layoutComponent}>
       {props.resComponents}
     </Admin>
   );

@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"os"
 	"strings"
 
 	"github.com/go-zepto/zepto"
@@ -35,11 +38,24 @@ type LinkerResource struct {
 }
 
 type Options struct {
+	Menu            Menu
 	LinkerResources []LinkerResource
 	Path            string
 }
 
+type MenuLink struct {
+	Icon               string `json:"icon"`
+	Label              string `json:"label"`
+	LinkToResourceName string `json:"link_to_resource_name"`
+	LinkToPath         string `json:"link_to_path"`
+}
+
+type Menu struct {
+	Links []MenuLink `json:"links"`
+}
+
 type Schema struct {
+	Menu      Menu             `json:"menu"`
 	Resources []LinkerResource `json:"resources"`
 }
 
@@ -47,6 +63,15 @@ type LinkerAdminPlugin struct {
 	Schema *Schema
 	path   string
 	router *web.Router
+}
+
+func (l *LinkerAdminPlugin) serveReverseProxy(target string, res http.ResponseWriter, req *http.Request) {
+	url, _ := url.Parse(target)
+	proxy := httputil.NewSingleHostReverseProxy(url)
+	path := strings.Replace(req.URL.Path, l.path, "/", 1)
+	fmt.Println(path)
+	req, _ = http.NewRequest("GET", path, nil)
+	proxy.ServeHTTP(res, req)
 }
 
 func NewLinkerAdminPlugin(opts Options) *LinkerAdminPlugin {
@@ -66,8 +91,12 @@ func NewLinkerAdminPlugin(opts Options) *LinkerAdminPlugin {
 	if opts.Path == "" {
 		opts.Path = "/admin"
 	}
+	if opts.Menu.Links == nil {
+		opts.Menu.Links = make([]MenuLink, 0)
+	}
 	return &LinkerAdminPlugin{
 		Schema: &Schema{
+			Menu:      opts.Menu,
 			Resources: res,
 		},
 		path: opts.Path,
@@ -98,6 +127,18 @@ func (l *LinkerAdminPlugin) OnZeptoInit(z *zepto.Zepto) {
 	l.router.Get("/_schema", func(ctx web.Context) error {
 		return ctx.RenderJson(l.Schema)
 	})
+
+	webappURL := os.Getenv("LINKER_ADMIN_WEBAPP_URL")
+	if webappURL != "" {
+		proxyCtrl := func(ctx web.Context) error {
+			l.serveReverseProxy(webappURL, ctx.Response(), ctx.Request())
+			return nil
+		}
+
+		l.router.Any("/", proxyCtrl)
+		z.Any("/static/{rest:.*}", proxyCtrl)
+		return
+	}
 
 	l.router.Get("/", func(ctx web.Context) error {
 		fmt.Println(ctx.Request().URL.Path, l.path)

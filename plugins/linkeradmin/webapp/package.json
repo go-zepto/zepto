@@ -24,7 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "clean": "rm -rf ./build",
-    "build": "PUBLIC_URL=/admin npm run clean && react-scripts build",
+    "build": "npm run clean && PUBLIC_URL=/admin react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
