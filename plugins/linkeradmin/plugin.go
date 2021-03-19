@@ -14,7 +14,7 @@ import (
 	"github.com/go-zepto/zepto/web"
 )
 
-//go:embed webapp/build/*
+//go:embed frontend/webapp/build/*
 var webappBuild embed.FS
 
 type FieldOptions = map[string]interface{}
@@ -143,7 +143,7 @@ func (l *LinkerAdminPlugin) OnZeptoInit(z *zepto.Zepto) {
 	l.router.Get("/", func(ctx web.Context) error {
 		fmt.Println(ctx.Request().URL.Path, l.path)
 		// Root index.html
-		indexHTMLBytes, err := webappBuild.ReadFile("webapp/build/index.html")
+		indexHTMLBytes, err := webappBuild.ReadFile("frontend/webapp/build/index.html")
 		if err != nil {
 			return errors.New("could not load admin")
 		}
@@ -161,7 +161,7 @@ func (l *LinkerAdminPlugin) OnZeptoInit(z *zepto.Zepto) {
 			return ctx.Redirect(l.path)
 		}
 		filePath := strings.Replace(ctx.Request().URL.Path, l.path, "", 1)
-		req, _ := http.NewRequest("GET", "webapp/build"+filePath, nil)
+		req, _ := http.NewRequest("GET", "frontend/webapp/build"+filePath, nil)
 		handler := http.FileServer(http.FS(webappBuild))
 		handler.ServeHTTP(ctx.Response(), req)
 		return nil

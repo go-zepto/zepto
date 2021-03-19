@@ -1,0 +1,49 @@
+{
+  "name": "linkeradmin",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "webpack serve",
+    "build:types": "tsc src/**.tsx --declaration --emitDeclarationOnly --esModuleInterop --outDir dist/types --skipLibCheck --jsx react-jsx",
+    "build": "webpack --mode production && npm run build:types"
+  },
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@material-ui/core": "^4.11.3",
+    "declaration-bundler-webpack-plugin": "^1.0.3",
+    "terser": "3.14"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/plugin-transform-runtime": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
+    "@babel/preset-react": "^7.12.13",
+    "@babel/preset-typescript": "^7.13.0",
+    "@babel/runtime": "^7.13.10",
+    "@material-ui/data-grid": "^4.0.0-alpha.22",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.2",
+    "@types/react-router-dom": "^5.1.7",
+    "@types/webpack": "^4.41.26",
+    "@types/webpack-bundle-analyzer": "^3.9.1",
+    "@types/webpack-dev-server": "^3.11.2",
+    "@types/webpack-node-externals": "^2.5.0",
+    "babel-loader": "^8.2.2",
+    "babel-plugin-import": "^1.13.3",
+    "babel-plugin-transform-imports": "^2.0.0",
+    "react": "^17.0.1",
+    "react-admin": "^3.13.4",
+    "react-dom": "^17.0.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3",
+    "web-vitals": "^1.1.1",
+    "webpack": "^5.26.3",
+    "webpack-bundle-analyzer": "^4.4.0",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-node-externals": "^2.5.2"
+  }
+}
