@@ -42,7 +42,7 @@ type AuthTokenErrorResponse struct {
 }
 
 type AuthDatasource interface {
-	Auth(username string, password string) (PID, error)
+	FindPIDByValidCredentials(username string, password string) (PID, error)
 	FindPIDByEmail(email string) (PID, error)
 	ResetPassword(pid PID, password string) error
 }
@@ -54,8 +54,10 @@ type AuthEncoder interface {
 type AuthStore interface {
 	StoreAuthToken(token *Token, pid PID) error
 	GetAuthTokenPID(token string) (PID, error)
+	DeleteAuthToken(token string) error
 	StoreResetPasswordToken(token *Token, pid PID) error
 	GetResetPasswordTokenPID(token string) (PID, error)
+	DeleteResetPasswordToken(token string) error
 }
 
 type AuthNotifier interface {

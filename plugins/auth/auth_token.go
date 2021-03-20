@@ -4,7 +4,6 @@ import (
 	"github.com/go-zepto/zepto"
 	"github.com/go-zepto/zepto/plugins/auth/authcore"
 	"github.com/go-zepto/zepto/web"
-	"go.uber.org/thriftrw/ptr"
 )
 
 type AuthTokenOptions struct {
@@ -16,8 +15,9 @@ type AuthTokenOptions struct {
 }
 
 type AuthToken struct {
-	core *authcore.AuthCore
-	opts *AuthTokenOptions
+	core     *authcore.AuthCore
+	opts     *AuthTokenOptions
+	instance AuthTokenInstance
 }
 
 func NewAuthTokenPlugin(opts AuthTokenOptions) *AuthToken {
@@ -47,38 +47,45 @@ func (at *AuthToken) middleware() web.MiddlewareFunc {
 	}
 }
 
+func jsonError(ctx web.Context, err error) error {
+	status := 401
+	switch err {
+	case authcore.ErrBadRequest, authcore.ErrMissingUsernameOrPassword, authcore.ErrInvalidToken:
+		status = 400
+	case authcore.ErrInternalServerError:
+		status = 500
+	}
+	ctx.SetStatus(status)
+	return ctx.RenderJson(authcore.AuthTokenErrorResponse{
+		Error: err.Error(),
+	})
+}
+
 func (at *AuthToken) setupAuthEndpoint(z *zepto.Zepto, router *web.Router) {
 	router.Post("/", func(ctx web.Context) error {
 		credentials, err := getCredentialsFromCtx(ctx)
 		if err != nil {
-			ctx.SetStatus(400)
-			return ctx.RenderJson(authcore.AuthTokenErrorResponse{
-				Error: authcore.ErrMissingUsernameOrPassword.Error(),
-			})
+			return jsonError(ctx, err)
 		}
-		pid, err := at.core.DS.Auth(credentials.Username, credentials.Password)
+		token, err := at.instance.Auth(credentials.Username, credentials.Password)
 		if err != nil {
-			ctx.SetStatus(401)
-			return ctx.RenderJson(authcore.AuthTokenErrorResponse{
-				Error: authcore.ErrUnauthorized.Error(),
-			})
-		}
-		token, err := at.core.TokenEncoder.GenerateTokenFromPID(pid)
-		if err != nil {
-			ctx.SetStatus(500)
-			return ctx.RenderJson(authcore.AuthTokenErrorResponse{
-				Error: authcore.ErrInternalServerError.Error(),
-			})
-		}
-		err = at.core.Store.StoreAuthToken(token, pid)
-		if err != nil {
-			ctx.SetStatus(500)
-			return ctx.RenderJson(authcore.AuthTokenErrorResponse{
-				Error: authcore.ErrInternalServerError.Error(),
-			})
+			return jsonError(ctx, err)
 		}
 		return ctx.RenderJson(authcore.AuthTokenResponse{
 			Token: token,
+		})
+	})
+}
+
+func (at *AuthToken) setupLogoutEndpoint(z *zepto.Zepto, router *web.Router) {
+	router.Post("/logout", func(ctx web.Context) error {
+		authToken := getTokenFromCtx(ctx)
+		err := at.instance.Logout(authToken)
+		if err != nil {
+			jsonError(ctx, err)
+		}
+		return ctx.RenderJson(map[string]bool{
+			"status": true,
 		})
 	})
 }
@@ -87,23 +94,11 @@ func (at *AuthToken) setupRecoveryPasswordEndpoint(z *zepto.Zepto, router *web.R
 	router.Post("/recovery-password", func(ctx web.Context) error {
 		req, err := getRecoveryPasswordRequestFromCtx(ctx)
 		if err != nil {
-			ctx.SetStatus(400)
-			return ctx.RenderJson(authcore.AuthTokenErrorResponse{
-				Error: authcore.ErrBadRequest.Error(),
-			})
+			return jsonError(ctx, err)
 		}
-		pid, err := at.core.DS.FindPIDByEmail(req.Email)
-		if pid != nil {
-			token, _ := at.core.TokenEncoder.GenerateTokenFromPID(pid)
-			at.core.Store.StoreResetPasswordToken(token, pid)
-			err := at.core.Notifier.NotifyResetPasswordToken(req.Email, token, pid)
-			if err != nil {
-				ctx.SetStatus(500)
-				return ctx.RenderJson(authcore.AuthRecoveryPasswordResponse{
-					Status: false,
-					Error:  ptr.String(authcore.ErrInternalServerError.Error()),
-				})
-			}
+		err = at.instance.PasswordRecovery(req.Email)
+		if err != nil {
+			return jsonError(ctx, err)
 		}
 		return ctx.RenderJson(authcore.AuthRecoveryPasswordResponse{
 			Status: true,
@@ -121,18 +116,12 @@ func (at *AuthToken) setupResetPasswordEndpoint(z *zepto.Zepto, router *web.Rout
 				Error: authcore.ErrBadRequest.Error(),
 			})
 		}
-		pid, err := at.core.Store.GetResetPasswordTokenPID(req.Token)
-		at.core.DS.ResetPassword(pid, req.Password)
+		err = at.instance.ResetPassword(req.Token, req.Password)
 		if err != nil {
-			ctx.SetStatus(400)
-			return ctx.RenderJson(authcore.AuthResetPasswordResponse{
-				Status: false,
-				Error:  ptr.String(authcore.ErrInvalidToken.Error()),
-			})
+			return jsonError(ctx, err)
 		}
-		return ctx.RenderJson(authcore.AuthResetPasswordResponse{
-			Status: true,
-			Error:  nil,
+		return ctx.RenderJson(map[string]bool{
+			"status": true,
 		})
 	})
 }
@@ -142,10 +131,7 @@ func (at *AuthToken) Name() string {
 }
 
 func (at *AuthToken) Instance() interface{} {
-	return &DefaultAuthTokenInstance{
-		AuthCore:       at.core,
-		AuthContextKey: "auth_user_pid",
-	}
+	return at.instance
 }
 
 func (at *AuthToken) PrependMiddlewares() []web.MiddlewareFunc {
@@ -157,10 +143,6 @@ func (at *AuthToken) AppendMiddlewares() []web.MiddlewareFunc {
 }
 
 func (at *AuthToken) OnCreated(z *zepto.Zepto) {
-	return
-}
-
-func (at *AuthToken) OnZeptoInit(z *zepto.Zepto) {
 	at.core = CreateAuthCore(z, authcore.AuthCore{
 		DS:           at.opts.Datasource,
 		TokenEncoder: at.opts.TokenEncoder,
@@ -168,8 +150,17 @@ func (at *AuthToken) OnZeptoInit(z *zepto.Zepto) {
 		Notifier:     at.opts.Notifier,
 	})
 	at.core.AssertConfigured()
+	at.instance = &DefaultAuthTokenInstance{
+		AuthCore:       at.core,
+		AuthContextKey: "auth_user_pid",
+	}
+	return
+}
+
+func (at *AuthToken) OnZeptoInit(z *zepto.Zepto) {
 	router := z.Router("/auth")
 	at.setupAuthEndpoint(z, router)
+	at.setupLogoutEndpoint(z, router)
 	at.setupRecoveryPasswordEndpoint(z, router)
 	at.setupResetPasswordEndpoint(z, router)
 }

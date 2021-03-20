@@ -47,8 +47,27 @@ func TestAuthToken(t *testing.T) {
 	for _, ta := range testAsserts {
 		kit := testutils.NewAuthTokenTestKit()
 		token := assertLogin(t, kit, ta.Username, ta.Password)
-		assert.Equal(t, ta.PID, kit.GetMe(token.Value))
+		assert.Equal(t, &ta.PID, kit.GetMe(token.Value))
 	}
+}
+
+func TestAuthToken_Logout(t *testing.T) {
+	pid := 1
+	username := "carlos.strand"
+	password := "carlos-pwd-test-123"
+	kit := testutils.NewAuthTokenTestKit()
+	token := assertLogin(t, kit, username, password)
+	assert.Equal(t, &pid, kit.GetMe(token.Value))
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/auth/logout", nil)
+	req.Header.Set("Authorization", "Bearer "+token.Value)
+	kit.Zepto.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Result().StatusCode)
+	fmt.Println(kit.GetMe(token.Value))
+	var expectedPID *int = nil
+	var mePID *int = kit.GetMe(token.Value)
+	assert.Equal(t, expectedPID, mePID)
 }
 
 func TestAuthToken_WrongCredentials(t *testing.T) {
@@ -96,6 +115,13 @@ func TestAuthToken_ResetPassword(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, res.Error)
 	assertLogin(t, kit, "carlos.strand", "my-new-password")
+
+	// Could not reset the password again with the same token
+	w = httptest.NewRecorder()
+	data = fmt.Sprintf(`{"token": "%s", "password": "my-new-password-reseted-again"}`, token.Value)
+	bodyReader = strings.NewReader(data)
+	kit.Zepto.ServeHTTP(w, httptest.NewRequest("POST", "/auth/reset-password", bodyReader))
+	assert.Equal(t, 400, w.Result().StatusCode)
 }
 
 func TestAuthToken_ResetPassword_InvalidToken(t *testing.T) {

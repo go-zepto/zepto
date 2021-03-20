@@ -112,7 +112,7 @@ func ensureInterfaceString(str interface{}) string {
 	return rv.String()
 }
 
-func (gads *GormAuthDatasource) Auth(username string, password string) (authcore.PID, error) {
+func (gads *GormAuthDatasource) FindPIDByValidCredentials(username string, password string) (authcore.PID, error) {
 	if username == "" || password == "" {
 		return nil, authcore.ErrUnauthorized
 	}

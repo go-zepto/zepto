@@ -78,13 +78,13 @@ func NewAuthTokenTestKit() *AuthTokenTestKit {
 	}
 }
 
-func (k *AuthTokenTestKit) GetMe(tokenValue string) int {
+func (k *AuthTokenTestKit) GetMe(tokenValue string) *int {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/me", nil)
 	req.Header.Add("Authorization", "Bearer "+tokenValue)
 	k.Zepto.ServeHTTP(w, req)
 	var res struct {
-		PID int `json:"pid"`
+		PID *int `json:"pid"`
 	}
 	json.Unmarshal(w.Body.Bytes(), &res)
 	return res.PID

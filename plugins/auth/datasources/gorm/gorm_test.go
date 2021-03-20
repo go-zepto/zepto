@@ -132,7 +132,7 @@ func TestNewGormAuthDatasoruce_Auth(t *testing.T) {
 		UserModel: &models.User{},
 	})
 	assert.NotNil(t, gad)
-	pid, err := gad.Auth("clark.kent", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent", "iamsuperman123")
 	assert.NoError(t, err)
 	assert.Equal(t, uint(1), pid)
 }
@@ -145,7 +145,7 @@ func TestNewGormAuthDatasoruce_Auth_InvalidTableAfterInit(t *testing.T) {
 	})
 	db.Migrator().DropTable(&models.User{})
 	assert.NotNil(t, gad)
-	pid, err := gad.Auth("clark.kent", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent", "iamsuperman123")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
@@ -161,7 +161,7 @@ func TestNewGormAuthDatasoruce_Auth_EmptyHashInDatabase(t *testing.T) {
 		UserModel: &models.User{},
 	})
 	assert.NotNil(t, gad)
-	pid, err := gad.Auth("clark.kent", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent", "iamsuperman123")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
@@ -179,7 +179,7 @@ func TestNewGormAuthDatasoruce_Auth_EmptyInputs(t *testing.T) {
 		UserModel: &models.User{},
 	})
 	assert.NotNil(t, gad)
-	pid, err := gad.Auth("", "")
+	pid, err := gad.FindPIDByValidCredentials("", "")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
@@ -197,7 +197,7 @@ func TestNewGormAuthDatasoruce_Auth_WrongUsername(t *testing.T) {
 		UserModel: &models.User{},
 	})
 	assert.NotNil(t, gad)
-	pid, err := gad.Auth("kal.el", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("kal.el", "iamsuperman123")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
@@ -215,7 +215,7 @@ func TestNewGormAuthDatasoruce_Auth_WrongPassword(t *testing.T) {
 		UserModel: &models.User{},
 	})
 	assert.NotNil(t, gad)
-	pid, err := gad.Auth("clark.kent", "wrongPassword")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent", "wrongPassword")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
@@ -240,21 +240,21 @@ func setupPointerFieldGad(t *testing.T) *GormAuthDatasource {
 
 func TestNewGormAuthDatasoruce_Auth_PointerFields(t *testing.T) {
 	gad := setupPointerFieldGad(t)
-	pid, err := gad.Auth("clark.kent", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent", "iamsuperman123")
 	assert.NoError(t, err)
 	assert.Equal(t, uint(1), pid)
 }
 
 func TestNewGormAuthDatasoruce_Auth_PointerFields_WrongUsername(t *testing.T) {
 	gad := setupPointerFieldGad(t)
-	pid, err := gad.Auth("kal.el", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("kal.el", "iamsuperman123")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
 
 func TestNewGormAuthDatasoruce_Auth_PointerFields_WrongPassword(t *testing.T) {
 	gad := setupPointerFieldGad(t)
-	pid, err := gad.Auth("clark.kent", "wrongPass")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent", "wrongPass")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
@@ -282,21 +282,21 @@ func setupCustomFieldGad(t *testing.T) *GormAuthDatasource {
 
 func TestNewGormAuthDatasoruce_Auth_CustomFields(t *testing.T) {
 	gad := setupCustomFieldGad(t)
-	pid, err := gad.Auth("clark.kent@dc.com", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent@dc.com", "iamsuperman123")
 	assert.NoError(t, err)
 	assert.Equal(t, int64(200), pid)
 }
 
 func TestNewGormAuthDatasoruce_Auth_CustomFields_WrongUsername(t *testing.T) {
 	gad := setupCustomFieldGad(t)
-	pid, err := gad.Auth("kal.el@dc.com", "iamsuperman123")
+	pid, err := gad.FindPIDByValidCredentials("kal.el@dc.com", "iamsuperman123")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }
 
 func TestNewGormAuthDatasoruce_Auth_CustomFields_WrongPassword(t *testing.T) {
 	gad := setupCustomFieldGad(t)
-	pid, err := gad.Auth("clark.kent@dc.com", "wrongPassword")
+	pid, err := gad.FindPIDByValidCredentials("clark.kent@dc.com", "wrongPassword")
 	assert.EqualError(t, err, authcore.ErrUnauthorized.Error())
 	assert.Nil(t, pid)
 }

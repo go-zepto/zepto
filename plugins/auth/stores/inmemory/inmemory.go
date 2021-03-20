@@ -58,10 +58,20 @@ func (ims *InMemoryStore) GetAuthTokenPID(tokenValue string) (authcore.PID, erro
 	return ims.getTokenPID(ims.authSessions, tokenValue)
 }
 
+func (ims *InMemoryStore) DeleteAuthToken(token string) error {
+	delete(ims.authSessions, token)
+	return nil
+}
+
 func (ims *InMemoryStore) StoreResetPasswordToken(token *authcore.Token, pid authcore.PID) error {
 	return ims.storeToken(ims.resetPasswordSessions, token, pid)
 }
 
 func (ims *InMemoryStore) GetResetPasswordTokenPID(tokenValue string) (authcore.PID, error) {
 	return ims.getTokenPID(ims.resetPasswordSessions, tokenValue)
+}
+
+func (ims *InMemoryStore) DeleteResetPasswordToken(token string) error {
+	delete(ims.resetPasswordSessions, token)
+	return nil
 }
