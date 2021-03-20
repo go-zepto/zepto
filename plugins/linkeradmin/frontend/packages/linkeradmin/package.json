@@ -4,11 +4,11 @@
   "description": "",
   "scripts": {
     "start": "webpack serve",
-    "build:types": "tsc src/**.tsx --declaration --emitDeclarationOnly --esModuleInterop --outDir dist/types --skipLibCheck --jsx react-jsx",
+    "build:types": "tsc src/types/index.ts --declaration --emitDeclarationOnly --esModuleInterop --outDir . --skipLibCheck --jsx react-jsx",
     "build": "webpack --mode production && npm run build:types"
   },
   "main": "dist/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "index.d.ts",
   "author": "",
   "license": "ISC",
   "dependencies": {

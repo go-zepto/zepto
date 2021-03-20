@@ -27,6 +27,10 @@ export default class LinkerAdmin {
     this.defaultRowClick = defaultRowClick ?? 'edit';
   }
 
+  registerComponentGenerator(name: string, compGen: ComponentGenerator) {
+    // this.fieldGenerators[name] = compGen;
+  }
+
   async init() {
     const targetEl = document.getElementById(this.target);
     const res = await fetchUtils.fetchJson(this.schemaPath);

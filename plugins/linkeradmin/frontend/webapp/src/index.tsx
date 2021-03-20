@@ -1,12 +1,34 @@
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import LinkerAdmin from 'linkeradmin';
-
+import { ComponentGenerator, Field, Schema } from 'linkeradmin/types';
 
 const admin = new LinkerAdmin({
   target: 'root',
   schemaPath: '/admin/_schema',
 });
+
+
+const ColorPicker: ComponentGenerator = {
+  fieldCompGen: (schema: Schema, field: Field): React.FC => {
+    console.log(field, schema);
+    return (props) => (
+      <div>
+        Hello World!
+      </div>
+    );
+  },
+  inputCompGen: (schema: Schema, field: Field): React.FC => {
+    console.log(field, schema);
+    return (props) => (
+      <div>
+        Hello World!
+      </div>
+    );
+  }
+}
+
+admin.registerComponentGenerator("color_picker", ColorPicker);
 
 admin.init();
 

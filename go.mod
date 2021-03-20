@@ -1,6 +1,6 @@
 module github.com/go-zepto/zepto
 
-go 1.13
+go 1.16
 
 require (
 	cloud.google.com/go/pubsub v1.3.1
