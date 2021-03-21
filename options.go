@@ -1,6 +1,8 @@
 package zepto
 
 import (
+	"net/http"
+
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/utils"
 	"github.com/go-zepto/zepto/web/renderer"
@@ -17,6 +19,8 @@ type Options struct {
 	TmplEngine     renderer.Engine
 	SessionName    string
 	SessionStore   sessions.Store
+	// Custom HTTP server
+	HTTPServer *http.Server
 }
 
 type Option func(*Options)
@@ -86,5 +90,12 @@ func SessionName(name string) Option {
 func SessionStore(store sessions.Store) Option {
 	return func(o *Options) {
 		o.SessionStore = store
+	}
+}
+
+// HTTPServer - Use a custom HTTP Server
+func HTTPServer(s *http.Server) Option {
+	return func(o *Options) {
+		o.HTTPServer = s
 	}
 }

@@ -54,16 +54,22 @@ func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
 	fn(z.grpcServer)
 }
 
-func (z *Zepto) SetupHTTP(addr string) {
-	srv := &http.Server{
-		Addr: addr,
-		Handler: &HTTPZeptoHandler{
-			z:       z,
-			handler: z,
-		},
-		// Good practice: enforce timeouts for servers you create!
+func createDefaultHTTPServer() *http.Server {
+	return &http.Server{
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
+	}
+}
+
+func (z *Zepto) SetupHTTP(addr string) {
+	srv := createDefaultHTTPServer()
+	if z.opts.HTTPServer != nil {
+		srv = z.opts.HTTPServer
+	}
+	srv.Addr = addr
+	srv.Handler = &HTTPZeptoHandler{
+		z:       z,
+		handler: z,
 	}
 	z.httpServer = srv
 	z.httpAddr = addr
