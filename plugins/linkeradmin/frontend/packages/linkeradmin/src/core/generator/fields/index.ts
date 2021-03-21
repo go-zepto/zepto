@@ -4,6 +4,7 @@ import { DatetimeFieldGenerator, DatetimeInputGenerator } from "./compGens/Datet
 import { NumberFieldGenerator, NumberInputGenerator } from "./compGens/Number";
 import { ReferenceFieldGenerator, ReferenceInputGenerator } from "./compGens/Reference";
 import { ReferenceListFieldGenerator, ReferenceListInputGenerator } from "./compGens/ReferenceList";
+import { SelectFieldGenerator, SelectInputGenerator } from "./compGens/Select";
 import { TextFieldGenerator, TextInputGenerator } from "./compGens/Text";
 
 interface FieldGenerator {
@@ -23,6 +24,10 @@ export const DEFAULT_FIELD_GENERATORS: FieldGenerators = {
   "number": {
     fieldCompGen: NumberFieldGenerator,
     inputCompGen: NumberInputGenerator,
+  },
+  "select": {
+    fieldCompGen: SelectFieldGenerator,
+    inputCompGen: SelectInputGenerator,
   },
   "datetime": {
     fieldCompGen: DatetimeFieldGenerator,

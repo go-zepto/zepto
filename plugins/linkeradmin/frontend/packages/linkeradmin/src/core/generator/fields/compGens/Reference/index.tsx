@@ -27,6 +27,7 @@ export const ReferenceInputGenerator: ComponentGeneratorFunc = (s: Schema, f: Fi
   }
   const optionText = f.options.option_text_field;
   const { autocomplete } = f.options;
+  console.log(f);
   const filterToQuery = (q: string) => {
     if (q === "") {
       return {};
@@ -43,7 +44,7 @@ export const ReferenceInputGenerator: ComponentGeneratorFunc = (s: Schema, f: Fi
     return filter;
   };
   return (
-    <ReferenceInput {...props} reference={resource?.endpoint} filterToQuery={filterToQuery}>
+    <ReferenceInput {...props} reference={resource?.endpoint} filterToQuery={filterToQuery} filter={{...f.options?.filter }}>
       {
         (autocomplete && autocomplete.enabled) ? (
           <AutocompleteInput optionText={optionText} />

@@ -43,6 +43,7 @@ type ReferenceInputOptions struct {
 	Disabled        *bool
 	OptionTextField string
 	Autocomplete    ReferenceInputAutocomplete
+	Filter          map[string]interface{}
 }
 
 func NewReferenceInput(name string, resourceName string, opts *ReferenceInputOptions) linkeradmin.Input {
@@ -61,6 +62,7 @@ func NewReferenceInput(name string, resourceName string, opts *ReferenceInputOpt
 	o["ref_resource"] = resourceName
 	o["ref_type"] = "single"
 	o["option_text_field"] = opts.OptionTextField
+	o["filter"] = opts.Filter
 	return linkeradmin.Input{
 		Name:    name,
 		Type:    "reference",

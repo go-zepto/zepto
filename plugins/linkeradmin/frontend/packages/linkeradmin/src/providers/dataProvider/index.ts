@@ -30,10 +30,13 @@ const parseWhereFromFilter = (filter: RAFilter): any => {
       const item: any = {};
       item[fieldName] = {};
       item[fieldName][filterType] = filter[f];
-      if (!where[boolOperator]) {
-        where[boolOperator] = [];
+      if (!where["and"]) {
+        where["and"] = [{}];
       }
-      where[boolOperator].push(item);
+      if (!where["and"][0][boolOperator]) {
+        where["and"][0][boolOperator] = [];
+      }
+      where["and"][0][boolOperator].push(item);
     }
   });
   return where;

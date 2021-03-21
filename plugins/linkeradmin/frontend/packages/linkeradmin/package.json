@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "webpack serve",
+    "start": "webpack --mode production --watch",
     "build:types": "tsc src/types/index.ts --declaration --emitDeclarationOnly --esModuleInterop --outDir . --skipLibCheck --jsx react-jsx",
     "build": "webpack --mode production && npm run build:types"
   },
@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@material-ui/core": "^4.11.3",
+    "@types/query-string": "^6.3.0",
     "declaration-bundler-webpack-plugin": "^1.0.3",
     "terser": "3.14"
   },
