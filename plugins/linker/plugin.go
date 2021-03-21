@@ -6,16 +6,10 @@ import (
 )
 
 type Options struct {
-	Path        string
-	Hosts       []string
-	SetupRouter func(router *web.Router)
-	Resources   []Resource
+	Linker *Linker
 }
 
 func NewLinkerPlugin(opts Options) *LinkerPlugin {
-	if opts.Path == "" {
-		opts.Path = "/api"
-	}
 	return &LinkerPlugin{
 		opts: opts,
 	}
@@ -24,7 +18,6 @@ func NewLinkerPlugin(opts Options) *LinkerPlugin {
 type LinkerPlugin struct {
 	opts   Options
 	linker *Linker
-	router *web.Router
 }
 
 func (l *LinkerPlugin) Name() string {
@@ -44,19 +37,10 @@ func (l *LinkerPlugin) AppendMiddlewares() []web.MiddlewareFunc {
 }
 
 func (l *LinkerPlugin) OnCreated(z *zepto.Zepto) {
-	l.router = z.Router(l.opts.Path, web.Hosts(l.opts.Hosts...))
-	if l.opts.SetupRouter != nil {
-		l.opts.SetupRouter(l.router)
-	}
-	l.linker = NewLinker(l.router)
+	l.linker = l.opts.Linker
 }
 
-func (l *LinkerPlugin) OnZeptoInit(z *zepto.Zepto) {
-	for _, r := range l.opts.Resources {
-		l.linker.AddResource(r)
-		z.Logger().Debugf("[linker] Resource %s added", r.Name)
-	}
-}
+func (l *LinkerPlugin) OnZeptoInit(z *zepto.Zepto) {}
 
 func (l *LinkerPlugin) OnZeptoStart(z *zepto.Zepto) {}
 

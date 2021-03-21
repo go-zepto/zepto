@@ -51,6 +51,12 @@ func (l *Linker) AddResource(res Resource) {
 	l.router.Resource("/"+endpoint, &r)
 }
 
+func (l *Linker) AddResources(resources []Resource) {
+	for _, r := range resources {
+		l.AddResource(r)
+	}
+}
+
 func (l *Linker) Repository(name string) *repository.Repository {
 	return l.repositories[name]
 }
