@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/go-zepto/zepto/plugins/upload/storage"
 )
@@ -104,9 +106,22 @@ func (s *S3Storage) UploadFile(ctx context.Context, opts storage.UploadFileOptio
 }
 
 func (s *S3Storage) DeleteFile(ctx context.Context, opts storage.DeleteFileOptions) error {
-	panic("not implemented")
+	_, err := s.uploader.S3.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: &s.bucket,
+		Key:    &opts.Key,
+	})
+	return err
 }
 
 func (s *S3Storage) GenerateSignedURL(ctx context.Context, opts storage.GenerateSignedURLOptions) (string, error) {
-	panic("not implemented")
+	req, _ := s.uploader.S3.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: &s.bucket,
+		Key:    &opts.Key,
+	})
+	expirationTime := 15 * time.Minute
+	if opts.ExpirationTime > 0 {
+		expirationTime = opts.ExpirationTime
+	}
+	urlStr, err := req.Presign(expirationTime)
+	return urlStr, err
 }

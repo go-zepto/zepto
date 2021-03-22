@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-zepto/zepto/plugins/upload/storage"
+	"github.com/go-zepto/zepto/web"
 )
 
 type UploadInstance interface {
@@ -24,4 +25,13 @@ func (d *defaultUploadInstance) DeleteFile(ctx context.Context, opts storage.Del
 
 func (d *defaultUploadInstance) GenerateSignedURL(ctx context.Context, opts storage.GenerateSignedURLOptions) (string, error) {
 	return d.s.GenerateSignedURL(ctx, opts)
+}
+
+func InstanceFromCtx(ctx web.Context) UploadInstance {
+	i := ctx.PluginInstance("upload")
+	uploadInstance, ok := i.(UploadInstance)
+	if !ok {
+		return nil
+	}
+	return uploadInstance
 }

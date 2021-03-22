@@ -1,10 +1,10 @@
 package upload
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
 
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/go-zepto/zepto"
 	"github.com/go-zepto/zepto/plugins/upload/storage"
 	"github.com/go-zepto/zepto/web"
@@ -84,16 +84,15 @@ func (u *UploadPlugin) OnCreated(z *zepto.Zepto) {
 			return err
 		}
 		defer file.Close()
-		mime, err := mimetype.DetectReader(file)
-		if err != nil {
-			return err
-		}
-		key := generateFileKey(handler, file, mime)
+		size := handler.Size
+		buffer := make([]byte, size)
+		file.Read(buffer)
+		key := generateFileKey(handler, file)
 		res, err := u.instance.UploadFile(ctx, storage.UploadFileOptions{
 			AccessType:  storage.Private,
 			Key:         key,
-			ContentType: mime.String(),
-			Body:        file,
+			ContentType: http.DetectContentType(buffer),
+			Body:        bytes.NewReader(buffer),
 		})
 		return ctx.RenderJson(res)
 	}

@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"io"
+	"time"
 )
 
 type UploadFileOptions struct {
@@ -23,7 +24,8 @@ type DeleteFileOptions struct {
 }
 
 type GenerateSignedURLOptions struct {
-	Key string
+	Key            string
+	ExpirationTime time.Duration
 }
 
 type Storage interface {

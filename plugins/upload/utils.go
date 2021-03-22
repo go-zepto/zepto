@@ -5,15 +5,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/gosimple/slug"
 	"github.com/lithammer/shortuuid"
 )
 
-func generateFileKey(handler *multipart.FileHeader, file multipart.File, mime *mimetype.MIME) string {
-	ext := mime.Extension()
+func generateFileKey(handler *multipart.FileHeader, file multipart.File) string {
 	uuid := shortuuid.New()
 	fl := handler.Filename
-	fileName := strings.TrimSuffix(fl, filepath.Ext(fl))
+	ext := filepath.Ext(fl)
+	fileName := strings.TrimSuffix(fl, ext)
 	return slug.Make(fileName) + "-" + uuid + ext
 }
