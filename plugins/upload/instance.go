@@ -41,7 +41,7 @@ func (d *defaultUploadInstance) UploadFile(ctx context.Context, opts storage.Upl
 		return res, nil
 	}
 	// Saving the file info using the Datasource
-	file, err := d.ds.Create(&datasource.FileData{
+	file, err := d.ds.Create(ctx, &datasource.FileData{
 		Key:        res.Key,
 		Url:        res.Url,
 		AccessType: res.AccessType,
@@ -54,7 +54,12 @@ func (d *defaultUploadInstance) UploadFile(ctx context.Context, opts storage.Upl
 }
 
 func (d *defaultUploadInstance) DeleteFile(ctx context.Context, opts storage.DeleteFileOptions) error {
-	return d.s.DeleteFile(ctx, opts)
+	err := d.s.DeleteFile(ctx, opts)
+	// If the datasource is not configured, return the result (file is nil)
+	if d.ds == nil {
+		return err
+	}
+	return d.ds.Delete(ctx, opts.Key)
 }
 
 func (d *defaultUploadInstance) GenerateSignedURL(ctx context.Context, opts storage.GenerateSignedURLOptions) (string, error) {

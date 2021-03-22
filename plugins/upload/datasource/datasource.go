@@ -1,5 +1,7 @@
 package datasource
 
+import "context"
+
 type FileData struct {
 	Key        string `json:"key"`
 	Url        string `json:"url"`
@@ -7,6 +9,6 @@ type FileData struct {
 }
 
 type UploadDatasource interface {
-	Create(data *FileData) (interface{}, error)
-	Delete(key string) error
+	Create(ctx context.Context, data *FileData) (interface{}, error)
+	Delete(ctx context.Context, key string) error
 }

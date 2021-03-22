@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"context"
 	"errors"
 	"reflect"
 
@@ -53,7 +54,7 @@ func validateFileModel(db *gorm.DB, fileModel interface{}) {
 	}
 }
 
-func (d *GormUploadDatasource) Create(data *datasource.FileData) (interface{}, error) {
+func (d *GormUploadDatasource) Create(ctx context.Context, data *datasource.FileData) (interface{}, error) {
 	obj := d.createModelReflectInstance()
 	createObj := obj.Interface()
 	decodeMapToStruct(data, createObj)
@@ -64,7 +65,7 @@ func (d *GormUploadDatasource) Create(data *datasource.FileData) (interface{}, e
 	return createObj, nil
 }
 
-func (d *GormUploadDatasource) Delete(key string) error {
+func (d *GormUploadDatasource) Delete(ctx context.Context, key string) error {
 	query := d.db.Model(d.fileModel)
 	query = query.Where("key = ?", key)
 	res := query.Delete(d.fileModel)

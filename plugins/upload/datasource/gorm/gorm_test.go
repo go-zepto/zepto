@@ -3,6 +3,8 @@ package gorm
 import (
 	"testing"
 
+	"context"
+
 	"github.com/go-zepto/zepto/plugins/upload/datasource"
 	"github.com/go-zepto/zepto/plugins/upload/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/plugins/upload/datasource/gorm/testutils/models"
@@ -79,7 +81,7 @@ func TestNewGormUploadDatasource_Missing_BadFileModel_3(t *testing.T) {
 }
 
 func create(t *testing.T, ds datasource.UploadDatasource) {
-	res, err := ds.Create(&datasource.FileData{
+	res, err := ds.Create(context.Background(), &datasource.FileData{
 		Key:        "uploads/images/some-image.jpg",
 		Url:        "https://localhost:8000/uploads/images/some-image.jpg",
 		AccessType: "public",
@@ -116,7 +118,7 @@ func TestNewGormUploadDatasource_Delete(t *testing.T) {
 	assertCount(t, db, key, 0)
 	create(t, ds)
 	assertCount(t, db, key, 1)
-	err := ds.Delete(key)
+	err := ds.Delete(context.Background(), key)
 	assert.NoError(t, err)
 	assertCount(t, db, key, 0)
 }
