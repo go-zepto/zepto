@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-zepto/zepto"
+	"github.com/go-zepto/zepto/plugins/upload/datasource"
 	"github.com/go-zepto/zepto/plugins/upload/storage"
 	"github.com/go-zepto/zepto/web"
 )
@@ -18,6 +19,10 @@ type UploadPlugin struct {
 type Options struct {
 	// Storage is the provider where the files will be stored
 	Storage storage.Storage
+
+	// Datasource is responsible to save the uploaded files to some database
+	Datasource datasource.UploadDatasource
+
 	// MaxFileSize in bytes. e.g, upload.Mb(10) or upload.Kb(500)
 	MaxFileSize int64
 }
@@ -29,7 +34,8 @@ func NewUploadPlugin(opts Options) *UploadPlugin {
 	}
 	return &UploadPlugin{
 		instance: &defaultUploadInstance{
-			opts.Storage,
+			s:  opts.Storage,
+			ds: opts.Datasource,
 		},
 		maxFileSize: maxFileSize,
 	}
@@ -94,6 +100,11 @@ func (u *UploadPlugin) OnCreated(z *zepto.Zepto) {
 			ContentType: http.DetectContentType(buffer),
 			Body:        bytes.NewReader(buffer),
 		})
+		if err != nil {
+			return ctx.RenderJson(map[string]interface{}{
+				"error": err,
+			})
+		}
 		return ctx.RenderJson(res)
 	}
 	r := z.Router("/upload")
