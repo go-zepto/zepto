@@ -1,13 +1,12 @@
 package linker
 
 import (
-	"github.com/go-zepto/zepto/plugins/linker/repository"
 	"github.com/go-zepto/zepto/web"
 )
 
 type LinkerInstance interface {
-	Repository(name string) *repository.Repository
-	RepositoryDecoder(name string) *repository.RepositoryDecoder
+	Repository(name string) *Repository
+	RepositoryDecoder(name string) *RepositoryDecoder
 }
 
 func InstanceFromCtx(ctx web.Context) LinkerInstance {

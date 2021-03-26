@@ -1,4 +1,4 @@
-package repository
+package linker
 
 import (
 	"context"
@@ -6,28 +6,46 @@ import (
 
 	"github.com/go-zepto/zepto/plugins/linker/datasource"
 	"github.com/go-zepto/zepto/plugins/linker/filter"
-	"github.com/go-zepto/zepto/plugins/linker/hooks"
 	"github.com/go-zepto/zepto/plugins/linker/utils"
 )
 
 type Repository struct {
+	resourceName   string
+	linker         LinkerInstance
 	ds             datasource.Datasource
-	operationHooks hooks.OperationHooks
+	operationHooks OperationHooks
 }
 
 type RepositoryConfig struct {
+	ResourceName   string
+	Linker         LinkerInstance
 	Datasource     datasource.Datasource
-	OperationHooks hooks.OperationHooks
+	OperationHooks OperationHooks
 }
 
 func NewRepository(config RepositoryConfig) *Repository {
 	if config.OperationHooks == nil {
-		config.OperationHooks = &hooks.DefaultOperationHooks{}
+		config.OperationHooks = &DefaultOperationHooks{}
 	}
 	return &Repository{
+		resourceName:   config.ResourceName,
+		linker:         config.Linker,
 		ds:             config.Datasource,
 		operationHooks: config.OperationHooks,
 	}
+}
+
+func ctxWithResourceId(ctx context.Context, id interface{}) context.Context {
+	return context.WithValue(ctx, "resource_id", fmt.Sprintf("%v", id))
+}
+
+func resourceIdFromCtx(ctx context.Context) *string {
+	var resourceId *string
+	resId, _ := ctx.Value("resource_id").(string)
+	if resId != "" {
+		resourceId = &resId
+	}
+	return resourceId
 }
 
 func (r *Repository) encodeInputDataToMap(input interface{}) map[string]interface{} {
@@ -40,7 +58,7 @@ func (r *Repository) FindById(ctx context.Context, id interface{}) (*SingleResul
 			"eq": id,
 		},
 	}
-	return r.FindOne(ctx, &filter.Filter{
+	return r.FindOne(ctxWithResourceId(ctx, id), &filter.Filter{
 		Where: &where,
 	})
 }
@@ -50,7 +68,10 @@ func (r *Repository) FindOne(ctx context.Context, filter *filter.Filter) (*Singl
 		Context: ctx,
 		Filter:  filter,
 	}
-	err := r.operationHooks.BeforeOperation(hooks.OperationHooksInfo{
+	err := r.operationHooks.BeforeOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		ResourceID:   resourceIdFromCtx(ctx),
+		Linker:       r.linker,
 		Operation:    "FindOne",
 		QueryContext: &qc,
 	})
@@ -63,11 +84,13 @@ func (r *Repository) FindOne(ctx context.Context, filter *filter.Filter) (*Singl
 	}
 	rres := *res
 	id := fmt.Sprintf("%v", rres["id"])
-	err = r.operationHooks.AfterOperation(hooks.OperationHooksInfo{
+	err = r.operationHooks.AfterOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		Linker:       r.linker,
 		Operation:    "FindOne",
-		Data:         res,
+		Result:       res,
 		QueryContext: &qc,
-		ID:           &id,
+		ResourceID:   &id,
 	})
 	rr := SingleResult(*res)
 	return &rr, err
@@ -78,7 +101,9 @@ func (r *Repository) Find(ctx context.Context, filter *filter.Filter) (*ListResu
 		Context: ctx,
 		Filter:  filter,
 	}
-	err := r.operationHooks.BeforeOperation(hooks.OperationHooksInfo{
+	err := r.operationHooks.BeforeOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		Linker:       r.linker,
 		Operation:    "Find",
 		QueryContext: &qc,
 	})
@@ -100,9 +125,11 @@ func (r *Repository) Find(ctx context.Context, filter *filter.Filter) (*ListResu
 	}
 	var hres map[string]interface{}
 	lres.Decode(&hres)
-	err = r.operationHooks.AfterOperation(hooks.OperationHooksInfo{
+	err = r.operationHooks.AfterOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		Linker:       r.linker,
 		Operation:    "Find",
-		Data:         &hres,
+		Result:       &hres,
 		QueryContext: &qc,
 	})
 	if err != nil {
@@ -123,7 +150,7 @@ func (r *Repository) UpdateById(ctx context.Context, id interface{}, data interf
 	filter := &filter.Filter{
 		Where: &where,
 	}
-	_, err := r.Update(ctx, filter, data)
+	_, err := r.Update(ctxWithResourceId(ctx, id), filter, data)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +163,10 @@ func (r *Repository) Update(ctx context.Context, filter *filter.Filter, data int
 		Context: ctx,
 		Filter:  filter,
 	}
-	err := r.operationHooks.BeforeOperation(hooks.OperationHooksInfo{
+	err := r.operationHooks.BeforeOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		ResourceID:   resourceIdFromCtx(ctx),
+		Linker:       r.linker,
 		Operation:    "Update",
 		QueryContext: &qc,
 		Data:         &dataMap,
@@ -151,9 +181,13 @@ func (r *Repository) Update(ctx context.Context, filter *filter.Filter, data int
 	hres := map[string]interface{}{
 		"total_affected": res.TotalAffected,
 	}
-	err = r.operationHooks.AfterOperation(hooks.OperationHooksInfo{
+	err = r.operationHooks.AfterOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		ResourceID:   resourceIdFromCtx(ctx),
+		Linker:       r.linker,
 		Operation:    "Update",
-		Data:         &hres,
+		Data:         &dataMap,
+		Result:       &hres,
 		QueryContext: &qc,
 	})
 	if err != nil {
@@ -169,7 +203,9 @@ func (r *Repository) Create(ctx context.Context, data interface{}) (*SingleResul
 	qc := datasource.QueryContext{
 		Context: ctx,
 	}
-	err := r.operationHooks.BeforeOperation(hooks.OperationHooksInfo{
+	err := r.operationHooks.BeforeOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		Linker:       r.linker,
 		Operation:    "Create",
 		QueryContext: &qc,
 		Data:         &dataMap,
@@ -181,9 +217,15 @@ func (r *Repository) Create(ctx context.Context, data interface{}) (*SingleResul
 	if err != nil {
 		return nil, err
 	}
-	err = r.operationHooks.AfterOperation(hooks.OperationHooksInfo{
+	rres := *res
+	id := fmt.Sprintf("%v", rres["id"])
+	err = r.operationHooks.AfterOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		ResourceID:   &id,
+		Linker:       r.linker,
 		Operation:    "Create",
-		Data:         res,
+		Data:         &dataMap,
+		Result:       res,
 		QueryContext: &qc,
 	})
 	if err != nil {
@@ -199,11 +241,8 @@ func (r *Repository) DestroyById(ctx context.Context, id interface{}) error {
 			"eq": id,
 		},
 	}
-	_, err := r.ds.Destroy(datasource.QueryContext{
-		Context: ctx,
-		Filter: &filter.Filter{
-			Where: &where,
-		},
+	_, err := r.Destroy(ctxWithResourceId(ctx, id), &filter.Filter{
+		Where: &where,
 	})
 	if err != nil {
 		return err
@@ -216,7 +255,10 @@ func (r *Repository) Destroy(ctx context.Context, filter *filter.Filter) (*ManyA
 		Context: ctx,
 		Filter:  filter,
 	}
-	err := r.operationHooks.BeforeOperation(hooks.OperationHooksInfo{
+	err := r.operationHooks.BeforeOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		ResourceID:   resourceIdFromCtx(ctx),
+		Linker:       r.linker,
 		Operation:    "Destroy",
 		QueryContext: &qc,
 	})
@@ -230,9 +272,12 @@ func (r *Repository) Destroy(ctx context.Context, filter *filter.Filter) (*ManyA
 	hres := map[string]interface{}{
 		"total_affected": res.TotalAffected,
 	}
-	err = r.operationHooks.AfterOperation(hooks.OperationHooksInfo{
+	err = r.operationHooks.AfterOperation(OperationHooksInfo{
+		ResourceName: r.resourceName,
+		ResourceID:   resourceIdFromCtx(ctx),
+		Linker:       r.linker,
 		Operation:    "Destroy",
-		Data:         &hres,
+		Result:       &hres,
 		QueryContext: &qc,
 	})
 	if err != nil {

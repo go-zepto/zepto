@@ -1,39 +1,55 @@
-package repository
+package linker
 
 import (
 	"context"
 	"testing"
 
+	"github.com/go-zepto/zepto"
+	"github.com/go-zepto/zepto/plugins/linker/datasource"
 	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/gorm"
 	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/plugins/linker/filter"
-	"github.com/go-zepto/zepto/plugins/linker/hooks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/thriftrw/ptr"
 	"gorm.io/gorm"
 )
 
-func SetupRepository(db *gorm.DB, operationHooks hooks.OperationHooks) *Repository {
+func SetupRepository(db *gorm.DB, operationHooks OperationHooks) *Repository {
+	z := zepto.NewZepto()
 	return NewRepository(RepositoryConfig{
+		Linker:         NewLinker(z.Router("/linker/api")),
+		ResourceName:   "MyResource",
 		Datasource:     gormds.NewGormDatasource(db, &testutils.Person{}),
 		OperationHooks: operationHooks,
 	})
 }
 
-type OperationHooksMock struct {
-	beforeInfo      *hooks.OperationHooksInfo
-	beforeInfoStack []*hooks.OperationHooksInfo
-	afterInfo       *hooks.OperationHooksInfo
-	afterInfoStack  []*hooks.OperationHooksInfo
+func assertOperationInfo(t *testing.T, expected *OperationHooksInfo, info *OperationHooksInfo) {
+	assert.NotNil(t, info)
+	assert.NotNil(t, info.Linker)
+	if expected.QueryContext != nil {
+		assert.Equal(t, expected.QueryContext.Filter.Where, info.QueryContext.Filter.Where)
+	}
+	assert.Equal(t, expected.Operation, info.Operation)
+	assert.Equal(t, expected.Data, info.Data)
+	assert.Equal(t, expected.ResourceID, info.ResourceID)
+	assert.Equal(t, expected.ResourceName, info.ResourceName)
 }
 
-func (h *OperationHooksMock) BeforeOperation(info hooks.OperationHooksInfo) error {
+type OperationHooksMock struct {
+	beforeInfo      *OperationHooksInfo
+	beforeInfoStack []*OperationHooksInfo
+	afterInfo       *OperationHooksInfo
+	afterInfoStack  []*OperationHooksInfo
+}
+
+func (h *OperationHooksMock) BeforeOperation(info OperationHooksInfo) error {
 	h.beforeInfo = &info
 	h.beforeInfoStack = append(h.beforeInfoStack, &info)
 	return nil
 }
 
-func (h *OperationHooksMock) AfterOperation(info hooks.OperationHooksInfo) error {
+func (h *OperationHooksMock) AfterOperation(info OperationHooksInfo) error {
 	h.afterInfo = &info
 	h.afterInfoStack = append(h.afterInfoStack, &info)
 	return nil
@@ -62,18 +78,39 @@ func TestFindById_OperationHooks(t *testing.T) {
 	assert.Equal(t, "Carlos Strand", p.Name)
 	// Before Operation
 	binfo := hooks.beforeInfo
-	assert.Equal(t, "FindOne", binfo.Operation)
-	expectedWhere := &map[string]interface{}{
-		"id": map[string]interface{}{
-			"eq": 1,
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "FindOne",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("1"),
+		Data:         nil,
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{
+				Where: &map[string]interface{}{
+					"id": map[string]interface{}{
+						"eq": 1,
+					},
+				},
+			},
 		},
-	}
-	assert.Equal(t, expectedWhere, binfo.QueryContext.Filter.Where)
+	}, binfo)
 	// After Operation
 	ainfo := hooks.afterInfo
-	assert.Equal(t, "FindOne", ainfo.Operation)
-	assert.Equal(t, expectedWhere, ainfo.QueryContext.Filter.Where)
-	assert.Equal(t, "1", *ainfo.ID)
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "FindOne",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("1"),
+		Data:         nil,
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{
+				Where: &map[string]interface{}{
+					"id": map[string]interface{}{
+						"eq": 1,
+					},
+				},
+			},
+		},
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 }
 
 func TestFindById_NotFound(t *testing.T) {
@@ -109,8 +146,8 @@ func TestFindOne_OperationHooks(t *testing.T) {
 			"eq": 65,
 		},
 	}
-	filter := &filter.Filter{Where: &where}
-	res, err := r.FindOne(context.Background(), filter)
+	f := &filter.Filter{Where: &where}
+	res, err := r.FindOne(context.Background(), f)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	var p testutils.Person
@@ -118,13 +155,30 @@ func TestFindOne_OperationHooks(t *testing.T) {
 	assert.Equal(t, "Bill Gates", p.Name)
 	// Before Operation
 	binfo := hooks.beforeInfo
-	assert.Equal(t, "FindOne", binfo.Operation)
-	assert.Equal(t, filter, binfo.QueryContext.Filter)
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "FindOne",
+		ResourceName: "MyResource",
+		Data:         nil,
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{
+				Where: &where,
+			},
+		},
+	}, binfo)
 	// After Operation
 	ainfo := hooks.afterInfo
-	assert.Equal(t, "FindOne", ainfo.Operation)
-	assert.Equal(t, filter, ainfo.QueryContext.Filter)
-	assert.Equal(t, "2", *ainfo.ID)
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "FindOne",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("2"),
+		Data:         nil,
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{
+				Where: &where,
+			},
+		},
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 }
 
 func TestFind_OperationHooks(t *testing.T) {
@@ -136,8 +190,8 @@ func TestFind_OperationHooks(t *testing.T) {
 			"in": []uint{27, 65},
 		},
 	}
-	filter := filter.Filter{Where: &where}
-	res, err := r.Find(context.Background(), &filter)
+	f := filter.Filter{Where: &where}
+	res, err := r.Find(context.Background(), &f)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, int64(2), res.Count)
@@ -147,13 +201,29 @@ func TestFind_OperationHooks(t *testing.T) {
 	assert.Equal(t, "Bill Gates", p[1].Name)
 	// Before Operation
 	binfo := hooks.beforeInfo
-	assert.Equal(t, "Find", binfo.Operation)
-	assert.Equal(t, &filter, binfo.QueryContext.Filter)
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Find",
+		ResourceName: "MyResource",
+		Data:         nil,
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{
+				Where: &where,
+			},
+		},
+	}, binfo)
 	// After Operation
 	ainfo := hooks.afterInfo
-	assert.Equal(t, "Find", ainfo.Operation)
-	assert.Equal(t, &filter, ainfo.QueryContext.Filter)
-	assert.Nil(t, ainfo.ID)
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Find",
+		ResourceName: "MyResource",
+		ResourceID:   nil,
+		Data:         nil,
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{
+				Where: &where,
+			},
+		},
+	}, ainfo)
 }
 
 func TestCreate(t *testing.T) {
@@ -206,15 +276,20 @@ func TestCreate_OperationHooks(t *testing.T) {
 	assert.Equal(t, data["email"], d["email"])
 	// Before Operation
 	binfo := hooks.beforeInfo
-	assert.Equal(t, "Create", binfo.Operation)
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Create",
+		ResourceName: "MyResource",
+		Data:         &data,
+	}, binfo)
 	// After Operation
 	ainfo := hooks.afterInfo
-	assert.Equal(t, "Create", ainfo.Operation)
-	assert.NotNil(t, ainfo.Data)
-	dt := *ainfo.Data
-	assert.Equal(t, dt["name"], data["name"])
-	assert.Equal(t, dt["email"], data["email"])
-	assert.Nil(t, ainfo.ID)
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Create",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("4"),
+		Data:         &data,
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 }
 
 func TestUpdateById(t *testing.T) {
@@ -244,15 +319,30 @@ func TestUpdateById_OperationHook(t *testing.T) {
 	var p testutils.Person
 	res.Decode(&p)
 	assert.Equal(t, "Kal-el", p.Name)
-	// Before Operation
 	assert.Len(t, hooks.beforeInfoStack, 2)
 	assert.Equal(t, "Update", hooks.beforeInfoStack[0].Operation)
 	assert.Equal(t, "FindOne", hooks.beforeInfoStack[1].Operation)
-	// After Operation
 	assert.Len(t, hooks.afterInfoStack, 2)
 	assert.Equal(t, "Update", hooks.afterInfoStack[0].Operation)
 	assert.Equal(t, "FindOne", hooks.afterInfoStack[1].Operation)
-	updateRes := hooks.afterInfoStack[0].Data
+	// Before Operation
+	binfo := hooks.beforeInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Update",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("3"),
+		Data:         &data,
+	}, binfo)
+	// After Operation
+	ainfo := hooks.afterInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Update",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("3"),
+		Data:         &data,
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
+	updateRes := hooks.afterInfoStack[0].Result
 	assert.Equal(t, &map[string]interface{}{"total_affected": int64(1)}, updateRes)
 }
 
@@ -316,21 +406,33 @@ func TestUpdate_OperationHook(t *testing.T) {
 	data := map[string]interface{}{
 		"name": "Young Person",
 	}
-	filter := &filter.Filter{Where: &where}
-	res, err := r.Update(context.Background(), filter, data)
+	f := &filter.Filter{Where: &where}
+	res, err := r.Update(context.Background(), f, data)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, int64(2), res.TotalAffected)
 	// Before Operation
-	binfo := hooks.beforeInfo
-	assert.Equal(t, "Update", binfo.Operation)
-	assert.Equal(t, filter, binfo.QueryContext.Filter)
+	binfo := hooks.beforeInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Update",
+		ResourceName: "MyResource",
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{Where: &where},
+		},
+		Data: &data,
+	}, binfo)
 	// After Operation
-	ainfo := hooks.afterInfo
-	assert.Equal(t, "Update", ainfo.Operation)
-	assert.Equal(t, filter, ainfo.QueryContext.Filter)
-	assert.Equal(t, &map[string]interface{}{"total_affected": int64(2)}, ainfo.Data)
-	assert.Nil(t, ainfo.ID)
+	ainfo := hooks.afterInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Update",
+		ResourceName: "MyResource",
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{Where: &where},
+		},
+		ResourceID: nil,
+		Data:       &data,
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 }
 
 func TestDestroyById(t *testing.T) {
@@ -340,6 +442,28 @@ func TestDestroyById(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = r.FindById(context.Background(), 3)
 	assert.EqualError(t, err, "record not found")
+}
+
+func TestDestroyById_OperationHook(t *testing.T) {
+	db := testutils.SetupGorm()
+	hooks := OperationHooksMock{}
+	r := SetupRepository(db, &hooks)
+	err := r.DestroyById(context.Background(), 2)
+	assert.NoError(t, err)
+	// Before Operation
+	binfo := hooks.beforeInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Destroy",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("2"),
+	}, binfo)
+	// After Operation
+	ainfo := hooks.afterInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Destroy",
+		ResourceName: "MyResource",
+		ResourceID:   ptr.String("2"),
+	}, ainfo)
 }
 
 func TestDestroy(t *testing.T) {
@@ -369,19 +493,28 @@ func TestDestroy_OperationHook(t *testing.T) {
 			"in": []uint{24, 27},
 		},
 	}
-	filter := &filter.Filter{Where: &where}
-	res, err := r.Destroy(context.Background(), filter)
+	f := &filter.Filter{Where: &where}
+	res, err := r.Destroy(context.Background(), f)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, int64(2), res.TotalAffected)
 	// Before Operation
-	binfo := hooks.beforeInfo
-	assert.Equal(t, "Destroy", binfo.Operation)
-	assert.Equal(t, filter, binfo.QueryContext.Filter)
+	binfo := hooks.beforeInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Destroy",
+		ResourceName: "MyResource",
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{Where: &where},
+		},
+	}, binfo)
 	// After Operation
-	ainfo := hooks.afterInfo
-	assert.Equal(t, "Destroy", ainfo.Operation)
-	assert.Equal(t, filter, ainfo.QueryContext.Filter)
-	assert.Equal(t, &map[string]interface{}{"total_affected": int64(2)}, ainfo.Data)
-	assert.Nil(t, ainfo.ID)
+	ainfo := hooks.afterInfoStack[0]
+	assertOperationInfo(t, &OperationHooksInfo{
+		Operation:    "Destroy",
+		ResourceName: "MyResource",
+		QueryContext: &datasource.QueryContext{
+			Filter: &filter.Filter{Where: &where},
+		},
+		ResourceID: nil,
+	}, ainfo)
 }

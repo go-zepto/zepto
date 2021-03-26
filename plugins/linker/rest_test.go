@@ -11,10 +11,11 @@ import (
 	"github.com/go-zepto/zepto"
 	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/gorm"
 	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
-	"github.com/go-zepto/zepto/plugins/linker/hooks"
 	"github.com/go-zepto/zepto/plugins/linker/utils"
 	"github.com/go-zepto/zepto/web"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/thriftrw/ptr"
 	"gorm.io/gorm"
 )
 
@@ -40,6 +41,16 @@ func NewTestKit(t *testing.T) TestKit {
 	}
 }
 
+func assertRemoteInfo(t *testing.T, expected *RemoteHooksInfo, info *RemoteHooksInfo) {
+	assert.NotNil(t, info)
+	assert.NotNil(t, info.Ctx)
+	assert.NotNil(t, info.Linker)
+	assert.Equal(t, expected.Endpoint, info.Endpoint)
+	assert.Equal(t, expected.Data, info.Data)
+	assert.Equal(t, expected.ResourceID, info.ResourceID)
+	assert.Equal(t, expected.ResourceName, info.ResourceName)
+}
+
 func TestNewResource(t *testing.T) {
 	r := require.New(t)
 	k := NewTestKit(t)
@@ -53,30 +64,30 @@ func TestNewResource(t *testing.T) {
 }
 
 type RemoteHooksMock struct {
-	beforeRemoteCallInfo *hooks.RemoteHooksInfo
-	afterRemoteCallInfo  *hooks.RemoteHooksInfo
+	beforeRemoteCallInfo *RemoteHooksInfo
+	afterRemoteCallInfo  *RemoteHooksInfo
 }
 
-func (r *RemoteHooksMock) BeforeRemote(info hooks.RemoteHooksInfo) error {
+func (r *RemoteHooksMock) BeforeRemote(info RemoteHooksInfo) error {
 	r.beforeRemoteCallInfo = &info
 	return nil
 }
 
-func (r *RemoteHooksMock) AfterRemote(info hooks.RemoteHooksInfo) error {
+func (r *RemoteHooksMock) AfterRemote(info RemoteHooksInfo) error {
 	r.afterRemoteCallInfo = &info
-	data := *info.Data
+	data := *info.Result
 	data["custom_field"] = "perfect!"
 	return nil
 }
 
 type RemoteHooksMockError struct{}
 
-func (r *RemoteHooksMockError) BeforeRemote(info hooks.RemoteHooksInfo) error {
+func (r *RemoteHooksMockError) BeforeRemote(info RemoteHooksInfo) error {
 	info.Ctx.SetStatus(400)
 	return errors.New("ups! strange error")
 }
 
-func (r *RemoteHooksMockError) AfterRemote(info hooks.RemoteHooksInfo) error {
+func (r *RemoteHooksMockError) AfterRemote(info RemoteHooksInfo) error {
 	return nil
 }
 
@@ -107,17 +118,25 @@ func TestBeforeRemoteHooksList(t *testing.T) {
 	r.Equal("Clark Kent", res.Data[2].Name)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
-	r.NotNil(binfo)
-	r.NotNil(binfo.Ctx)
-	r.Equal("List", binfo.Endpoint)
-	r.Nil(binfo.Data)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "List",
+		ResourceName: "Person",
+		ResourceID:   nil,
+		Data:         nil,
+	}, binfo)
+	assert.Nil(t, binfo.Result)
 	// Ensure AfterRemoteHooks was called
 	ainfo := h.afterRemoteCallInfo
-	r.NotNil(ainfo)
-	r.NotNil(ainfo.Data)
-	r.Equal("List", ainfo.Endpoint)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "List",
+		ResourceName: "Person",
+		ResourceID:   nil,
+		Data:         nil,
+		Result:       nil,
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 	var hres Res
-	utils.DecodeMapToStruct(ainfo.Data, &hres)
+	utils.DecodeMapToStruct(ainfo.Result, &hres)
 	r.Equal(res.Count, hres.Count)
 }
 
@@ -160,19 +179,24 @@ func TestBeforeRemoteHooksShow(t *testing.T) {
 	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
-	r.NotNil(binfo)
-	r.NotNil(binfo.Ctx)
-	r.Equal("Show", binfo.Endpoint)
-	r.Nil(binfo.Data)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Show",
+		ResourceName: "Person",
+		ResourceID:   ptr.String("1"),
+		Data:         nil,
+	}, binfo)
+	assert.Nil(t, binfo.Result)
 	// Ensure AfterRemoteHooks was called
 	ainfo := h.afterRemoteCallInfo
-	r.NotNil(ainfo)
-	r.NotNil(ainfo.Data)
-	r.Equal("Show", ainfo.Endpoint)
-	r.NotNil(ainfo.ID)
-	r.Equal("1", *ainfo.ID)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Show",
+		ResourceName: "Person",
+		ResourceID:   ptr.String("1"),
+		Data:         nil,
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 	var hres Res
-	utils.DecodeMapToStruct(ainfo.Data, &hres)
+	utils.DecodeMapToStruct(ainfo.Result, &hres)
 	r.Equal(res.ID, hres.ID)
 	r.Equal(res.Name, hres.Name)
 }
@@ -224,22 +248,23 @@ func TestBeforeRemoteHooksCreate(t *testing.T) {
 	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
-	r.NotNil(binfo)
-	r.NotNil(binfo.Ctx)
-	r.Equal("Create", binfo.Endpoint)
-	r.NotNil(binfo.Data)
-	binfoData := *binfo.Data
-	r.Equal("Bruce Wayne", binfoData["name"])
-	r.Equal("bruce@test.com", binfoData["email"])
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Create",
+		ResourceName: "Person",
+		Data:         &map[string]interface{}{"email": "bruce@test.com", "name": "Bruce Wayne"},
+	}, binfo)
+	assert.Nil(t, binfo.Result)
 	// Ensure AfterRemoteHooks was called
 	ainfo := h.afterRemoteCallInfo
-	r.NotNil(ainfo)
-	r.NotNil(ainfo.Data)
-	r.NotNil(ainfo.ID)
-	r.Equal("4", *ainfo.ID)
-	r.Equal("Create", ainfo.Endpoint)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Create",
+		ResourceName: "Person",
+		ResourceID:   ptr.String("4"),
+		Data:         &map[string]interface{}{"email": "bruce@test.com", "name": "Bruce Wayne"},
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 	var hres Res
-	utils.DecodeMapToStruct(ainfo.Data, &hres)
+	utils.DecodeMapToStruct(ainfo.Result, &hres)
 	r.Equal(res.ID, hres.ID)
 	r.Equal(res.Name, hres.Name)
 }
@@ -297,22 +322,24 @@ func TestBeforeRemoteHooksUpdate(t *testing.T) {
 	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
-	r.NotNil(binfo)
-	r.NotNil(binfo.Ctx)
-	r.Equal("Update", binfo.Endpoint)
-	r.NotNil(binfo.Data)
-	binfoData := *binfo.Data
-	r.Equal("Bruce Wayne", binfoData["name"])
-	r.Equal("bruce@test.com", binfoData["email"])
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Update",
+		ResourceName: "Person",
+		ResourceID:   ptr.String("1"),
+		Data:         &map[string]interface{}{"email": "bruce@test.com", "name": "Bruce Wayne"},
+	}, binfo)
+	assert.Nil(t, binfo.Result)
 	// Ensure AfterRemoteHooks was called
 	ainfo := h.afterRemoteCallInfo
-	r.NotNil(ainfo)
-	r.NotNil(ainfo.Data)
-	r.NotNil(ainfo.ID)
-	r.Equal("1", *ainfo.ID)
-	r.Equal("Update", ainfo.Endpoint)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Update",
+		ResourceName: "Person",
+		ResourceID:   ptr.String("1"),
+		Data:         &map[string]interface{}{"email": "bruce@test.com", "name": "Bruce Wayne"},
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 	var hres Res
-	utils.DecodeMapToStruct(ainfo.Data, &hres)
+	utils.DecodeMapToStruct(ainfo.Result, &hres)
 	r.Equal(res.ID, hres.ID)
 	r.Equal(res.Name, hres.Name)
 }
@@ -361,18 +388,23 @@ func TestBeforeRemoteHooksDestroy(t *testing.T) {
 	r.Equal("perfect!", res.CustomField)
 	// Ensure BeforeRemoteHooks was called
 	binfo := h.beforeRemoteCallInfo
-	r.NotNil(binfo)
-	r.NotNil(binfo.Ctx)
-	r.Equal("Destroy", binfo.Endpoint)
-	r.Nil(binfo.Data)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Destroy",
+		ResourceName: "Person",
+		ResourceID:   ptr.String("1"),
+		Data:         nil,
+	}, binfo)
+	assert.Nil(t, binfo.Result)
 	// Ensure AfterRemoteHooks was called
 	ainfo := h.afterRemoteCallInfo
-	r.NotNil(ainfo)
-	r.NotNil(ainfo.Data)
-	r.Equal("Destroy", ainfo.Endpoint)
-	r.NotNil(ainfo.ID)
-	r.Equal("1", *ainfo.ID)
+	assertRemoteInfo(t, &RemoteHooksInfo{
+		Endpoint:     "Destroy",
+		ResourceName: "Person",
+		ResourceID:   ptr.String("1"),
+		Data:         nil,
+	}, ainfo)
+	assert.NotNil(t, ainfo.Result)
 	var hres DelRes
-	utils.DecodeMapToStruct(ainfo.Data, &hres)
+	utils.DecodeMapToStruct(ainfo.Result, &hres)
 	r.Equal(res.Deleted, hres.Deleted)
 }

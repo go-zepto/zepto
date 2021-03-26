@@ -1,4 +1,4 @@
-package repository
+package linker
 
 import (
 	"context"
@@ -7,13 +7,12 @@ import (
 	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/gorm"
 	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
 	"github.com/go-zepto/zepto/plugins/linker/filter"
-	"github.com/go-zepto/zepto/plugins/linker/hooks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/thriftrw/ptr"
 	"gorm.io/gorm"
 )
 
-func SetupRepositoryDecoder(db *gorm.DB, operationHooks hooks.OperationHooks) *RepositoryDecoder {
+func SetupRepositoryDecoder(db *gorm.DB, operationHooks OperationHooks) *RepositoryDecoder {
 	repo := NewRepository(RepositoryConfig{
 		Datasource:     gormds.NewGormDatasource(db, &testutils.Person{}),
 		OperationHooks: operationHooks,

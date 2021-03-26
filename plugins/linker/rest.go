@@ -1,4 +1,4 @@
-package rest
+package linker
 
 import (
 	"encoding/json"
@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-zepto/zepto/plugins/linker/hooks"
-	"github.com/go-zepto/zepto/plugins/linker/repository"
 	"github.com/go-zepto/zepto/plugins/linker/utils"
 	"github.com/go-zepto/zepto/web"
 )
@@ -15,8 +13,10 @@ import (
 var ErrUnsuportedMediaType = errors.New(http.StatusText(http.StatusUnsupportedMediaType))
 
 type RestResource struct {
-	Repository  *repository.Repository
-	RemoteHooks hooks.RemoteHooks
+	ResourceName string
+	Linker       LinkerInstance
+	Repository   *Repository
+	RemoteHooks  RemoteHooks
 }
 
 func decodeDataFromBody(ctx web.Context, out *map[string]interface{}) error {
@@ -31,10 +31,12 @@ func decodeDataFromBody(ctx web.Context, out *map[string]interface{}) error {
 }
 
 func (rest *RestResource) List(ctx web.Context) error {
-	err := rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
-		ID:       nil,
-		Endpoint: "List",
-		Ctx:      ctx,
+	err := rest.RemoteHooks.BeforeRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   nil,
+		Endpoint:     "List",
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -52,11 +54,13 @@ func (rest *RestResource) List(ctx web.Context) error {
 	}
 	var hres map[string]interface{}
 	res.Decode(&hres)
-	err = rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-		ID:       nil,
-		Endpoint: "List",
-		Data:     &hres,
-		Ctx:      ctx,
+	err = rest.RemoteHooks.AfterRemote(RemoteHooksInfo{
+		ResourceName: rest.ResourceName,
+		Linker:       rest.Linker,
+		ResourceID:   nil,
+		Endpoint:     "List",
+		Result:       &hres,
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -66,11 +70,13 @@ func (rest *RestResource) List(ctx web.Context) error {
 
 func (rest *RestResource) Show(ctx web.Context) error {
 	id := ctx.Params()["id"]
-	err := rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
-		ID:       &id,
-		Data:     nil,
-		Endpoint: "Show",
-		Ctx:      ctx,
+	err := rest.RemoteHooks.BeforeRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   &id,
+		Data:         nil,
+		Endpoint:     "Show",
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -81,11 +87,13 @@ func (rest *RestResource) Show(ctx web.Context) error {
 		return err
 	}
 	hres := map[string]interface{}(*res)
-	err = rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-		ID:       &id,
-		Endpoint: "Show",
-		Data:     &hres,
-		Ctx:      ctx,
+	err = rest.RemoteHooks.AfterRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   &id,
+		Endpoint:     "Show",
+		Result:       &hres,
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -96,11 +104,13 @@ func (rest *RestResource) Show(ctx web.Context) error {
 func (rest *RestResource) Create(ctx web.Context) error {
 	data := make(map[string]interface{})
 	decodeDataFromBody(ctx, &data)
-	err := rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
-		ID:       nil,
-		Data:     &data,
-		Endpoint: "Create",
-		Ctx:      ctx,
+	err := rest.RemoteHooks.BeforeRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   nil,
+		Data:         &data,
+		Endpoint:     "Create",
+		Ctx:          ctx,
 	})
 	fmt.Println(data)
 	if err != nil {
@@ -112,11 +122,14 @@ func (rest *RestResource) Create(ctx web.Context) error {
 	}
 	hres := map[string]interface{}(*res)
 	id := fmt.Sprintf("%v", hres["id"])
-	err = rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-		ID:       &id,
-		Endpoint: "Create",
-		Data:     &hres,
-		Ctx:      ctx,
+	err = rest.RemoteHooks.AfterRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   &id,
+		Endpoint:     "Create",
+		Data:         &data,
+		Result:       &hres,
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -128,11 +141,13 @@ func (rest *RestResource) Update(ctx web.Context) error {
 	id := ctx.Params()["id"]
 	data := make(map[string]interface{})
 	decodeDataFromBody(ctx, &data)
-	err := rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
-		ID:       &id,
-		Data:     &data,
-		Endpoint: "Update",
-		Ctx:      ctx,
+	err := rest.RemoteHooks.BeforeRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   &id,
+		Data:         &data,
+		Endpoint:     "Update",
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -142,11 +157,14 @@ func (rest *RestResource) Update(ctx web.Context) error {
 		return err
 	}
 	hres := map[string]interface{}(*res)
-	err = rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-		ID:       &id,
-		Endpoint: "Update",
-		Data:     &hres,
-		Ctx:      ctx,
+	err = rest.RemoteHooks.AfterRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   &id,
+		Endpoint:     "Update",
+		Data:         &data,
+		Result:       &hres,
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -156,11 +174,13 @@ func (rest *RestResource) Update(ctx web.Context) error {
 
 func (rest *RestResource) Destroy(ctx web.Context) error {
 	id := ctx.Params()["id"]
-	err := rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
-		ID:       &id,
-		Data:     nil,
-		Endpoint: "Destroy",
-		Ctx:      ctx,
+	err := rest.RemoteHooks.BeforeRemote(RemoteHooksInfo{
+		Linker:       rest.Linker,
+		ResourceName: rest.ResourceName,
+		ResourceID:   &id,
+		Data:         nil,
+		Endpoint:     "Destroy",
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
@@ -172,11 +192,14 @@ func (rest *RestResource) Destroy(ctx web.Context) error {
 	res := map[string]interface{}{
 		"deleted": true,
 	}
-	err = rest.RemoteHooks.AfterRemote(hooks.RemoteHooksInfo{
-		ID:       &id,
-		Endpoint: "Destroy",
-		Data:     &res,
-		Ctx:      ctx,
+	err = rest.RemoteHooks.AfterRemote(RemoteHooksInfo{
+		ResourceName: rest.ResourceName,
+		Linker:       rest.Linker,
+		ResourceID:   &id,
+		Endpoint:     "Destroy",
+		Data:         nil,
+		Result:       &res,
+		Ctx:          ctx,
 	})
 	if err != nil {
 		return err
