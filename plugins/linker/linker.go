@@ -57,6 +57,10 @@ func (l *Linker) AddResources(resources []Resource) {
 	}
 }
 
+func (l *Linker) Router() *web.Router {
+	return l.router
+}
+
 func (l *Linker) Repository(name string) *repository.Repository {
 	return l.repositories[name]
 }

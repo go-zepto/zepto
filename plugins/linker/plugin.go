@@ -45,3 +45,7 @@ func (l *LinkerPlugin) OnZeptoInit(z *zepto.Zepto) {}
 func (l *LinkerPlugin) OnZeptoStart(z *zepto.Zepto) {}
 
 func (l *LinkerPlugin) OnZeptoStop(z *zepto.Zepto) {}
+
+func (l *LinkerPlugin) Linker() *Linker {
+	return l.linker
+}

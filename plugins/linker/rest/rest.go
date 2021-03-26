@@ -2,7 +2,9 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/go-zepto/zepto/plugins/linker/hooks"
 	"github.com/go-zepto/zepto/plugins/linker/repository"
@@ -10,9 +12,22 @@ import (
 	"github.com/go-zepto/zepto/web"
 )
 
+var ErrUnsuportedMediaType = errors.New(http.StatusText(http.StatusUnsupportedMediaType))
+
 type RestResource struct {
 	Repository  *repository.Repository
 	RemoteHooks hooks.RemoteHooks
+}
+
+func decodeDataFromBody(ctx web.Context, out *map[string]interface{}) error {
+	ct := ctx.Request().Header.Get("Content-Type")
+	switch ct {
+	case "application/json":
+		json.NewDecoder(ctx.Request().Body).Decode(&out)
+	case "multipart/form-data":
+		return nil
+	}
+	return ErrUnsuportedMediaType
 }
 
 func (rest *RestResource) List(ctx web.Context) error {
@@ -79,17 +94,15 @@ func (rest *RestResource) Show(ctx web.Context) error {
 }
 
 func (rest *RestResource) Create(ctx web.Context) error {
-	var data map[string]interface{}
-	err := json.NewDecoder(ctx.Request().Body).Decode(&data)
-	if err != nil {
-		return err
-	}
-	err = rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
+	data := make(map[string]interface{})
+	decodeDataFromBody(ctx, &data)
+	err := rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
 		ID:       nil,
 		Data:     &data,
 		Endpoint: "Create",
 		Ctx:      ctx,
 	})
+	fmt.Println(data)
 	if err != nil {
 		return err
 	}
@@ -113,12 +126,9 @@ func (rest *RestResource) Create(ctx web.Context) error {
 
 func (rest *RestResource) Update(ctx web.Context) error {
 	id := ctx.Params()["id"]
-	var data map[string]interface{}
-	err := json.NewDecoder(ctx.Request().Body).Decode(&data)
-	if err != nil {
-		return err
-	}
-	err = rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
+	data := make(map[string]interface{})
+	decodeDataFromBody(ctx, &data)
+	err := rest.RemoteHooks.BeforeRemote(hooks.RemoteHooksInfo{
 		ID:       &id,
 		Data:     &data,
 		Endpoint: "Update",

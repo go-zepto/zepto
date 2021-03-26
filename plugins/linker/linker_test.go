@@ -209,7 +209,9 @@ func TestBeforeRemoteHooksCreate(t *testing.T) {
 			"email": "bruce@test.com"
 		}
 	`
-	k.app.ServeHTTP(w, httptest.NewRequest("POST", "/api/people", strings.NewReader(body)))
+	req := httptest.NewRequest("POST", "/api/people", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	k.app.ServeHTTP(w, req)
 	type Res struct {
 		testutils.Person
 		CustomField string `json:"custom_field"`
@@ -280,7 +282,9 @@ func TestBeforeRemoteHooksUpdate(t *testing.T) {
 			"email": "bruce@test.com"
 		}
 	`
-	k.app.ServeHTTP(w, httptest.NewRequest("PUT", "/api/people/1", strings.NewReader(body)))
+	req := httptest.NewRequest("PUT", "/api/people/1", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	k.app.ServeHTTP(w, req)
 	type Res struct {
 		testutils.Person
 		CustomField string `json:"custom_field"`
