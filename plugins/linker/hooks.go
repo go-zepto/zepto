@@ -54,7 +54,7 @@ type OperationHooksInfo struct {
 	// Current Resource Name
 	ResourceName string
 
-	// Current Resource ID (Only present in AfterOperation call of FindOne, Update or Destroy endpoints)
+	// Current Resource ID (Only present in FindOne, Update or Destroy operations)
 	ResourceID *string
 
 	// Data used to perform the OperationHooks Create and Update
