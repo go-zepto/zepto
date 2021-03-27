@@ -9,7 +9,7 @@ type Field struct {
 }
 
 type ResourceFieldEndpoint struct {
-	Fields []*Field
+	Fields []*Field `json:"fields"`
 }
 
 func (e *ResourceFieldEndpoint) findFieldIndexByName(name string) int {

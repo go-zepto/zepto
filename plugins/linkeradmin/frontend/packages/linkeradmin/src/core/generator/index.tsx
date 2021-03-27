@@ -52,7 +52,7 @@ export default class Generators {
   }
 
   _generateShowResource(resource: Resource): React.FC {
-    const fields = resource.list_fields;
+    const fields = resource.list_endpoint.fields;
     const fieldGen = (s: Schema, f: Field) => this.generateFieldComp(f);
     const comps = this._generateResourceComps(fields, fieldGen, { props: { addLabel: true }});
     return (props: any) => (
@@ -65,7 +65,7 @@ export default class Generators {
   }
 
   _generateListResource(resource: Resource): React.FC {
-    const fields = resource.list_fields;
+    const fields = resource.list_endpoint.fields;
     const fieldGen = (s: Schema, f: Field) => this.generateFieldComp(f);
     const comps = this._generateResourceComps(fields, fieldGen);
     return (props: any) => (
@@ -78,7 +78,7 @@ export default class Generators {
   }
 
   _generateCreateResource(resource: Resource) {
-    const fields = resource.create_inputs;
+    const fields = resource.create_endpoint.inputs;
     const fieldGen = (s: Schema, f: Field) => this.generateInputComp(f);
     const comps = this._generateResourceComps(fields, fieldGen);
     return (props: any) => (
@@ -91,7 +91,7 @@ export default class Generators {
   }
 
   _generateEditResource(resource: Resource) {
-    const fields = resource.update_inputs.length > 0 ? resource.update_inputs : resource.create_inputs;
+    const fields = resource.update_endpoint.inputs.length > 0 ? resource.update_endpoint.inputs : resource.create_endpoint.inputs;
     const fieldGen = (s: Schema, f: Field) => this.generateInputComp(f);
     const comps = this._generateResourceComps(fields, fieldGen);
     return (props: any) => (

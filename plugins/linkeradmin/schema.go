@@ -1,5 +1,5 @@
 package linkeradmin
 
 type Schema struct {
-	Resources []LinkerResource `json:"resources"`
+	Admin *Admin `json:"admin"`
 }

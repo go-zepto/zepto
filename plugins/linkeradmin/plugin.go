@@ -17,19 +17,22 @@ import (
 //go:embed frontend/webapp/build/*
 var webappBuild embed.FS
 
-// Currently Input and Field are the same object, but it can change in future.
-type InputOptions FieldOptions
-type Input Field
-
 type Options struct {
-	Menu            Menu
-	LinkerResources []LinkerResource
-	Path            string
+	// Admin Config
+	Admin *Admin
+
+	// Admin URL Path. Default "/admin"
+	Path string
+
+	// Enable/Disable automatic guessing of all resources and fields. Default is true
+	AutoGuess *bool
 }
 
 type LinkerAdminPlugin struct {
+	admin  *Admin
 	path   string
 	router *web.Router
+	schema *Schema
 }
 
 func (l *LinkerAdminPlugin) serveReverseProxy(target string, res http.ResponseWriter, req *http.Request) {
@@ -42,31 +45,12 @@ func (l *LinkerAdminPlugin) serveReverseProxy(target string, res http.ResponseWr
 }
 
 func NewLinkerAdminPlugin(opts Options) *LinkerAdminPlugin {
-	res := make([]LinkerResource, 0)
-	for _, r := range opts.LinkerResources {
-		// if r.ListFields == nil {
-		// 	r.ListFields = make([]Field, 0)
-		// }
-		// if r.CreateInputs == nil {
-		// 	r.CreateInputs = make([]Input, 0)
-		// }
-		// if r.UpdateInputs == nil {
-		// 	r.UpdateInputs = make([]Input, 0)
-		// }
-		res = append(res, r)
-	}
 	if opts.Path == "" {
 		opts.Path = "/admin"
 	}
-	if opts.Menu.Links == nil {
-		opts.Menu.Links = make([]MenuLink, 0)
-	}
 	return &LinkerAdminPlugin{
-		// Schema: &Schema{
-		// 	Menu:      opts.Menu,
-		// 	Resources: res,
-		// },
-		path: opts.Path,
+		admin: opts.Admin,
+		path:  opts.Path,
 	}
 }
 
@@ -91,9 +75,11 @@ func (l *LinkerAdminPlugin) OnCreated(z *zepto.Zepto) {
 }
 
 func (l *LinkerAdminPlugin) OnZeptoInit(z *zepto.Zepto) {
+	l.schema = &Schema{
+		Admin: l.admin,
+	}
 	l.router.Get("/_schema", func(ctx web.Context) error {
-		// return ctx.RenderJson(l.Schema)
-		return nil
+		return ctx.RenderJson(l.schema)
 	})
 
 	webappURL := os.Getenv("LINKER_ADMIN_WEBAPP_URL")

@@ -6,12 +6,21 @@ export interface Field {
 
 type Input = Field
 
+
+export interface ResourceFieldEndpoint {
+  fields: Field[];
+}
+
+export interface ResourceInputEndpoint {
+  inputs: Input[];
+}
+
 export interface Resource {
   name: string;
   endpoint: string;
-  list_fields: Field[];
-  create_inputs: Input[];
-  update_inputs: Input[];
+  list_endpoint: ResourceFieldEndpoint;
+  create_endpoint: ResourceInputEndpoint;
+  update_endpoint: ResourceInputEndpoint;
 }
 
 export interface MenuLink {
@@ -25,7 +34,11 @@ export interface Menu {
   links: MenuLink[];
 }
 
+export interface Admin {
+  resources: Resource[];
+}
+
 export interface Schema {
   menu: Menu;
-  resources: Resource[];
+  admin: Admin;
 }

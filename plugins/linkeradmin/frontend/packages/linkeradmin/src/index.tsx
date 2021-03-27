@@ -40,7 +40,7 @@ export default class LinkerAdmin {
         schema,
         defaultRowClick: this.defaultRowClick,
       });
-      const resComps = schema.resources.map((r: Resource) =>  gen.generateResourceComp(r));
+      const resComps = schema.admin.resources.map((r: Resource) =>  gen.generateResourceComp(r));
       const AdminApp = () => (
         <App resComponents={resComps} />
       );
