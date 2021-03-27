@@ -17,25 +17,9 @@ import (
 //go:embed frontend/webapp/build/*
 var webappBuild embed.FS
 
-type FieldOptions = map[string]interface{}
-
-type Field struct {
-	Name    string       `json:"name"`
-	Type    string       `json:"type"`
-	Options FieldOptions `json:"options"`
-}
-
 // Currently Input and Field are the same object, but it can change in future.
 type InputOptions FieldOptions
 type Input Field
-
-type LinkerResource struct {
-	Name         string  `json:"name"`
-	Endpoint     string  `json:"endpoint"`
-	ListFields   []Field `json:"list_fields"`
-	CreateInputs []Input `json:"create_inputs"`
-	UpdateInputs []Input `json:"update_inputs"`
-}
 
 type Options struct {
 	Menu            Menu
@@ -43,24 +27,7 @@ type Options struct {
 	Path            string
 }
 
-type MenuLink struct {
-	Icon               string `json:"icon"`
-	Label              string `json:"label"`
-	LinkToResourceName string `json:"link_to_resource_name"`
-	LinkToPath         string `json:"link_to_path"`
-}
-
-type Menu struct {
-	Links []MenuLink `json:"links"`
-}
-
-type Schema struct {
-	Menu      Menu             `json:"menu"`
-	Resources []LinkerResource `json:"resources"`
-}
-
 type LinkerAdminPlugin struct {
-	Schema *Schema
 	path   string
 	router *web.Router
 }
@@ -77,15 +44,15 @@ func (l *LinkerAdminPlugin) serveReverseProxy(target string, res http.ResponseWr
 func NewLinkerAdminPlugin(opts Options) *LinkerAdminPlugin {
 	res := make([]LinkerResource, 0)
 	for _, r := range opts.LinkerResources {
-		if r.ListFields == nil {
-			r.ListFields = make([]Field, 0)
-		}
-		if r.CreateInputs == nil {
-			r.CreateInputs = make([]Input, 0)
-		}
-		if r.UpdateInputs == nil {
-			r.UpdateInputs = make([]Input, 0)
-		}
+		// if r.ListFields == nil {
+		// 	r.ListFields = make([]Field, 0)
+		// }
+		// if r.CreateInputs == nil {
+		// 	r.CreateInputs = make([]Input, 0)
+		// }
+		// if r.UpdateInputs == nil {
+		// 	r.UpdateInputs = make([]Input, 0)
+		// }
 		res = append(res, r)
 	}
 	if opts.Path == "" {
@@ -95,10 +62,10 @@ func NewLinkerAdminPlugin(opts Options) *LinkerAdminPlugin {
 		opts.Menu.Links = make([]MenuLink, 0)
 	}
 	return &LinkerAdminPlugin{
-		Schema: &Schema{
-			Menu:      opts.Menu,
-			Resources: res,
-		},
+		// Schema: &Schema{
+		// 	Menu:      opts.Menu,
+		// 	Resources: res,
+		// },
 		path: opts.Path,
 	}
 }
@@ -125,7 +92,8 @@ func (l *LinkerAdminPlugin) OnCreated(z *zepto.Zepto) {
 
 func (l *LinkerAdminPlugin) OnZeptoInit(z *zepto.Zepto) {
 	l.router.Get("/_schema", func(ctx web.Context) error {
-		return ctx.RenderJson(l.Schema)
+		// return ctx.RenderJson(l.Schema)
+		return nil
 	})
 
 	webappURL := os.Getenv("LINKER_ADMIN_WEBAPP_URL")

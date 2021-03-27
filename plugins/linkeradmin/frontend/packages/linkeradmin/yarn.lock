@@ -5219,6 +5219,11 @@ typescript-compare@^0.0.2:
   dependencies:
     typescript-logic "^0.0.0"
 
+typescript-declaration-webpack-plugin@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/typescript-declaration-webpack-plugin/-/typescript-declaration-webpack-plugin-0.2.2.tgz#e924fac2acdaa8ad244fd94f3132fa811177c4eb"
+  integrity sha512-X+97Ahsq13mlIxg9ECseRFi/TtOu2w55wdqijPT63gpe75zhthwqsdKNcf1CdgFDHWefIIGmR/qpAVRf6dl6WQ==
+
 typescript-logic@^0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/typescript-logic/-/typescript-logic-0.0.0.tgz#66ebd82a2548f2b444a43667bec120b496890196"
