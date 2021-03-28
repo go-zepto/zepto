@@ -1,7 +1,6 @@
 package gorm
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -91,7 +90,6 @@ func (g *GormDatasource) ApplyInclude(ctx datasource.QueryContext, query *gorm.D
 	if ctx.Filter != nil && ctx.Filter.Include != nil {
 		for _, include := range ctx.Filter.Include {
 			if include.Where == nil {
-				fmt.Println("Preloading: " + include.Relation + "...")
 				query = query.Preload(include.Relation)
 			} else {
 				where := where.NewFromMap(*include.Where)

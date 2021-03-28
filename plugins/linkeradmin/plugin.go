@@ -39,7 +39,6 @@ func (l *LinkerAdminPlugin) serveReverseProxy(target string, res http.ResponseWr
 	url, _ := url.Parse(target)
 	proxy := httputil.NewSingleHostReverseProxy(url)
 	path := strings.Replace(req.URL.Path, l.path, "/", 1)
-	fmt.Println(path)
 	req, _ = http.NewRequest("GET", path, nil)
 	proxy.ServeHTTP(res, req)
 }
@@ -95,16 +94,13 @@ func (l *LinkerAdminPlugin) OnZeptoInit(z *zepto.Zepto) {
 	}
 
 	l.router.Get("/", func(ctx web.Context) error {
-		fmt.Println(ctx.Request().URL.Path, l.path)
 		// Root index.html
 		indexHTMLBytes, err := webappBuild.ReadFile("frontend/webapp/build/index.html")
 		if err != nil {
 			return errors.New("could not load admin")
 		}
 		indexHTML := string(indexHTMLBytes)
-		fmt.Println(indexHTML)
 		indexHTML = strings.ReplaceAll(indexHTML, "/admin", l.path)
-		fmt.Println(indexHTML)
 		ctx.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
 		_, err = fmt.Fprint(ctx.Response(), indexHTML)
 		return err

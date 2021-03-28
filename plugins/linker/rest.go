@@ -112,7 +112,6 @@ func (rest *RestResource) Create(ctx web.Context) error {
 		Endpoint:     "Create",
 		Ctx:          ctx,
 	})
-	fmt.Println(data)
 	if err != nil {
 		return err
 	}

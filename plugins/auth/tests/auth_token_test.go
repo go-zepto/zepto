@@ -64,7 +64,6 @@ func TestAuthToken_Logout(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer "+token.Value)
 	kit.Zepto.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Result().StatusCode)
-	fmt.Println(kit.GetMe(token.Value))
 	var expectedPID *int = nil
 	var mePID *int = kit.GetMe(token.Value)
 	assert.Equal(t, expectedPID, mePID)
