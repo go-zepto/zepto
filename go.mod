@@ -15,8 +15,12 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
+	github.com/gosimple/slug v1.9.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/joncalhoun/qson v0.0.0-20200422171543-84433dcd3da0
+	github.com/lithammer/shortuuid v2.0.3+incompatible // indirect
 	github.com/mitchellh/mapstructure v1.4.1
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sendgrid/rest v2.6.3+incompatible
 	github.com/sendgrid/sendgrid-go v3.8.0+incompatible
 	github.com/sirupsen/logrus v1.8.1
