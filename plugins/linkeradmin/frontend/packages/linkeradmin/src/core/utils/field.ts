@@ -8,10 +8,10 @@ const COMMON_TITLE_FIELD_NAMES = [
 ];
 
 export const guessMainTitleField = (res: Resource): (string|null) => {
-  if (res.list_fields.length === 0) {
+  if (res.list_endpoint.fields.length === 0) {
     return null
   }
-  const listFieldNames = res.list_fields.map(f => f.name);
+  const listFieldNames = res.list_endpoint.fields.map(f => f.name);
   for (const cfn of COMMON_TITLE_FIELD_NAMES) {
     if (listFieldNames.includes(cfn)) {
       return cfn;

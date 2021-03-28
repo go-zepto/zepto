@@ -134,3 +134,100 @@ func TestGuessListFields_Timestamps(t *testing.T) {
 		assert.Equal(t, &ef, listFields[idx])
 	}
 }
+
+func TestGuessCreateInputs(t *testing.T) {
+	guesser := newTestDefaultGuesser(t, map[string]datasource.Field{
+		"id": {
+			Name: "id",
+			Type: "integer",
+		},
+		"name": {
+			Name: "name",
+			Type: "text",
+		},
+	})
+
+	createInputs := guesser.CreateInputs("Book")
+
+	expectedInputs := []fields.Input{
+		fields.NewTextInput("name", nil),
+	}
+	assert.Len(t, expectedInputs, len(createInputs))
+	for idx, ef := range expectedInputs {
+		assert.Equal(t, &ef, createInputs[idx])
+	}
+}
+
+func TestGuessCreateInputs_Datetime(t *testing.T) {
+	guesser := newTestDefaultGuesser(t, map[string]datasource.Field{
+		"id": {
+			Name: "id",
+			Type: "integer",
+		},
+		"name": {
+			Name: "name",
+			Type: "text",
+		},
+		"expiration": {
+			Name: "expiration",
+			Type: "datetime",
+		},
+		"active_at": {
+			Name: "active_at",
+			Type: "datetime",
+		},
+	})
+
+	createInputs := guesser.CreateInputs("Book")
+
+	expectedInputs := []fields.Input{
+		fields.NewTextInput("name", nil),
+		fields.NewDatetimeInput("expiration", nil),
+		fields.NewDatetimeInput("active_at", nil),
+	}
+	assert.Len(t, expectedInputs, len(createInputs))
+	for idx, ef := range expectedInputs {
+		assert.Equal(t, &ef, createInputs[idx])
+	}
+}
+
+func TestGuessCreateInputs_ReferenceInput(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	ds := datasourcemock.NewMockDatasource(ctrl)
+
+	guesser := newTestDefaultGuesser(t, map[string]datasource.Field{
+		"id": {
+			Name: "id",
+			Type: "integer",
+		},
+		"name": {
+			Name: "name",
+			Type: "text",
+		},
+		"author_id": {
+			Name: "author_id",
+			Type: "numeric",
+		},
+	})
+
+	guesser.l.AddResource(linker.Resource{
+		Name:       "Author",
+		Datasource: ds,
+	})
+
+	createInputs := guesser.CreateInputs("Book")
+
+	expectedInputs := []fields.Input{
+		fields.NewTextInput("name", nil),
+		fields.NewReferenceInput("author_id", "Author", &fields.ReferenceInputOptions{
+			Autocomplete: fields.ReferenceInputAutocomplete{
+				Enabled: true,
+			},
+		}),
+	}
+	assert.Len(t, expectedInputs, len(createInputs))
+	for idx, ef := range expectedInputs {
+		assert.Equal(t, &ef, createInputs[idx])
+	}
+}

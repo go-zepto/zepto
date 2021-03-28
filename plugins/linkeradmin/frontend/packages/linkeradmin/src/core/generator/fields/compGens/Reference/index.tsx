@@ -5,7 +5,7 @@ import { guessMainTitleField } from '../../../../utils/field';
 
 
 export const ReferenceFieldGenerator: ComponentGeneratorFunc = (s: Schema, f: Field) => (props: any) => {
-  const resource = s.resources.find(r => r.name === f.options["ref_resource"]);
+  const resource = s.admin.resources.find(r => r.name === f.options["ref_resource"]);
   if (!resource) {
     console.error(`[ReferenceInput] Resource not found "${resource}"`);
     return null;
@@ -20,7 +20,7 @@ export const ReferenceFieldGenerator: ComponentGeneratorFunc = (s: Schema, f: Fi
 }
 
 export const ReferenceInputGenerator: ComponentGeneratorFunc = (s: Schema, f: Field) => (props: any) => {
-  const resource = s.resources.find(r => r.name === f.options["ref_resource"]);
+  const resource = s.admin.resources.find(r => r.name === f.options["ref_resource"]);
   if (!resource) {
     console.error(`[ReferenceInput] Resource not found "${resource}"`);
     return null;
@@ -33,8 +33,8 @@ export const ReferenceInputGenerator: ComponentGeneratorFunc = (s: Schema, f: Fi
       return {};
     }
     const filter: any = {};
-    const sf = autocomplete.searchable_fields;
     const guessedTitle = guessMainTitleField(resource);
+    const sf = autocomplete && autocomplete.searchable_fields || [];
     const searchableFields = sf.length > 0 ? sf.length : (
       guessedTitle != null ? [guessedTitle] : []
     );
@@ -44,9 +44,9 @@ export const ReferenceInputGenerator: ComponentGeneratorFunc = (s: Schema, f: Fi
     return filter;
   };
   return (
-    <ReferenceInput {...props} reference={resource?.endpoint} filterToQuery={filterToQuery} filter={{...f.options?.filter }}>
+    <ReferenceInput {...props} reference={resource?.endpoint} filterToQuery={filterToQuery}>
       {
-        (autocomplete && autocomplete.enabled) ? (
+        (autocomplete && !autocomplete.enabled) ? (
           <AutocompleteInput optionText={optionText} />
           ) : (
           <SelectInput optionText={optionText} />
