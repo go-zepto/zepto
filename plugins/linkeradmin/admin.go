@@ -1,16 +1,16 @@
 package linkeradmin
 
 type Admin struct {
-	Resources []*LinkerResource `json:"resources"`
+	Resources []*Resource `json:"resources"`
 }
 
 func NewAdmin() *Admin {
 	return &Admin{
-		Resources: make([]*LinkerResource, 0),
+		Resources: make([]*Resource, 0),
 	}
 }
 
-func (a *Admin) AddResource(res *LinkerResource) *Admin {
+func (a *Admin) AddResource(res *Resource) *Admin {
 	a.Resources = append(a.Resources, res)
 	return a
 }

@@ -12,7 +12,7 @@ func TestAdmin(t *testing.T) {
 	admin := linkeradmin.NewAdmin()
 
 	// Post Resource
-	post := linkeradmin.NewLinkerResource("Post")
+	post := linkeradmin.NewResource("Post")
 
 	post.List.
 		AddField(fields.NewTextField("id", nil)).

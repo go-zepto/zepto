@@ -9,7 +9,7 @@ import (
 )
 
 func TestResourceFieldEndpoint_AddField(t *testing.T) {
-	r := linkeradmin.NewLinkerResource("Person")
+	r := linkeradmin.NewResource("Person")
 
 	idField := fields.NewNumberField("id", nil)
 	createdAtField := fields.NewDatetimeField("created_at", nil)
@@ -28,7 +28,7 @@ func TestResourceFieldEndpoint_AddField(t *testing.T) {
 }
 
 func TestResourceFieldEndpoint_RemoveField(t *testing.T) {
-	r := linkeradmin.NewLinkerResource("Person")
+	r := linkeradmin.NewResource("Person")
 
 	idField := fields.NewNumberField("id", nil)
 	createdAtField := fields.NewDatetimeField("created_at", nil)
@@ -49,7 +49,7 @@ func TestResourceFieldEndpoint_RemoveField(t *testing.T) {
 }
 
 func TestResourceFieldEndpoint_ReplaceField(t *testing.T) {
-	r := linkeradmin.NewLinkerResource("Person")
+	r := linkeradmin.NewResource("Person")
 
 	idField := fields.NewNumberField("id", nil)
 	createdAtField := fields.NewDatetimeField("created_at", nil)

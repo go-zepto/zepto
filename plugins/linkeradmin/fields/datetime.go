@@ -3,6 +3,7 @@ package fields
 type DatetimeFieldOptions struct {
 	Label    string
 	Sortable *bool
+	ShowTime *bool
 }
 
 func NewDatetimeField(name string, opts *DatetimeFieldOptions) Field {
@@ -14,6 +15,9 @@ func NewDatetimeField(name string, opts *DatetimeFieldOptions) Field {
 		}
 		if opts.Sortable != nil {
 			props["sortable"] = opts.Sortable
+		}
+		if opts.ShowTime != nil {
+			props["showTime"] = opts.ShowTime
 		}
 	}
 	o["props"] = props

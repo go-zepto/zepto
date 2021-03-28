@@ -20,7 +20,7 @@ type linkerFieldMap map[string]linker.RepositoryField
 func NewGuesserAdmin(l *linker.Linker) *Admin {
 	admin := NewAdmin()
 	for name, repo := range l.Repositories() {
-		res := NewLinkerResource(name)
+		res := NewResource(name)
 		fieldMap := make(linkerFieldMap)
 		for _, f := range repo.Fields() {
 			fieldMap[f.Name] = f
@@ -53,7 +53,7 @@ func findTimestamps(fieldMap linkerFieldMap) []*linker.RepositoryField {
 	return timestampsFields
 }
 
-func guessList(res *LinkerResource, fieldMap linkerFieldMap) {
+func guessList(res *Resource, fieldMap linkerFieldMap) {
 	id, ok := fieldMap["id"]
 	if ok {
 		res.List.AddField(fields.Field{
@@ -82,7 +82,7 @@ func guessList(res *LinkerResource, fieldMap linkerFieldMap) {
 	}
 }
 
-func guessCreate(res *LinkerResource, fieldMap linkerFieldMap) {
+func guessCreate(res *Resource, fieldMap linkerFieldMap) {
 	id, ok := fieldMap["id"]
 	if ok {
 		res.Create.AddInput(fields.Input{
