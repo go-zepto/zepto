@@ -11,6 +11,7 @@ func NewGuesserAdmin(l *linker.Linker) *Admin {
 	resources := guesser.Resources()
 	admin := NewAdmin()
 	for _, res := range resources {
+		res.Icon = guesser.Icon(res.Name)
 		listFields := guesser.ListFields(res.Name)
 		for _, f := range listFields {
 			res.List.AddField(*f)

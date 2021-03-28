@@ -20,13 +20,13 @@ const MenuWrapper = (props: any) => {
 }
 
 const MenuGenerator: LayoutComponentGenerator = (s: Schema): React.FC => {
-  if (s?.menu?.links.length === 0) {
+  if (s?.admin.menu?.links.length === 0) {
     return Menu;
   }
   return ({ onMenuClick, logout }: any) => {
     const renderLink = (link: MenuLink, idx: number) => {
       const to = link.link_to_path.length > 0 ? link.link_to_path : (
-        '/' + s.resources.find(r => r.name === link.link_to_resource_name)?.endpoint
+        '/' + s.admin.resources.find(r => r.name === link.link_to_resource_name)?.endpoint
       );
       return (
         <MenuItemLink
@@ -34,14 +34,14 @@ const MenuGenerator: LayoutComponentGenerator = (s: Schema): React.FC => {
           key={idx}
           to={to}
           primaryText={link.label}
-          leftIcon={<span className="material-icons">{link.icon || 'article'}</span>}
+          leftIcon={<span className="material-icons">{link.icon || 'list_view'}</span>}
           onClick={onMenuClick}
         />
       )
     }
     return (
       <MenuWrapper>
-        {s.menu.links.map((link, idx)=> renderLink(link, idx))}
+        {s.admin.menu.links.map((link, idx)=> renderLink(link, idx))}
         <Responsive
           small={logout}
         />

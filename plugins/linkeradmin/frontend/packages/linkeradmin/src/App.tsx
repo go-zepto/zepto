@@ -4,6 +4,7 @@ import React from 'react';
 import { Admin, fetchUtils } from 'react-admin';
 import { LinkerDataProvider } from './providers/dataProvider';
 import { ZeptoAuthTokenProvider } from './providers/authProvider';
+import { generateLayoutComp } from './core/generator/layout';
 
 const httpClient = (url: string, options: any = {}) => {
   if (!options.headers) {
@@ -21,6 +22,7 @@ export const App = (props: any) => {
     <Admin
       dataProvider={LinkerDataProvider('/api', httpClient)}
       authProvider={ZeptoAuthTokenProvider('/auth', httpClient)}
+      layout={props.layout}
     >
       {props.resComponents}
     </Admin>

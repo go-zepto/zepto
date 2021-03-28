@@ -35,10 +35,10 @@ export interface Menu {
 }
 
 export interface Admin {
+  menu: Menu;
   resources: Resource[];
 }
 
 export interface Schema {
-  menu: Menu;
   admin: Admin;
 }

@@ -1,17 +1,26 @@
 package linkeradmin
 
 type Admin struct {
+	Menu      *Menu       `json:"menu"`
 	Resources []*Resource `json:"resources"`
 }
 
 func NewAdmin() *Admin {
 	return &Admin{
 		Resources: make([]*Resource, 0),
+		Menu: &Menu{
+			Links: make([]MenuLink, 0),
+		},
 	}
 }
 
 func (a *Admin) AddResource(res *Resource) *Admin {
 	a.Resources = append(a.Resources, res)
+	a.Menu.Links = append(a.Menu.Links, MenuLink{
+		Icon:               res.Icon,
+		Label:              res.Name,
+		LinkToResourceName: res.Name,
+	})
 	return a
 }
 

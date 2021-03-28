@@ -4,6 +4,7 @@ import { App } from './App';
 import { fetchUtils } from 'ra-core';
 import { Resource, Schema, ComponentGenerator} from './types';
 import Generator from './core/generator';
+import { generateLayoutComp } from './core/generator/layout';
 
 
 interface LinkerAdminOptions {
@@ -41,8 +42,9 @@ export default class LinkerAdmin {
         defaultRowClick: this.defaultRowClick,
       });
       const resComps = schema.admin.resources.map((r: Resource) =>  gen.generateResourceComp(r));
+      const LayoutComp = generateLayoutComp(schema);
       const AdminApp = () => (
-        <App resComponents={resComps} />
+        <App resComponents={resComps} layout={LayoutComp} />
       );
       ReactDOM.render(<AdminApp />, targetEl);
     } catch (error) {

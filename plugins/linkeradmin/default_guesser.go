@@ -8,6 +8,7 @@ import (
 	"github.com/go-zepto/zepto/plugins/linker"
 	"github.com/go-zepto/zepto/plugins/linker/utils"
 	"github.com/go-zepto/zepto/plugins/linkeradmin/fields"
+	"github.com/jinzhu/inflection"
 	"go.uber.org/thriftrw/ptr"
 )
 
@@ -22,6 +23,7 @@ type DefaultGuesserOptions struct {
 type DefaultGuesser struct {
 	l         *linker.Linker
 	resources []*Resource
+	iconsMap  map[string]string
 }
 
 func NewDefaultGuesser(opts DefaultGuesserOptions) *DefaultGuesser {
@@ -30,9 +32,11 @@ func NewDefaultGuesser(opts DefaultGuesserOptions) *DefaultGuesser {
 		res := NewResource(name)
 		resources = append(resources, res)
 	}
+	iconsMap := generateInverseDefaultGuesserIcons(defaultGuesserIcons)
 	return &DefaultGuesser{
 		l:         opts.Linker,
 		resources: resources,
+		iconsMap:  iconsMap,
 	}
 }
 
@@ -107,6 +111,18 @@ func (g *DefaultGuesser) createGuessedInput(rf *linker.RepositoryField) fields.I
 
 	// Falback to Text Input
 	return fields.NewTextInput(rf.Name, nil)
+}
+
+func (g *DefaultGuesser) Icon(resourceName string) string {
+	rs := inflection.Singular(resourceName)
+	rs = strings.ReplaceAll(resourceName, " ", "")
+	rs = strings.ReplaceAll(resourceName, "_", "")
+	rs = strings.ToLower(rs)
+	icon := g.iconsMap[rs]
+	if icon == "" {
+		icon = "view_list"
+	}
+	return icon
 }
 
 func (g *DefaultGuesser) ListFields(resourceName string) []*fields.Field {
