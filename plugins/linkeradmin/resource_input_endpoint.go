@@ -8,7 +8,7 @@ type ResourceInputEndpoint struct {
 	Inputs []*Field `json:"inputs"`
 }
 
-func (e *ResourceInputEndpoint) findFieldIndexByName(name string) int {
+func (e *ResourceInputEndpoint) findInputIndexByName(name string) int {
 	for i := 0; i < len(e.Inputs); i++ {
 		if e.Inputs[i].Name == name {
 			return i
@@ -22,21 +22,21 @@ func (e *ResourceInputEndpoint) removeAtIndex(index int) *ResourceInputEndpoint 
 	return e
 }
 
-func (e *ResourceInputEndpoint) AddField(f Field) *ResourceInputEndpoint {
+func (e *ResourceInputEndpoint) AddInput(f Field) *ResourceInputEndpoint {
 	e.Inputs = append(e.Inputs, &f)
 	return e
 }
 
-func (e *ResourceInputEndpoint) RemoveField(name string) *ResourceInputEndpoint {
-	idx := e.findFieldIndexByName(name)
+func (e *ResourceInputEndpoint) RemoveInput(name string) *ResourceInputEndpoint {
+	idx := e.findInputIndexByName(name)
 	if idx >= 0 {
 		e.removeAtIndex(idx)
 	}
 	return e
 }
 
-func (e *ResourceInputEndpoint) ReplaceField(name string, field Field) *ResourceInputEndpoint {
-	idx := e.findFieldIndexByName(name)
+func (e *ResourceInputEndpoint) ReplaceInput(name string, field Field) *ResourceInputEndpoint {
+	idx := e.findInputIndexByName(name)
 	if idx >= 0 {
 		e.Inputs[idx] = &field
 	}
