@@ -8,65 +8,65 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestResourceInputEndpoint_AddField(t *testing.T) {
+func TestResourceInputEndpoint_AddInput(t *testing.T) {
 	r := linkeradmin.NewLinkerResource("Person")
 
-	idField := fields.NewNumberField("id", nil)
-	createdAtField := fields.NewDatetimeField("created_at", nil)
-	updatedAtField := fields.NewDatetimeField("created_at", nil)
+	idField := fields.NewNumberInput("id", nil)
+	createdAtField := fields.NewDatetimeInput("created_at", nil)
+	updatedAtField := fields.NewDatetimeInput("created_at", nil)
 
-	r.List.
-		AddField(idField).
-		AddField(createdAtField).
-		AddField(updatedAtField)
+	r.Create.
+		AddInput(idField).
+		AddInput(createdAtField).
+		AddInput(updatedAtField)
 
-	assert.Equal(t, []*linkeradmin.Field{
+	assert.Equal(t, []*fields.Input{
 		&idField,
 		&createdAtField,
 		&updatedAtField,
-	}, r.List.Fields)
+	}, r.Create.Inputs)
 }
 
 func TestResourceInputEndpoint_RemoveField(t *testing.T) {
 	r := linkeradmin.NewLinkerResource("Person")
 
-	idField := fields.NewNumberField("id", nil)
-	createdAtField := fields.NewDatetimeField("created_at", nil)
-	updatedAtField := fields.NewDatetimeField("created_at", nil)
+	idField := fields.NewNumberInput("id", nil)
+	createdAtField := fields.NewDatetimeInput("created_at", nil)
+	updatedAtField := fields.NewDatetimeInput("updated_at", nil)
 
-	r.List.Fields = []*linkeradmin.Field{
+	r.Create.Inputs = []*fields.Input{
 		&idField,
 		&createdAtField,
 		&updatedAtField,
 	}
 
-	r.List.RemoveField("created_at")
+	r.Create.RemoveInput("created_at")
 
-	assert.Equal(t, []*linkeradmin.Field{
+	assert.Equal(t, []*fields.Input{
 		&idField,
 		&updatedAtField,
-	}, r.List.Fields)
+	}, r.Create.Inputs)
 }
 
 func TestResourceInputEndpoint_ReplaceField(t *testing.T) {
 	r := linkeradmin.NewLinkerResource("Person")
 
-	idField := fields.NewNumberField("id", nil)
-	createdAtField := fields.NewDatetimeField("created_at", nil)
-	updatedAtField := fields.NewDatetimeField("created_at", nil)
+	idField := fields.NewNumberInput("id", nil)
+	createdAtField := fields.NewDatetimeInput("created_at", nil)
+	updatedAtField := fields.NewDatetimeInput("created_at", nil)
 
-	r.List.Fields = []*linkeradmin.Field{
+	r.Create.Inputs = []*fields.Input{
 		&idField,
 		&createdAtField,
 		&updatedAtField,
 	}
 
-	textCreateAtField := fields.NewTextField("created_at", nil)
-	r.List.ReplaceField("created_at", textCreateAtField)
+	textCreatedAtInput := fields.NewTextInput("created_at", nil)
+	r.Create.ReplaceInput("created_at", textCreatedAtInput)
 
-	assert.Equal(t, []*linkeradmin.Field{
+	assert.Equal(t, []*fields.Input{
 		&idField,
-		&textCreateAtField,
+		&textCreatedAtInput,
 		&updatedAtField,
-	}, r.List.Fields)
+	}, r.Create.Inputs)
 }

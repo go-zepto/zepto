@@ -2,6 +2,7 @@ package linkeradmin
 
 import (
 	"github.com/go-zepto/zepto/plugins/linker"
+	"github.com/go-zepto/zepto/plugins/linkeradmin/fields"
 )
 
 // fieldTitleNames is the prioritized list of names to be used as title in Admin
@@ -55,21 +56,21 @@ func findTimestamps(fieldMap linkerFieldMap) []*linker.RepositoryField {
 func guessList(res *LinkerResource, fieldMap linkerFieldMap) {
 	id, ok := fieldMap["id"]
 	if ok {
-		res.List.AddField(Field{
+		res.List.AddField(fields.Field{
 			Name: id.Name,
 			Type: "text",
 		})
 	}
 	title := findFirstFieldFromPriotizedList(fieldMap, fieldTitleNames)
 	if title != nil {
-		res.List.AddField(Field{
+		res.List.AddField(fields.Field{
 			Name: title.Name,
 			Type: "text",
 		})
 	}
 	timestamps := findTimestamps(fieldMap)
 	for _, ts := range timestamps {
-		res.List.AddField(Field{
+		res.List.AddField(fields.Field{
 			Name: ts.Name,
 			Type: "datetime",
 			Options: map[string]interface{}{
@@ -84,7 +85,7 @@ func guessList(res *LinkerResource, fieldMap linkerFieldMap) {
 func guessCreate(res *LinkerResource, fieldMap linkerFieldMap) {
 	id, ok := fieldMap["id"]
 	if ok {
-		res.Create.AddInput(Field{
+		res.Create.AddInput(fields.Input{
 			Name: id.Name,
 			Type: "text",
 			Options: map[string]interface{}{
@@ -94,7 +95,7 @@ func guessCreate(res *LinkerResource, fieldMap linkerFieldMap) {
 			},
 		})
 	}
-	res.Create.AddInput(Field{
+	res.Create.AddInput(fields.Input{
 		Name: "name",
 		Type: "text",
 	})

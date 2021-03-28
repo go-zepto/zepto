@@ -1,15 +1,13 @@
 package fields
 
-import "github.com/go-zepto/zepto/plugins/linkeradmin"
-
 type ReferenceFieldOptions struct {
 	Label         string
 	Sortable      *bool
 	TextFieldName string
 }
 
-func NewReferenceField(name string, resourceName string, opts *ReferenceFieldOptions) linkeradmin.Field {
-	o := make(linkeradmin.FieldOptions)
+func NewReferenceField(name string, resourceName string, opts *ReferenceFieldOptions) Field {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -23,7 +21,7 @@ func NewReferenceField(name string, resourceName string, opts *ReferenceFieldOpt
 	o["props"] = props
 	o["ref_resource"] = resourceName
 	o["ref_type"] = "single"
-	return linkeradmin.Field{
+	return Field{
 		Name:    name,
 		Type:    "reference",
 		Options: o,
@@ -46,8 +44,8 @@ type ReferenceInputOptions struct {
 	Filter          map[string]interface{}
 }
 
-func NewReferenceInput(name string, resourceName string, opts *ReferenceInputOptions) linkeradmin.Input {
-	o := make(linkeradmin.FieldOptions)
+func NewReferenceInput(name string, resourceName string, opts *ReferenceInputOptions) Input {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -63,7 +61,7 @@ func NewReferenceInput(name string, resourceName string, opts *ReferenceInputOpt
 	o["ref_type"] = "single"
 	o["option_text_field"] = opts.OptionTextField
 	o["filter"] = opts.Filter
-	return linkeradmin.Input{
+	return Input{
 		Name:    name,
 		Type:    "reference",
 		Options: o,

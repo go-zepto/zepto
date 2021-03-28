@@ -1,7 +1,6 @@
 package linkeradmin_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-zepto/zepto/plugins/linkeradmin"
@@ -23,6 +22,5 @@ func TestAdmin(t *testing.T) {
 
 	assert.Equal(t, "posts", admin.Resources[0].Endpoint)
 	assert.Len(t, admin.Resources, 1)
-	fmt.Println(admin.Resources[0])
 	assert.Len(t, admin.Resources[0].List.Fields, 2)
 }

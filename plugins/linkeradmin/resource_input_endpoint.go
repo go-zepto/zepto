@@ -1,11 +1,9 @@
 package linkeradmin
 
-// Currently Input and Field are the same object, but it can change in future.
-type InputOptions FieldOptions
-type Input Field
+import "github.com/go-zepto/zepto/plugins/linkeradmin/fields"
 
 type ResourceInputEndpoint struct {
-	Inputs []*Field `json:"inputs"`
+	Inputs []*fields.Input `json:"inputs"`
 }
 
 func (e *ResourceInputEndpoint) findInputIndexByName(name string) int {
@@ -22,8 +20,8 @@ func (e *ResourceInputEndpoint) removeAtIndex(index int) *ResourceInputEndpoint 
 	return e
 }
 
-func (e *ResourceInputEndpoint) AddInput(f Field) *ResourceInputEndpoint {
-	e.Inputs = append(e.Inputs, &f)
+func (e *ResourceInputEndpoint) AddInput(i fields.Input) *ResourceInputEndpoint {
+	e.Inputs = append(e.Inputs, &i)
 	return e
 }
 
@@ -35,16 +33,16 @@ func (e *ResourceInputEndpoint) RemoveInput(name string) *ResourceInputEndpoint 
 	return e
 }
 
-func (e *ResourceInputEndpoint) ReplaceInput(name string, field Field) *ResourceInputEndpoint {
+func (e *ResourceInputEndpoint) ReplaceInput(name string, input fields.Input) *ResourceInputEndpoint {
 	idx := e.findInputIndexByName(name)
 	if idx >= 0 {
-		e.Inputs[idx] = &field
+		e.Inputs[idx] = &input
 	}
 	return e
 }
 
 func NewResourceInputEndpoint() *ResourceInputEndpoint {
 	return &ResourceInputEndpoint{
-		Inputs: make([]*Field, 0),
+		Inputs: make([]*fields.Input, 0),
 	}
 }

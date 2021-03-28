@@ -1,14 +1,12 @@
 package fields
 
-import "github.com/go-zepto/zepto/plugins/linkeradmin"
-
 type ReferenceListFieldOptions struct {
 	Label         string
 	TextFieldName string
 }
 
-func NewReferenceListField(name string, resourceName string, opts *ReferenceListFieldOptions) linkeradmin.Field {
-	o := make(linkeradmin.FieldOptions)
+func NewReferenceListField(name string, resourceName string, opts *ReferenceListFieldOptions) Field {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -19,7 +17,7 @@ func NewReferenceListField(name string, resourceName string, opts *ReferenceList
 	o["props"] = props
 	o["ref_resource"] = resourceName
 	o["ref_type"] = "list"
-	return linkeradmin.Field{
+	return Field{
 		Name:    name,
 		Type:    "reference_list",
 		Options: o,
@@ -37,8 +35,8 @@ type ReferenceListInputOptions struct {
 	Disabled   *bool
 }
 
-func NewReferenceListInput(resourceName string, resourceFieldName string, opts *ReferenceListInputOptions) linkeradmin.Input {
-	o := make(linkeradmin.FieldOptions)
+func NewReferenceListInput(resourceName string, resourceFieldName string, opts *ReferenceListInputOptions) Input {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -49,7 +47,7 @@ func NewReferenceListInput(resourceName string, resourceFieldName string, opts *
 	o["ref_resource"] = resourceName
 	o["ref_resource_field_name"] = resourceFieldName
 	o["ref_type"] = "list"
-	return linkeradmin.Input{
+	return Input{
 		Name:    "reference_" + resourceFieldName,
 		Type:    "reference_list",
 		Options: o,

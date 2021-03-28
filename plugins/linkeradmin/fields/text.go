@@ -1,14 +1,12 @@
 package fields
 
-import "github.com/go-zepto/zepto/plugins/linkeradmin"
-
 type TextFieldOptions struct {
 	Label    string
 	Sortable *bool
 }
 
-func NewTextField(name string, opts *TextFieldOptions) linkeradmin.Field {
-	o := make(linkeradmin.FieldOptions)
+func NewTextField(name string, opts *TextFieldOptions) Field {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -19,7 +17,7 @@ func NewTextField(name string, opts *TextFieldOptions) linkeradmin.Field {
 		}
 	}
 	o["props"] = props
-	return linkeradmin.Field{
+	return Field{
 		Name:    name,
 		Type:    "text",
 		Options: o,
@@ -34,8 +32,8 @@ type TextInputOptions struct {
 	Disabled     *bool
 }
 
-func NewTextInput(name string, opts *TextInputOptions) linkeradmin.Input {
-	o := make(linkeradmin.FieldOptions)
+func NewTextInput(name string, opts *TextInputOptions) Input {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -55,7 +53,7 @@ func NewTextInput(name string, opts *TextInputOptions) linkeradmin.Input {
 		}
 	}
 	o["props"] = props
-	return linkeradmin.Input{
+	return Input{
 		Name:    name,
 		Type:    "text",
 		Options: o,

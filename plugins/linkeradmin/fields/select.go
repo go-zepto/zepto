@@ -1,14 +1,12 @@
 package fields
 
-import "github.com/go-zepto/zepto/plugins/linkeradmin"
-
 type SelectFieldOptions struct {
 	Label    string
 	Sortable *bool
 }
 
-func NewSelectField(name string, opts *SelectFieldOptions) linkeradmin.Field {
-	o := make(linkeradmin.FieldOptions)
+func NewSelectField(name string, opts *SelectFieldOptions) Field {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -19,7 +17,7 @@ func NewSelectField(name string, opts *SelectFieldOptions) linkeradmin.Field {
 		}
 	}
 	o["props"] = props
-	return linkeradmin.Field{
+	return Field{
 		Name:    name,
 		Type:    "select",
 		Options: o,
@@ -41,8 +39,8 @@ type SelectInputOptions struct {
 	EmptyText    string
 }
 
-func NewSelectInput(name string, opts *SelectInputOptions) linkeradmin.Input {
-	o := make(linkeradmin.FieldOptions)
+func NewSelectInput(name string, opts *SelectInputOptions) Input {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -70,7 +68,7 @@ func NewSelectInput(name string, opts *SelectInputOptions) linkeradmin.Input {
 		props["optionValue"] = "value"
 	}
 	o["props"] = props
-	return linkeradmin.Input{
+	return Input{
 		Name:    name,
 		Type:    "select",
 		Options: o,

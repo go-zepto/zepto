@@ -3,17 +3,16 @@ package fields
 import (
 	"testing"
 
-	"github.com/go-zepto/zepto/plugins/linkeradmin"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/thriftrw/ptr"
 )
 
 func TestNewTextField_Defaults(t *testing.T) {
 	f := NewTextField("name", nil)
-	expectedField := linkeradmin.Field{
+	expectedField := Field{
 		Name: "name",
 		Type: "text",
-		Options: linkeradmin.FieldOptions{
+		Options: FieldOptions{
 			"props": map[string]interface{}{},
 		},
 	}
@@ -25,10 +24,10 @@ func TestNewTextField_WithOptions(t *testing.T) {
 		Label:    "Name",
 		Sortable: ptr.Bool(true),
 	})
-	expectedField := linkeradmin.Field{
+	expectedField := Field{
 		Name: "name",
 		Type: "text",
-		Options: linkeradmin.FieldOptions{
+		Options: FieldOptions{
 			"props": map[string]interface{}{
 				"label":    "Name",
 				"sortable": ptr.Bool(true),
@@ -40,10 +39,10 @@ func TestNewTextField_WithOptions(t *testing.T) {
 
 func TestNewTextInput_Defaults(t *testing.T) {
 	f := NewTextInput("name", nil)
-	expectedInput := linkeradmin.Input{
+	expectedInput := Input{
 		Name: "name",
 		Type: "text",
-		Options: linkeradmin.FieldOptions{
+		Options: FieldOptions{
 			"props": map[string]interface{}{},
 		},
 	}
@@ -57,10 +56,10 @@ func TestNewTextInput_WithOptions(t *testing.T) {
 		FullWidth:  ptr.Bool(true),
 		Disabled:   ptr.Bool(true),
 	})
-	expectedInput := linkeradmin.Input{
+	expectedInput := Input{
 		Name: "name",
 		Type: "text",
-		Options: linkeradmin.InputOptions{
+		Options: InputOptions{
 			"props": map[string]interface{}{
 				"label":      "Name",
 				"helperText": "The person name",

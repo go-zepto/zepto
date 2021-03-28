@@ -3,17 +3,16 @@ package fields
 import (
 	"testing"
 
-	"github.com/go-zepto/zepto/plugins/linkeradmin"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/thriftrw/ptr"
 )
 
 func TestNewDatetimeField_Defaults(t *testing.T) {
 	f := NewDatetimeField("created_at", nil)
-	expectedField := linkeradmin.Field{
+	expectedField := Field{
 		Name: "created_at",
 		Type: "datetime",
-		Options: linkeradmin.FieldOptions{
+		Options: FieldOptions{
 			"props": map[string]interface{}{},
 		},
 	}
@@ -25,10 +24,10 @@ func TestNewDatetimeField_WithOptions(t *testing.T) {
 		Label:    "Created At",
 		Sortable: ptr.Bool(true),
 	})
-	expectedField := linkeradmin.Field{
+	expectedField := Field{
 		Name: "created_at",
 		Type: "datetime",
-		Options: linkeradmin.FieldOptions{
+		Options: FieldOptions{
 			"props": map[string]interface{}{
 				"label":    "Created At",
 				"sortable": ptr.Bool(true),
@@ -40,10 +39,10 @@ func TestNewDatetimeField_WithOptions(t *testing.T) {
 
 func TestNewDatetimeInput_Defaults(t *testing.T) {
 	f := NewDatetimeInput("birthdate", nil)
-	expectedInput := linkeradmin.Input{
+	expectedInput := Input{
 		Name: "birthdate",
 		Type: "datetime",
-		Options: linkeradmin.FieldOptions{
+		Options: FieldOptions{
 			"props": map[string]interface{}{},
 		},
 	}
@@ -57,10 +56,10 @@ func TestNewDatetimeInput_WithOptions(t *testing.T) {
 		FullWidth:  ptr.Bool(true),
 		Disabled:   ptr.Bool(true),
 	})
-	expectedInput := linkeradmin.Input{
+	expectedInput := Input{
 		Name: "birthdate",
 		Type: "datetime",
-		Options: linkeradmin.InputOptions{
+		Options: InputOptions{
 			"props": map[string]interface{}{
 				"label":      "Birthdate",
 				"helperText": "The date of birth",

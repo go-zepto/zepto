@@ -1,14 +1,12 @@
 package fields
 
-import "github.com/go-zepto/zepto/plugins/linkeradmin"
-
 type DatetimeFieldOptions struct {
 	Label    string
 	Sortable *bool
 }
 
-func NewDatetimeField(name string, opts *DatetimeFieldOptions) linkeradmin.Field {
-	o := make(linkeradmin.FieldOptions)
+func NewDatetimeField(name string, opts *DatetimeFieldOptions) Field {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -19,7 +17,7 @@ func NewDatetimeField(name string, opts *DatetimeFieldOptions) linkeradmin.Field
 		}
 	}
 	o["props"] = props
-	return linkeradmin.Field{
+	return Field{
 		Name:    name,
 		Type:    "datetime",
 		Options: o,
@@ -33,8 +31,8 @@ type DatetimeInputOptions struct {
 	Disabled   *bool
 }
 
-func NewDatetimeInput(name string, opts *DatetimeInputOptions) linkeradmin.Input {
-	o := make(linkeradmin.FieldOptions)
+func NewDatetimeInput(name string, opts *DatetimeInputOptions) Input {
+	o := make(FieldOptions)
 	props := map[string]interface{}{}
 	if opts != nil {
 		if opts.Label != "" {
@@ -51,7 +49,7 @@ func NewDatetimeInput(name string, opts *DatetimeInputOptions) linkeradmin.Input
 		}
 	}
 	o["props"] = props
-	return linkeradmin.Input{
+	return Input{
 		Name:    name,
 		Type:    "datetime",
 		Options: o,

@@ -1,15 +1,9 @@
 package linkeradmin
 
-type FieldOptions = map[string]interface{}
-
-type Field struct {
-	Name    string       `json:"name"`
-	Type    string       `json:"type"`
-	Options FieldOptions `json:"options"`
-}
+import "github.com/go-zepto/zepto/plugins/linkeradmin/fields"
 
 type ResourceFieldEndpoint struct {
-	Fields []*Field `json:"fields"`
+	Fields []*fields.Field `json:"fields"`
 }
 
 func (e *ResourceFieldEndpoint) findFieldIndexByName(name string) int {
@@ -26,7 +20,7 @@ func (e *ResourceFieldEndpoint) removeAtIndex(index int) *ResourceFieldEndpoint 
 	return e
 }
 
-func (e *ResourceFieldEndpoint) AddField(f Field) *ResourceFieldEndpoint {
+func (e *ResourceFieldEndpoint) AddField(f fields.Field) *ResourceFieldEndpoint {
 	e.Fields = append(e.Fields, &f)
 	return e
 }
@@ -39,7 +33,7 @@ func (e *ResourceFieldEndpoint) RemoveField(name string) *ResourceFieldEndpoint 
 	return e
 }
 
-func (e *ResourceFieldEndpoint) ReplaceField(name string, field Field) *ResourceFieldEndpoint {
+func (e *ResourceFieldEndpoint) ReplaceField(name string, field fields.Field) *ResourceFieldEndpoint {
 	idx := e.findFieldIndexByName(name)
 	if idx >= 0 {
 		e.Fields[idx] = &field
@@ -49,6 +43,6 @@ func (e *ResourceFieldEndpoint) ReplaceField(name string, field Field) *Resource
 
 func NewResourceFieldEndpoint() *ResourceFieldEndpoint {
 	return &ResourceFieldEndpoint{
-		Fields: make([]*Field, 0),
+		Fields: make([]*fields.Field, 0),
 	}
 }
