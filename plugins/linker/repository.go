@@ -23,6 +23,12 @@ type RepositoryConfig struct {
 	OperationHooks OperationHooks
 }
 
+type RepositoryField struct {
+	Name     string
+	Type     string
+	Nullable bool
+}
+
 func NewRepository(config RepositoryConfig) *Repository {
 	if config.OperationHooks == nil {
 		config.OperationHooks = &DefaultOperationHooks{}
@@ -286,4 +292,16 @@ func (r *Repository) Destroy(ctx context.Context, filter *filter.Filter) (*ManyA
 	return &ManyAffectedResult{
 		TotalAffected: hres["total_affected"].(int64),
 	}, nil
+}
+
+func (r *Repository) Fields() []RepositoryField {
+	fields := make([]RepositoryField, 0)
+	for _, f := range r.ds.Fields() {
+		fields = append(fields, RepositoryField{
+			Name:     f.Name,
+			Type:     f.Type,
+			Nullable: f.Nullable,
+		})
+	}
+	return fields
 }

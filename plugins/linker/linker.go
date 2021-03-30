@@ -66,6 +66,10 @@ func (l *Linker) Repository(name string) *Repository {
 	return l.repositories[name]
 }
 
+func (l *Linker) Repositories() map[string]*Repository {
+	return l.repositories
+}
+
 func (l *Linker) RepositoryDecoder(name string) *RepositoryDecoder {
 	return &RepositoryDecoder{
 		Repo: l.repositories[name],
