@@ -24,6 +24,15 @@ func (a *Admin) AddResource(res *Resource) *Admin {
 	return a
 }
 
+func (a *Admin) Resource(name string) *Resource {
+	for _, res := range a.Resources {
+		if res.Name == name {
+			return res
+		}
+	}
+	return nil
+}
+
 func (a *Admin) findResourceIndexByName(name string) int {
 	for i := 0; i < len(a.Resources); i++ {
 		if a.Resources[i].Name == name {
