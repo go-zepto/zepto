@@ -38,7 +38,10 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 
 func (h *HTTPZeptoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/health" {
-		age := time.Since(*h.z.startedAt)
+		var age time.Duration
+		if h.z.startedAt != nil {
+			age = time.Since(*h.z.startedAt)
+		}
 		json.NewEncoder(w).Encode(HealthStatus{
 			Name:    h.z.opts.Name,
 			Version: h.z.opts.Version,
