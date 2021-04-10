@@ -44,7 +44,7 @@ const ReferenceListDatagrid = (props: ReferenceListDatagridProps) => {
       setRows(res?.data || []);
     })
   }, [dp, props.refResourceFieldName, props.resource.endpoint, recordID, setRows]);
-  const columns: DatagridColumn[] = props.resource.list_fields.map(f => ({
+  const columns: DatagridColumn[] = props.resource.list_endpoint.fields.map(f => ({
     field: f.name,
     headerName: f.options["label"],
     flex: f.name === "id" ? 0.3 : 1,
@@ -104,7 +104,7 @@ const ReferenceListDatagrid = (props: ReferenceListDatagridProps) => {
 };
 
 const ReferenceListDatagridGenerator: ComponentGeneratorFunc = (s: Schema, f: Field) => (props: any) => {
-  const resource = s.resources.find(r => r.name === f.options["ref_resource"]);
+  const resource = s.admin.resources.find(r => r.name === f.options["ref_resource"]);
   if (!resource) {
     console.error(`[ReferenceInput] Resource not found "${resource}"`);
     return null;
@@ -117,7 +117,7 @@ const ReferenceListDatagridGenerator: ComponentGeneratorFunc = (s: Schema, f: Fi
 
 
 export const ReferenceListFieldGenerator: ComponentGeneratorFunc = (s: Schema, f: Field) => (props: any) => {
-  const resource = s.resources.find(r => r.name === f.options["ref_resource"]);
+  const resource = s.admin.resources.find(r => r.name === f.options["ref_resource"]);
   if (!resource) {
     console.error(`[ReferenceInput] Resource not found "${resource}"`);
     return null;

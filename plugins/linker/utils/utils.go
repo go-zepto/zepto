@@ -43,7 +43,7 @@ func DecodeMapToStruct(input interface{}, output interface{}) error {
 	}
 	decoder, err := mapstructure.NewDecoder(config)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	return decoder.Decode(input)
 }
