@@ -173,12 +173,17 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 			}
 		}()
 		h := h.routeHandler
+		// Middlewares
+		mwStack := MiddlewareStack{
+			stack: make([]MiddlewareFunc, 0),
+		}
 		// Apply Root Middlewares
 		if router != app.rootRouter {
-			router.middleware.UsePrepend(app.rootRouter.middleware.stack...)
+			mwStack.Use(app.rootRouter.middleware.stack...)
 		}
-		// Apply Router (Scoped) Middlewares
-		h = router.middleware.handle(h)
+		mwStack.Use(router.middleware.stack...)
+		// Apply Middleware Stack
+		h = mwStack.handle(h)
 		err := h(ctx)
 		// Handle Controller Error
 		if err != nil {

@@ -94,7 +94,7 @@ func TestMiddlewareStack_RootRouter(t *testing.T) {
 	assert.Equal(t, 1, runCount)
 }
 
-func assertCalledMiddlewares(t *testing.T, path string, expectedCalledMiddlewares []string) {
+func assertCalledMiddlewares(t *testing.T, path string, requestCount int, expectedCalledMiddlewares []string) {
 	calledMiddlewares := make([]string, 0)
 	var createMiddleware = func(name string) MiddlewareFunc {
 		return func(next RouteHandler) RouteHandler {
@@ -123,12 +123,15 @@ func assertCalledMiddlewares(t *testing.T, path string, expectedCalledMiddleware
 	router.Get("/hello", func(ctx Context) error {
 		return ctx.RenderJson(map[string]string{"hello": "world"})
 	})
-	w := httptest.NewRecorder()
 	app.Init()
-	req := httptest.NewRequest("GET", path, nil)
-	req.Header.Add("Authorization", "Bearer 123")
-	app.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	for n := 0; n < requestCount; n++ {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", path, nil)
+		req.Header.Add("Authorization", "Bearer 123")
+		app.ServeHTTP(w, req)
+		assert.Equal(t, 200, w.Code)
+	}
+	assert.Len(t, app.rootRouter.middleware.stack, 2)
 	assert.Equal(t, expectedCalledMiddlewares, calledMiddlewares)
 }
 
@@ -136,6 +139,7 @@ func TestMiddlewareStack_RootRouter_With_Router(t *testing.T) {
 	assertCalledMiddlewares(
 		t,
 		"/hello",
+		1,
 		[]string{
 			"root-middleware-1",
 			"root-middleware-2",
@@ -144,7 +148,24 @@ func TestMiddlewareStack_RootRouter_With_Router(t *testing.T) {
 	assertCalledMiddlewares(
 		t,
 		"/router/hello",
+		1,
 		[]string{
+			"root-middleware-1",
+			"root-middleware-2",
+			"router-middleware-1",
+			"router-middleware-2",
+		},
+	)
+
+	assertCalledMiddlewares(
+		t,
+		"/router/hello",
+		2,
+		[]string{
+			"root-middleware-1",
+			"root-middleware-2",
+			"router-middleware-1",
+			"router-middleware-2",
 			"root-middleware-1",
 			"root-middleware-2",
 			"router-middleware-1",
