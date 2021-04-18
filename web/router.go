@@ -100,7 +100,7 @@ func (router *Router) Patch(path string, routeHandler RouteHandler) *Router {
 }
 
 func (router *Router) Any(path string, routeHandler RouteHandler) *Router {
-	return router.HandleMethod([]string{"GET", "POST", "PUT", "DELETE", "PATCH"}, path, routeHandler)
+	return router.HandleMethod([]string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"}, path, routeHandler)
 }
 
 func (router *Router) Use(mw ...MiddlewareFunc) {
