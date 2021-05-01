@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/go-zepto/zepto"
-	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/gorm"
-	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
+	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm"
+	"github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm/testutils"
 	"github.com/go-zepto/zepto/plugins/linker/utils"
 	"github.com/go-zepto/zepto/web"
 	"github.com/stretchr/testify/assert"

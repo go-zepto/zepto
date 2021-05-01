@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/go-zepto/zepto/plugins/linker"
-	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
+	"github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm/testutils"
 	"github.com/go-zepto/zepto/web"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"

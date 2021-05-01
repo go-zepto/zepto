@@ -34,21 +34,6 @@ func getFields(db *gorm.DB, model interface{}) (*map[string]datasource.Field, er
 	return &fields, nil
 }
 
-// types, err := db.Migrator().ColumnTypes(model)
-// if err != nil {
-// 	return nil, err
-// }
-// for _, t := range types {
-// 	nullable, _ := t.Nullable()
-// 	fields[t.Name()] = datasource.Field{
-// 		Name:     t.Name(),
-// 		Type:     strings.ToLower(t.DatabaseTypeName()),
-// 		Nullable: nullable,
-// 	}
-// }
-// return &fields, nil
-// }
-
 func NewGormDatasource(db *gorm.DB, model interface{}) *GormDatasource {
 	fields, err := getFields(db, model)
 	if err != nil {
@@ -182,15 +167,12 @@ func (g *GormDatasource) Create(ctx datasource.QueryContext, data interface{}) (
 }
 
 func (g *GormDatasource) Update(ctx datasource.QueryContext, data interface{}) (datasource.ManyAffectedResult, error) {
-	obj := g.createModelReflectInstance()
-	updateObj := obj.Interface()
-	lutils.DecodeMapToStruct(data, updateObj)
 	query := g.DB.Model(g.Model)
 	query, err := g.ApplyWhere(ctx, query)
 	if err != nil {
 		return datasource.ManyAffectedResult{}, err
 	}
-	res := query.Updates(updateObj)
+	res := query.Updates(data)
 	if res.Error != nil {
 		return datasource.ManyAffectedResult{}, res.Error
 	}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/gorm"
-	"github.com/go-zepto/zepto/plugins/linker/datasource/gorm/testutils"
+	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm"
+	"github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm/testutils"
 	"github.com/go-zepto/zepto/plugins/linker/filter"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/thriftrw/ptr"
