@@ -167,12 +167,13 @@ func (g *GormDatasource) Create(ctx datasource.QueryContext, data interface{}) (
 }
 
 func (g *GormDatasource) Update(ctx datasource.QueryContext, data interface{}) (datasource.ManyAffectedResult, error) {
+	dataMap := data.(map[string]interface{})
 	query := g.DB.Model(g.Model)
 	query, err := g.ApplyWhere(ctx, query)
 	if err != nil {
 		return datasource.ManyAffectedResult{}, err
 	}
-	res := query.Updates(data)
+	res := query.Updates(dataMap)
 	if res.Error != nil {
 		return datasource.ManyAffectedResult{}, res.Error
 	}
