@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 
@@ -167,7 +168,10 @@ func (g *GormDatasource) Create(ctx datasource.QueryContext, data interface{}) (
 }
 
 func (g *GormDatasource) Update(ctx datasource.QueryContext, data interface{}) (datasource.ManyAffectedResult, error) {
-	dataMap := data.(map[string]interface{})
+	dataMap, validType := data.(map[string]interface{})
+	if !validType {
+		return datasource.ManyAffectedResult{}, errors.New("update input should be map[string]interface{}")
+	}
 	query := g.DB.Model(g.Model)
 	query, err := g.ApplyWhere(ctx, query)
 	if err != nil {

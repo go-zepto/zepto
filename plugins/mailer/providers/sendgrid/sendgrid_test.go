@@ -2,6 +2,7 @@ package sendgrid
 
 import (
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/go-zepto/zepto"
@@ -110,6 +111,7 @@ func TestSendgridSendMail(t *testing.T) {
 }
 
 func TestSendgridSendMail_Error(t *testing.T) {
+	os.Setenv("ZEPTO_ENV", "development")
 	z, cm := setupZeptoWithMailMock()
 	cm.setStatus(401)
 	z.Post("/send-mail", func(ctx web.Context) error {

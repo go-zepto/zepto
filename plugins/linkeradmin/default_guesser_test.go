@@ -195,6 +195,8 @@ func TestGuessCreateInputs_ReferenceInput(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	ds := datasourcemock.NewMockDatasource(ctrl)
+	ds.EXPECT().
+		Fields().Return(map[string]datasource.Field{})
 
 	guesser := newTestDefaultGuesser(t, map[string]datasource.Field{
 		"id": {

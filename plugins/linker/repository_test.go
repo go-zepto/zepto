@@ -378,8 +378,8 @@ func TestUpdateFromModel(t *testing.T) {
 			"in": []uint{24, 27},
 		},
 	}
-	data := testutils.Person{
-		Name: "Young Person Directly from GORM Model",
+	data := map[string]interface{}{
+		"name": "Young Person Directly from GORM Model",
 	}
 	res, err := r.Update(context.Background(), &filter.Filter{Where: &where}, data)
 	assert.NoError(t, err)
