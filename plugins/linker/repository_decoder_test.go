@@ -107,12 +107,12 @@ func TestDecoderUpdateById(t *testing.T) {
 	db := testutils.SetupGorm()
 	r := SetupRepositoryDecoder(db, nil)
 	var out testutils.Person
-	in := testutils.Person{
-		Name: "Carlos Strand (Updated)",
+	in := map[string]interface{}{
+		"name": "Carlos Strand (Updated)",
 	}
 	err := r.UpdateById(context.Background(), 1, in, &out)
 	assert.NoError(t, err)
-	assert.Equal(t, in.Name, out.Name)
+	assert.Equal(t, in["name"], out.Name)
 	assert.Equal(t, uint(1), out.ID)
 }
 
@@ -120,8 +120,8 @@ func TestDecoderUpdate(t *testing.T) {
 	db := testutils.SetupGorm()
 	r := SetupRepositoryDecoder(db, nil)
 	var out ManyAffectedResult
-	in := testutils.Person{
-		Name: "Bill (Updated)",
+	in := map[string]interface{}{
+		"name": "Bill (Updated)",
 	}
 	filter := &filter.Filter{
 		Where: &map[string]interface{}{
