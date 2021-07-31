@@ -2,6 +2,7 @@ package zepto
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -10,13 +11,16 @@ import (
 
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
+	"github.com/go-zepto/zepto/utils"
 	"github.com/go-zepto/zepto/web"
+	"github.com/go-zepto/zepto/web/renderer/pongo2"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 type Zepto struct {
 	*web.App
+	config     Config
 	opts       Options
 	grpcServer *grpc.Server
 	grpcAddr   string
@@ -27,8 +31,25 @@ type Zepto struct {
 	plugins    map[string]Plugin
 }
 
-func NewZepto(opts ...Option) *Zepto {
-	options := newOptions(opts...)
+func NewZepto() *Zepto {
+	env := utils.GetEnv("ZEPTO_ENV", "development")
+	config, err := NewConfigFromFile(fmt.Sprintf("config/%s.yml", env))
+	if err != nil {
+		panic(err)
+	}
+	options := Options{
+		Name:           config.App.Name,
+		Version:        config.App.Version,
+		Env:            env,
+		WebpackEnabled: config.App.WebpackEnabled,
+		SessionName:    config.App.Session.Name,
+		SessionSecret:  config.App.Session.Secret,
+		TmplEngine: pongo2.NewPongo2Engine(
+			pongo2.TemplateDir("templates"),
+			pongo2.Ext(".html"),
+			pongo2.AutoReload(env == "development"),
+		),
+	}
 	z := &Zepto{
 		opts:    options,
 		plugins: make(map[string]Plugin),
@@ -37,14 +58,22 @@ func NewZepto(opts ...Option) *Zepto {
 		// Logger not set. Using default logger (logrus)
 		l := log.New()
 		l.SetFormatter(&log.TextFormatter{
-			FullTimestamp: true,
+			FullTimestamp:    true,
+			DisableTimestamp: !config.Logger.Timestamp,
+			DisableColors:    !config.Logger.Colors,
 		})
-		l.SetLevel(log.DebugLevel)
+		logLevel, err := log.ParseLevel(config.Logger.Level)
+		if err != nil {
+			panic(err)
+		}
+		l.SetLevel(logLevel)
 		z.logger = logrus.NewLogrus(l)
 	} else {
 		z.logger = options.Logger
 	}
 	z.createApp()
+	z.httpAddr = fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
+	z.setupHTTP(z.httpAddr)
 	return z
 }
 
@@ -54,15 +83,15 @@ func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
 	fn(z.grpcServer)
 }
 
-func createDefaultHTTPServer() *http.Server {
+func (z *Zepto) createDefaultHTTPServer() *http.Server {
 	return &http.Server{
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: time.Duration(z.config.Server.WriteTimeout) * time.Microsecond,
+		ReadTimeout:  time.Duration(z.config.Server.ReadTimeout) * time.Millisecond,
 	}
 }
 
-func (z *Zepto) SetupHTTP(addr string) {
-	srv := createDefaultHTTPServer()
+func (z *Zepto) setupHTTP(addr string) {
+	srv := z.createDefaultHTTPServer()
 	if z.opts.HTTPServer != nil {
 		srv = z.opts.HTTPServer
 	}
@@ -78,17 +107,6 @@ func (z *Zepto) SetupHTTP(addr string) {
 func (z *Zepto) createApp() {
 	z.App = web.NewApp()
 }
-
-// func (z *Zepto) SetupBroker(bp broker.BrokerProvider) {
-// 	z.broker = broker.NewBroker(z.logger, bp)
-// 	z.broker.Init(&broker.InitOptions{
-// 		Logger: z.logger,
-// 	})
-// }
-
-// func (z *Zepto) Broker() *broker.Broker {
-// 	return z.broker
-// }
 
 func (z *Zepto) Logger() logger.Logger {
 	return z.logger
@@ -127,18 +145,6 @@ func (z *Zepto) InitApp() {
 		z.Init()
 		z.App.StartWebpackServer()
 	}
-}
-
-func (z *Zepto) InitMailer() {
-	// var engine renderer.Engine
-	// if z.App != nil {
-	// 	engine = z.App.RendererEngine()
-	// }
-	// if z.mailer != nil {
-	// 	z.mailer.Init(&mailer.InitOptions{
-	// 		RendererEngine: engine,
-	// 	})
-	// }
 }
 
 func (z *Zepto) Start() {
@@ -182,7 +188,7 @@ func (z *Zepto) Start() {
 
 	if z.httpServer != nil {
 		go func() {
-			z.Logger().Infof("HTTP server is listening on %s", z.httpAddr)
+			z.Logger().Infof("HTTP server is listening on http://%s", z.httpAddr)
 			z.httpServer.ListenAndServe()
 		}()
 	}

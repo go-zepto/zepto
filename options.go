@@ -18,6 +18,7 @@ type Options struct {
 	WebpackEnabled bool
 	TmplEngine     renderer.Engine
 	SessionName    string
+	SessionSecret  string
 	SessionStore   sessions.Store
 	// Custom HTTP server
 	HTTPServer *http.Server
