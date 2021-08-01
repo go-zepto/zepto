@@ -1,0 +1,17 @@
+app:
+  name: "my-project"
+  version: "1.0.0"
+  session:
+    name: "zsid"
+    secret: "super-secret-123"
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  read_timeout: 15000
+  write_timeout: 15000
+
+logger:
+  level: "info"
+  colors: false
+  timestamp: true
