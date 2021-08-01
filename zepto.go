@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/go-zepto/zepto/database"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/utils"
@@ -17,6 +18,7 @@ import (
 	"github.com/go-zepto/zepto/web/renderer/pongo2"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 )
 
 type Zepto struct {
@@ -30,6 +32,7 @@ type Zepto struct {
 	logger     logger.Logger
 	startedAt  *time.Time
 	plugins    map[string]Plugin
+	db         *gorm.DB
 }
 
 func NewZepto(configs ...Config) *Zepto {
@@ -60,6 +63,7 @@ func NewZepto(configs ...Config) *Zepto {
 	z := &Zepto{
 		opts:    options,
 		plugins: make(map[string]Plugin),
+		config:  config,
 	}
 	if options.Logger == nil {
 		// Logger not set. Using default logger (logrus)
@@ -83,6 +87,7 @@ func NewZepto(configs ...Config) *Zepto {
 	}
 	z.createApp()
 	z.httpAddr = fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
+	z.setupDB()
 	z.setupHTTP(z.httpAddr)
 	return z
 }
@@ -98,6 +103,26 @@ func (z *Zepto) createDefaultHTTPServer() *http.Server {
 		WriteTimeout: time.Duration(z.config.Server.WriteTimeout) * time.Microsecond,
 		ReadTimeout:  time.Duration(z.config.Server.ReadTimeout) * time.Millisecond,
 	}
+}
+
+func (z *Zepto) setupDB() {
+	dc := z.config.DB
+	if !dc.Enabled {
+		return
+	}
+	conn := database.Connection{
+		Adapter:    dc.Adapter,
+		Host:       dc.Host,
+		Port:       dc.Port,
+		Username:   dc.Username,
+		Password:   dc.Password,
+		Datababase: dc.Database,
+	}
+	db, err := conn.Open(logger.NewDBLogger(z.logger))
+	if err != nil {
+		z.logger.Fatal("exiting due to failed database connection")
+	}
+	z.db = db
 }
 
 func (z *Zepto) setupHTTP(addr string) {
@@ -146,6 +171,7 @@ func (z *Zepto) InitApp() {
 			SessionSecret:  z.opts.SessionSecret,
 			SessionStore:   z.opts.SessionStore,
 			WebpackEnabled: z.opts.WebpackEnabled,
+			DB:             z.db,
 		}
 		pluginInstances := make(map[string]interface{})
 		for _, p := range z.plugins {
@@ -156,6 +182,10 @@ func (z *Zepto) InitApp() {
 		z.Init()
 		z.App.StartWebpackServer()
 	}
+}
+
+func (z *Zepto) DB() *gorm.DB {
+	return z.db
 }
 
 func (z *Zepto) Start() {

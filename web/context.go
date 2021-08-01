@@ -9,6 +9,7 @@ import (
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/web/renderer"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 
 	// Enable webpack asset feature
 	_ "github.com/go-webpack/pongo2"
@@ -29,6 +30,7 @@ type Context interface {
 	Cookies() *Cookies
 	Session() *Session
 	PluginInstance(name string) interface{}
+	DB() *gorm.DB
 }
 
 type DefaultContext struct {
@@ -42,6 +44,7 @@ type DefaultContext struct {
 	cookies          *Cookies
 	session          *Session
 	pluginsInstances map[string]interface{}
+	db               *gorm.DB
 }
 
 func NewDefaultContext() *DefaultContext {
@@ -128,4 +131,8 @@ func (d *DefaultContext) Session() *Session {
 
 func (d *DefaultContext) PluginInstance(name string) interface{} {
 	return d.pluginsInstances[name]
+}
+
+func (d *DefaultContext) DB() *gorm.DB {
+	return d.db
 }

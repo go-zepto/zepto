@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/go-zepto/zepto/database"
 	"github.com/go-zepto/zepto/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -14,6 +15,7 @@ type Config struct {
 	App    AppConfig    `json:"app" mapstructure:"app"`
 	Server ServerConfig `json:"server" mapstructure:"server"`
 	Logger LoggerConfig `json:"logger" mapstructure:"logger"`
+	DB     DBConfig     `json:"db" mapstructure:"db"`
 }
 
 // App Config is the configuration for the Zepto App
@@ -79,6 +81,38 @@ type LoggerConfig struct {
 	Timestamp bool `json:"timestamp" mapstructure:"timestamp"`
 }
 
+// DBConfig is the configuration for the database.
+//
+// You can change the database instance, but this configuration will be ignored
+type DBConfig struct {
+	// Enabled
+	//
+	// default: true
+	Enabled bool `json:"enabled" mapstructure:"enabled"`
+
+	// Adapter (e.g. "postgres", "sqlite", "mysql")
+	//
+	// default: "sqlite"
+	Adapter string `json:"adapter" mapstructure:"adapter"`
+
+	// DB Host (e.g. "127.0.0.1")
+	Host string `json:"host" mapstructure:"host"`
+
+	// DB Port (e.g. 5432)
+	Port int `json:"port" mapstructure:"port"`
+
+	// DB Username
+	Username string `json:"username" mapstructure:"username"`
+
+	// DB Password
+	Password string `json:"password" mapstructure:"password"`
+
+	// DB Database
+	//
+	// default: "db/development.sqlite3"
+	Database string `json:"database" mapstructure:"database"`
+}
+
 func SetDefaults() {
 	// App
 	viper.SetDefault("app.name", "zepto")
@@ -97,6 +131,15 @@ func SetDefaults() {
 	viper.SetDefault("logger.level", "debug")
 	viper.SetDefault("logger.colors", true)
 	viper.SetDefault("logger.timestamp", true)
+
+	// DB
+	viper.SetDefault("db.enabled", true)
+	viper.SetDefault("db.adapter", "sqlite")
+	viper.SetDefault("db.host", "")
+	viper.SetDefault("db.port", "")
+	viper.SetDefault("db.username", "")
+	viper.SetDefault("db.password", "")
+	viper.SetDefault("db.database", database.DEFAULT_SQLITE_PATH)
 }
 
 func NewConfigFromFile() (*Config, error) {

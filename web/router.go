@@ -150,6 +150,7 @@ func (app *App) registerRouterHandleFunc(router *Router, h RouterHandler, host *
 		ctx.logger = app.opts.logger
 		ctx.res = res
 		ctx.req = req
+		ctx.db = app.opts.db
 		ctx.cookies = &Cookies{
 			res: res,
 			req: req,

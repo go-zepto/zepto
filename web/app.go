@@ -9,6 +9,7 @@ import (
 	pathlib "path"
 
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	"github.com/go-webpack/webpack"
 	"github.com/go-zepto/zepto/logger"
@@ -33,6 +34,7 @@ type Options struct {
 	sessionSecret   string
 	sessionStore    sessions.Store
 	pluginInstances map[string]interface{}
+	db              *gorm.DB
 }
 
 type App struct {
@@ -54,6 +56,7 @@ type ConfigureOptions struct {
 	SessionStore    sessions.Store
 	PluginInstances map[string]interface{}
 	SessionSecret   string
+	DB              *gorm.DB
 }
 
 func (app *App) startWebpack() {
@@ -126,6 +129,7 @@ func (app *App) Configure(opts ConfigureOptions) {
 		webpackEnabled:  opts.WebpackEnabled,
 		pluginInstances: opts.PluginInstances,
 		sessionSecret:   opts.SessionSecret,
+		db:              opts.DB,
 	}
 	app.tmplEngine = app.opts.tmplEngine
 }
