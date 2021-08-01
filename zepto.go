@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/go-zepto/zepto/config"
 	"github.com/go-zepto/zepto/database"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
@@ -23,7 +24,7 @@ import (
 
 type Zepto struct {
 	*web.App
-	config     Config
+	config     config.Config
 	opts       Options
 	grpcServer *grpc.Server
 	grpcAddr   string
@@ -35,25 +36,25 @@ type Zepto struct {
 	db         *gorm.DB
 }
 
-func NewZepto(configs ...Config) *Zepto {
+func NewZepto(configs ...config.Config) *Zepto {
 	env := utils.GetEnv("ZEPTO_ENV", "development")
-	config := Config{}
+	cfg := config.Config{}
 	if len(configs) > 0 {
-		config = configs[0]
+		cfg = configs[0]
 	} else {
-		configFromFile, err := NewConfigFromFile()
+		configFromFile, err := config.NewConfigFromFile()
 		if err != nil {
 			panic(err)
 		}
-		config = *configFromFile
+		cfg = *configFromFile
 	}
 	options := Options{
-		Name:           config.App.Name,
-		Version:        config.App.Version,
+		Name:           cfg.App.Name,
+		Version:        cfg.App.Version,
 		Env:            env,
-		WebpackEnabled: config.App.WebpackEnabled,
-		SessionName:    config.App.Session.Name,
-		SessionSecret:  config.App.Session.Secret,
+		WebpackEnabled: cfg.App.WebpackEnabled,
+		SessionName:    cfg.App.Session.Name,
+		SessionSecret:  cfg.App.Session.Secret,
 		TmplEngine: pongo2.NewPongo2Engine(
 			pongo2.TemplateDir("templates"),
 			pongo2.Ext(".html"),
@@ -63,20 +64,20 @@ func NewZepto(configs ...Config) *Zepto {
 	z := &Zepto{
 		opts:    options,
 		plugins: make(map[string]Plugin),
-		config:  config,
+		config:  cfg,
 	}
 	if options.Logger == nil {
 		// Logger not set. Using default logger (logrus)
 		l := log.New()
 		l.SetFormatter(&log.TextFormatter{
 			FullTimestamp:    true,
-			DisableTimestamp: !config.Logger.Timestamp,
-			DisableColors:    !config.Logger.Colors,
+			DisableTimestamp: !cfg.Logger.Timestamp,
+			DisableColors:    !cfg.Logger.Colors,
 		})
-		if !config.Logger.Colors {
+		if !cfg.Logger.Colors {
 			color.NoColor = true
 		}
-		logLevel, err := log.ParseLevel(config.Logger.Level)
+		logLevel, err := log.ParseLevel(cfg.Logger.Level)
 		if err != nil {
 			panic(err)
 		}
@@ -86,7 +87,7 @@ func NewZepto(configs ...Config) *Zepto {
 		z.logger = options.Logger
 	}
 	z.createApp()
-	z.httpAddr = fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
+	z.httpAddr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	z.setupDB()
 	z.setupHTTP(z.httpAddr)
 	return z

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/go-zepto/zepto"
+	"github.com/go-zepto/zepto/config"
 	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm"
 	"github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm/testutils"
 	"github.com/go-zepto/zepto/plugins/linker/utils"
@@ -28,7 +29,7 @@ type TestKit struct {
 
 func NewTestKit(t *testing.T) TestKit {
 	r := require.New(t)
-	app := zepto.NewZepto()
+	app := zepto.NewZepto(config.ZEPTO_TEST_CONFIG)
 	apiRouter := app.Router("/api")
 	r.NotNil(apiRouter)
 	db := testutils.SetupGorm()

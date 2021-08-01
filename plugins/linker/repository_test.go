@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-zepto/zepto"
+	"github.com/go-zepto/zepto/config"
 	"github.com/go-zepto/zepto/plugins/linker/datasource"
 	gormds "github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm"
 	"github.com/go-zepto/zepto/plugins/linker/datasource/linkergorm/testutils"
@@ -15,7 +16,7 @@ import (
 )
 
 func SetupRepository(db *gorm.DB, operationHooks OperationHooks) *Repository {
-	z := zepto.NewZepto()
+	z := zepto.NewZepto(config.ZEPTO_TEST_CONFIG)
 	return NewRepository(RepositoryConfig{
 		Linker:         NewLinker(z.Router("/linker/api")),
 		ResourceName:   "MyResource",

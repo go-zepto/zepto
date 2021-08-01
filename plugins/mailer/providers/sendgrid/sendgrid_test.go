@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-zepto/zepto"
+	"github.com/go-zepto/zepto/config"
 	"github.com/go-zepto/zepto/plugins/mailer"
 	"github.com/go-zepto/zepto/web"
 	"github.com/sendgrid/rest"
@@ -34,7 +35,7 @@ func (cm *clientMock) Send(email *mail.SGMailV3) (*rest.Response, error) {
 }
 
 func setupZeptoWithMailMock() (*zepto.Zepto, *clientMock) {
-	z := zepto.NewZepto()
+	z := zepto.NewZepto(config.ZEPTO_TEST_CONFIG)
 	sg := NewSendgridProvider(Settings{
 		ApiKey: "abc",
 	})

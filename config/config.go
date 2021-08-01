@@ -1,4 +1,4 @@
-package zepto
+package config
 
 import (
 	"fmt"

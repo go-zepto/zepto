@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/go-zepto/zepto"
+	"github.com/go-zepto/zepto/config"
 	"github.com/go-zepto/zepto/plugins/auth"
 	gormds "github.com/go-zepto/zepto/plugins/auth/datasources/gorm"
 	"github.com/go-zepto/zepto/plugins/auth/datasources/gorm/testutils"
@@ -46,7 +47,7 @@ func createUsers(db *gorm.DB) {
 }
 
 func NewAuthTokenTestKit() *AuthTokenTestKit {
-	z := zepto.NewZepto()
+	z := zepto.NewZepto(config.ZEPTO_TEST_CONFIG)
 	db := testutils.SetupDB()
 	mailerStub := mailerstub.NewMailerStub()
 	authToken := auth.NewAuthTokenPlugin(auth.AuthTokenOptions{
