@@ -37,7 +37,7 @@ func TestSetupHTTP(t *testing.T) {
 	if s.Name != "zepto" {
 		t.Errorf("Expected name to be equal 'zepto'")
 	}
-	if s.Version != "1.0.0" {
+	if s.Version != "latest" {
 		t.Errorf("Expected version to be equal 'latest'")
 	}
 	if s.Age != "0s" {

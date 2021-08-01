@@ -82,7 +82,7 @@ type LoggerConfig struct {
 func SetDefaults() {
 	// App
 	viper.SetDefault("app.name", "zepto")
-	viper.SetDefault("app.version", "")
+	viper.SetDefault("app.version", "latest")
 	viper.SetDefault("app.session.name", "zsid")
 	viper.SetDefault("app.session.secret", "")
 	viper.SetDefault("app.webpack_enabled", true)
@@ -119,9 +119,9 @@ func NewConfigFromFile() (*Config, error) {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			bold := color.New(color.Bold)
 			l.Warnf("Configuration file not found in %s. Using default zepto config...\n", bold.Sprint(configFile))
-			return config, nil
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 	err = viper.Unmarshal(&config)
 	if err != nil {

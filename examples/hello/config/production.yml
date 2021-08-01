@@ -1,8 +1,5 @@
 app:
   name: "my-project"
-  version: "1.0.0"
-  session:
-    name: "zsid"
 
 server:
   host: "0.0.0.0"

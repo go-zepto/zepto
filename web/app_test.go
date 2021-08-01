@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -119,6 +118,7 @@ func TestApp_HandleMethod_ControllerPanicDevelopmentAsDebug(t *testing.T) {
 func assertProdError(t *testing.T, handler RouteHandler) {
 	app := setupAppTest()
 	app.opts.env = "production"
+	app.opts.sessionSecret = "fake-session-secret"
 	app.Get("/hello", handler)
 	w := httptest.NewRecorder()
 	app.Init()
@@ -132,7 +132,6 @@ func assertProdError(t *testing.T, handler RouteHandler) {
 }
 
 func TestApp_HandleMethod_ControllerErrorProduction(t *testing.T) {
-	os.Setenv("SESSION_SECRET", "test_session_secret")
 	assertProdError(t, func(ctx Context) error {
 		return errors.New("some error in prod")
 	})
@@ -151,6 +150,7 @@ func TestApp_Start(t *testing.T) {
 	app := setupAppTest()
 	app.opts.env = "production"
 	app.opts.webpackEnabled = false
+	app.opts.sessionSecret = "fake-session-secret"
 	app.tmplEngine = tmplEngine
 	if tmplEngine.InitCalled {
 		t.Errorf("Init should not be called at this point")
