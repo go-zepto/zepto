@@ -8,6 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var PRODUCTS_VERSION uint = 20210801150315
+var USERS_VERSION uint = 20210805150315
+
 func clean() {
 	os.RemoveAll("./db/development.sqlite3")
 	files, err := filepath.Glob("./db/migrate/*.sql")
@@ -72,4 +75,37 @@ func TestDownSteps(t *testing.T) {
 	err = m.UpSteps(1)
 	require.NoError(t, err)
 	err = m.DownSteps(1)
+}
+
+func TestGetLatestVersion(t *testing.T) {
+	clean()
+	m, err := NewMigrate(Options{
+		dir: "testdata/db/migrate",
+	})
+	require.NoError(t, err)
+	latestVersion, err := m.getLatestVersion()
+	require.NoError(t, err)
+	require.Equal(t, latestVersion, uint(USERS_VERSION))
+}
+
+func TestStatus(t *testing.T) {
+	clean()
+	m, err := NewMigrate(Options{
+		dir: "testdata/db/migrate",
+	})
+	require.NoError(t, err)
+	err = m.UpSteps(1)
+	require.NoError(t, err)
+	status, err := m.Status()
+	require.NoError(t, err)
+	require.EqualValues(t, status.CurrentVersion, uint(PRODUCTS_VERSION))
+	require.EqualValues(t, status.CurrentVersionFile, "20210801150315_products.up.sql")
+	require.EqualValues(t, status.LatestVersion, uint(USERS_VERSION))
+	require.True(t, status.Pending)
+	err = m.UpSteps(1)
+	require.NoError(t, err)
+	status, err = m.Status()
+	require.NoError(t, err)
+	require.EqualValues(t, status.CurrentVersion, uint(USERS_VERSION))
+	require.False(t, status.Pending)
 }

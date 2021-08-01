@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -32,6 +36,14 @@ type CreateMigrationFilesOptions struct {
 	Name    string
 	UpSQL   string
 	DownSQL string
+}
+
+type StatusResponse struct {
+	CurrentVersion     uint   `json:"current_version"`
+	CurrentVersionFile string `json:"current_version_file"`
+	LatestVersion      uint   `json:"latest_version"`
+	Dirty              bool   `json:"dity"`
+	Pending            bool   `json:"pending"`
 }
 
 func databaseURLFromConfig() (string, error) {
@@ -90,7 +102,6 @@ func (m *Migrate) CreateMigrationFiles(opts CreateMigrationFilesOptions) error {
 	if err != nil {
 		return err
 	}
-	fileUp.Sync()
 	fileDown, err := os.Create(filepathDown)
 	if err != nil {
 		return err
@@ -99,7 +110,6 @@ func (m *Migrate) CreateMigrationFiles(opts CreateMigrationFilesOptions) error {
 	if err != nil {
 		return err
 	}
-	fileDown.Sync()
 	fmt.Println("Migration created successfully")
 	fmt.Printf("\t%s\t%s\n", color.GreenString("create"), filepathUp)
 	fmt.Printf("\t%s\t%s\n", color.GreenString("create"), filepathDown)
@@ -120,4 +130,63 @@ func (m *Migrate) Down() error {
 
 func (m *Migrate) DownSteps(steps int) error {
 	return m.mig.Steps(steps * -1)
+}
+
+func (m *Migrate) findFilenameFromVersion(version uint) (string, error) {
+	var filename string
+	err := filepath.Walk(m.dir, func(path string, info os.FileInfo, err error) error {
+		if strings.HasPrefix(info.Name(), fmt.Sprintf("%d", version)) {
+			filename = info.Name()
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return filename, nil
+}
+
+func (m *Migrate) Status() (*StatusResponse, error) {
+	version, dirty, err := m.mig.Version()
+	if err != nil {
+		return nil, err
+	}
+	filename, err := m.findFilenameFromVersion(version)
+	if err != nil {
+		return nil, err
+	}
+	latestVersion, err := m.getLatestVersion()
+	if err != nil {
+		return nil, err
+	}
+	return &StatusResponse{
+		CurrentVersion:     version,
+		CurrentVersionFile: filename,
+		LatestVersion:      latestVersion,
+		Dirty:              dirty,
+		Pending:            version != latestVersion,
+	}, nil
+}
+
+func (m *Migrate) getLatestVersion() (uint, error) {
+	latestVersion := uint(0)
+	err := filepath.Walk(m.dir, func(path string, info os.FileInfo, err error) error {
+		r := regexp.MustCompile(`(\d+)(\_)(.*)`)
+		rs := r.FindStringSubmatch(info.Name())
+		if len(rs) > 0 {
+			u64, err := strconv.ParseUint(rs[1], 10, 64)
+			if err != nil {
+				return err
+			}
+			v := uint(u64)
+			if v > latestVersion {
+				latestVersion = v
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return latestVersion, nil
 }
