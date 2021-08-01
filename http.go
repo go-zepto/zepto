@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 type HealthHandler struct {
@@ -36,6 +38,35 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 	lrw.ResponseWriter.WriteHeader(code)
 }
 
+func (h *HTTPZeptoHandler) coloredMethod(method string) string {
+	mcolor := color.New()
+	switch method {
+	case "GET":
+		mcolor = color.New(color.FgCyan, color.Bold)
+	case "POST":
+		mcolor = color.New(color.FgGreen, color.Bold)
+	case "PUT", "PATCH":
+		mcolor = color.New(color.FgYellow, color.Bold)
+	case "DELETE":
+		mcolor = color.New(color.FgRed, color.Bold)
+	case "OPTIONS", "HEAD":
+		mcolor = color.New(color.FgBlue, color.Bold)
+	}
+	return mcolor.Sprint(method)
+}
+
+func (h *HTTPZeptoHandler) coloredStatus(status int) string {
+	scolor := color.New()
+	if status >= 200 && status <= 299 {
+		scolor = color.New(color.FgGreen, color.Bold)
+	} else if status >= 300 && status <= 499 {
+		scolor = color.New(color.FgYellow, color.Bold)
+	} else if status >= 500 {
+		scolor = color.New(color.FgRed, color.Bold)
+	}
+	return scolor.Sprint(status)
+}
+
 func (h *HTTPZeptoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/health" {
 		var age time.Duration
@@ -53,7 +84,9 @@ func (h *HTTPZeptoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	lrw := NewLoggingResponseWriter(w)
 	h.handler.ServeHTTP(lrw, r)
-	took := time.Since(t).Round(time.Nanosecond).String()
-	status := lrw.statusCode
-	h.z.Logger().Infof("%s %s took=%s status=%d", r.Method, r.URL.Path, took, status)
+	boldColor := color.New(color.Bold)
+	method := h.coloredMethod(r.Method)
+	took := boldColor.Sprint(time.Since(t).Round(time.Nanosecond).String())
+	status := h.coloredStatus(lrw.statusCode)
+	h.z.Logger().Infof("%s %s took=%s status=%s", method, r.URL.Path, took, status)
 }

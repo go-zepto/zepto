@@ -9,6 +9,7 @@ require (
 	github.com/coreos/etcd v3.3.10+incompatible // indirect
 	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
 	github.com/dustin/go-humanize v1.0.0
+	github.com/fatih/color v1.12.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/gertd/go-pluralize v0.1.7
 	github.com/go-webpack/pongo2 v1.0.0

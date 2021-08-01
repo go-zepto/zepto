@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
+	"github.com/go-zepto/zepto/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -92,12 +95,22 @@ func NewDefaultConfig() *Config {
 			ReadTimeout:  15000,
 			WriteTimeout: 15000,
 		},
+		Logger: LoggerConfig{
+			Level:     "debug",
+			Colors:    true,
+			Timestamp: true,
+		},
 	}
 }
 
-func NewConfigFromFile(file string) (*Config, error) {
-	config := NewDefaultConfig()
-	viper.SetConfigName(file)
+func NewConfigFromFile(config *Config) (*Config, error) {
+	l := logrus.New()
+	l.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+	env := utils.GetEnv("ZEPTO_ENV", "development")
+	configFile := fmt.Sprintf("config/%s.yml", env)
+	viper.SetConfigName(configFile)
 	viper.AddConfigPath(".")
 	viper.SetConfigType("yaml")
 	viper.AutomaticEnv()
@@ -105,9 +118,13 @@ func NewConfigFromFile(file string) (*Config, error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	err := viper.ReadInConfig()
 	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			bold := color.New(color.Bold)
+			l.Warnf("Configuration file not found in %s. Using default zepto config...\n", bold.Sprint(configFile))
+			return config, nil
+		}
 		return nil, err
 	}
-	fmt.Println(viper.AllKeys())
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		return nil, err

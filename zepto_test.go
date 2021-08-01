@@ -19,7 +19,6 @@ func TestNewZepto(t *testing.T) {
 
 func TestSetupHTTP(t *testing.T) {
 	z := NewZepto()
-	z.SetupHTTP("0.0.0.0:8000")
 	w := httptest.NewRecorder()
 	if z.httpServer == nil {
 		t.Fatal("z.httpServer should not be nil")
@@ -38,7 +37,7 @@ func TestSetupHTTP(t *testing.T) {
 	if s.Name != "zepto" {
 		t.Errorf("Expected name to be equal 'zepto'")
 	}
-	if s.Version != "latest" {
+	if s.Version != "1.0.0" {
 		t.Errorf("Expected version to be equal 'latest'")
 	}
 	if s.Age != "0s" {

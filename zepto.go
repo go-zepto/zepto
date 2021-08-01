@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/utils"
@@ -31,9 +32,13 @@ type Zepto struct {
 	plugins    map[string]Plugin
 }
 
-func NewZepto() *Zepto {
+func NewZepto(configs ...Config) *Zepto {
 	env := utils.GetEnv("ZEPTO_ENV", "development")
-	config, err := NewConfigFromFile(fmt.Sprintf("config/%s.yml", env))
+	defaultConfig := NewDefaultConfig()
+	if len(configs) > 0 {
+		defaultConfig = &configs[0]
+	}
+	config, err := NewConfigFromFile(defaultConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -62,6 +67,9 @@ func NewZepto() *Zepto {
 			DisableTimestamp: !config.Logger.Timestamp,
 			DisableColors:    !config.Logger.Colors,
 		})
+		if !config.Logger.Colors {
+			color.NoColor = true
+		}
 		logLevel, err := log.ParseLevel(config.Logger.Level)
 		if err != nil {
 			panic(err)

@@ -46,9 +46,7 @@ func createUsers(db *gorm.DB) {
 }
 
 func NewAuthTokenTestKit() *AuthTokenTestKit {
-	z := zepto.NewZepto(
-		zepto.Name("auth-token-test"),
-	)
+	z := zepto.NewZepto()
 	db := testutils.SetupDB()
 	mailerStub := mailerstub.NewMailerStub()
 	authToken := auth.NewAuthTokenPlugin(auth.AuthTokenOptions{

@@ -34,9 +34,7 @@ func (cm *clientMock) Send(email *mail.SGMailV3) (*rest.Response, error) {
 }
 
 func setupZeptoWithMailMock() (*zepto.Zepto, *clientMock) {
-	z := zepto.NewZepto(
-		zepto.Name("mailer-service"),
-	)
+	z := zepto.NewZepto()
 	sg := NewSendgridProvider(Settings{
 		ApiKey: "abc",
 	})
@@ -85,7 +83,6 @@ func TestSendgridSendMail(t *testing.T) {
 	})
 	z.Init()
 	z.InitApp()
-	z.InitMailer()
 	w := httptest.NewRecorder()
 	z.App.ServeHTTP(w, httptest.NewRequest("POST", "/send-mail", nil))
 	body := w.Body.String()
@@ -125,7 +122,6 @@ func TestSendgridSendMail_Error(t *testing.T) {
 		})
 	})
 	z.InitApp()
-	z.InitMailer()
 	w := httptest.NewRecorder()
 	z.App.ServeHTTP(w, httptest.NewRequest("POST", "/send-mail", nil))
 	body := w.Body.String()
