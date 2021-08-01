@@ -14,11 +14,13 @@ require (
 	github.com/gertd/go-pluralize v0.1.7
 	github.com/go-webpack/pongo2 v1.0.0
 	github.com/go-webpack/webpack v1.5.0
+	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
+	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v4 v4.13.0 // indirect
 	github.com/jinzhu/inflection v1.0.0
 	github.com/joncalhoun/qson v0.0.0-20200422171543-84433dcd3da0
