@@ -30,6 +30,7 @@ type Options struct {
 	webpackEnabled  bool
 	tmplEngine      renderer.Engine
 	sessionName     string
+	sessionSecret   string
 	sessionStore    sessions.Store
 	pluginInstances map[string]interface{}
 }
@@ -52,6 +53,7 @@ type ConfigureOptions struct {
 	SessionName     string
 	SessionStore    sessions.Store
 	PluginInstances map[string]interface{}
+	SessionSecret   string
 }
 
 func (app *App) startWebpack() {
@@ -74,12 +76,11 @@ func (app *App) startWebpack() {
 func (app *App) setupSession() {
 	env := app.opts.env
 	if app.opts.sessionStore == nil {
-		secret := os.Getenv("SESSION_SECRET")
+		secret := app.opts.sessionSecret
 		if secret == "" {
 			if env == "production" {
-				app.opts.logger.Fatalf("Missing a required environment variable: SESSION_SECRET")
+				app.opts.logger.Fatalf("Missing required app.session.secret configuration or ZEPTO_APP_SESSION_SECRET env var")
 			} else if env == "development" {
-				app.opts.logger.Warn("You will need to setup a SESSION_SECRET in production mode.")
 				secret = "development-secret"
 			}
 		}
@@ -124,6 +125,7 @@ func (app *App) Configure(opts ConfigureOptions) {
 		tmplEngine:      opts.TmplEngine,
 		webpackEnabled:  opts.WebpackEnabled,
 		pluginInstances: opts.PluginInstances,
+		sessionSecret:   opts.SessionSecret,
 	}
 	app.tmplEngine = app.opts.tmplEngine
 }

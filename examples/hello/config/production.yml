@@ -3,7 +3,6 @@ app:
   version: "1.0.0"
   session:
     name: "zsid"
-    secret: "super-secret-123"
 
 server:
   host: "0.0.0.0"

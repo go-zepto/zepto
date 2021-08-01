@@ -79,31 +79,28 @@ type LoggerConfig struct {
 	Timestamp bool `json:"timestamp" mapstructure:"timestamp"`
 }
 
-func NewDefaultConfig() *Config {
-	return &Config{
-		App: AppConfig{
-			Name:    "zepto",
-			Version: "1.0.0",
-			Session: SessionConfig{
-				Name: "zsid",
-			},
-			WebpackEnabled: true,
-		},
-		Server: ServerConfig{
-			Host:         "localhost",
-			Port:         8000,
-			ReadTimeout:  15000,
-			WriteTimeout: 15000,
-		},
-		Logger: LoggerConfig{
-			Level:     "debug",
-			Colors:    true,
-			Timestamp: true,
-		},
-	}
+func SetDefaults() {
+	// App
+	viper.SetDefault("app.name", "zepto")
+	viper.SetDefault("app.version", "")
+	viper.SetDefault("app.session.name", "zsid")
+	viper.SetDefault("app.session.secret", "")
+	viper.SetDefault("app.webpack_enabled", true)
+
+	// Server
+	viper.SetDefault("server.host", "localhost")
+	viper.SetDefault("server.port", 8000)
+	viper.SetDefault("server.read_timeout", 15000)
+	viper.SetDefault("server.write_timeout", 15000)
+
+	// Logger
+	viper.SetDefault("logger.level", "debug")
+	viper.SetDefault("logger.colors", true)
+	viper.SetDefault("logger.timestamp", true)
 }
 
-func NewConfigFromFile(config *Config) (*Config, error) {
+func NewConfigFromFile() (*Config, error) {
+	config := &Config{}
 	l := logrus.New()
 	l.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
@@ -116,6 +113,7 @@ func NewConfigFromFile(config *Config) (*Config, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("ZEPTO")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	SetDefaults()
 	err := viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

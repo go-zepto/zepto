@@ -34,13 +34,15 @@ type Zepto struct {
 
 func NewZepto(configs ...Config) *Zepto {
 	env := utils.GetEnv("ZEPTO_ENV", "development")
-	defaultConfig := NewDefaultConfig()
+	config := Config{}
 	if len(configs) > 0 {
-		defaultConfig = &configs[0]
-	}
-	config, err := NewConfigFromFile(defaultConfig)
-	if err != nil {
-		panic(err)
+		config = configs[0]
+	} else {
+		configFromFile, err := NewConfigFromFile()
+		if err != nil {
+			panic(err)
+		}
+		config = *configFromFile
 	}
 	options := Options{
 		Name:           config.App.Name,
@@ -141,6 +143,7 @@ func (z *Zepto) InitApp() {
 			Env:            z.opts.Env,
 			TmplEngine:     z.opts.TmplEngine,
 			SessionName:    z.opts.SessionName,
+			SessionSecret:  z.opts.SessionSecret,
 			SessionStore:   z.opts.SessionStore,
 			WebpackEnabled: z.opts.WebpackEnabled,
 		}
