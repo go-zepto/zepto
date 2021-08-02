@@ -13,7 +13,7 @@ func TestCreateAndDropDB(t *testing.T) {
 	}
 	os.Setenv("ZEPTO_DB_ADAPTER", "postgres")
 	os.Setenv("ZEPTO_DB_HOST", "127.0.0.1")
-	os.Setenv("ZEPTO_DB_DATABASE", "postgres")
+	os.Setenv("ZEPTO_DB_DATABASE", "mycustomdb")
 	os.Setenv("ZEPTO_DB_PORT", "15432")
 	os.Setenv("ZEPTO_DB_SSLMODE", "disable")
 	os.Setenv("ZEPTO_DB_USERNAME", "postgres")
