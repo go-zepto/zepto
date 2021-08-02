@@ -46,7 +46,7 @@ func (dt *DBTools) DropDB() error {
 	if dt.connConfig.Adapter != "postgres" {
 		return ErrAdapterNotSupported
 	}
-	_, err := dt.db.Exec("DROP DATABASE " + dt.dbName)
+	_, err := dt.db.Exec("DROP DATABASE IF EXISTS " + dt.dbName)
 	return err
 }
 
