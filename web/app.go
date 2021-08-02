@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/go-webpack/webpack"
+	"github.com/go-zepto/zepto/flags"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/utils"
 	"github.com/go-zepto/zepto/web/renderer"
@@ -148,7 +149,7 @@ func (app *App) Init() {
 }
 
 func (app *App) StartWebpackServer() {
-	dev := app.opts.env == "development"
+	dev := flags.BuildMode == "development"
 	if _, err := os.Stat("webpack.config.js"); dev && os.IsNotExist(err) {
 		return
 	}

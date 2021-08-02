@@ -12,6 +12,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-zepto/zepto/config"
 	"github.com/go-zepto/zepto/database"
+	"github.com/go-zepto/zepto/flags"
 	"github.com/go-zepto/zepto/logger"
 	"github.com/go-zepto/zepto/logger/logrus"
 	"github.com/go-zepto/zepto/utils"
@@ -38,6 +39,10 @@ type Zepto struct {
 
 func NewZepto(configs ...config.Config) *Zepto {
 	env := utils.GetEnv("ZEPTO_ENV", "development")
+	if flags.BuildMode == "production" && env != "production" {
+		color.Yellow("Warning: You are running a production zepto application with ZEPTO_ENV=%s", env)
+		color.Yellow("Please, set ZEPTO_ENV=production to run this build properly")
+	}
 	cfg := config.Config{}
 	if len(configs) > 0 {
 		cfg = configs[0]
