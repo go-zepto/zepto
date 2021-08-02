@@ -36,18 +36,18 @@ func NewDBTools() (*DBTools, error) {
 	}, nil
 }
 
-func (dt *DBTools) DropDB(name string) error {
+func (dt *DBTools) DropDB() error {
 	if dt.connConfig.Adapter != "postgres" {
 		return ErrAdapterNotSupported
 	}
-	_, err := dt.db.Exec("DROP DATABASE " + name)
+	_, err := dt.db.Exec("DROP DATABASE " + dt.connConfig.Database)
 	return err
 }
 
-func (dt *DBTools) CreateDB(name string) error {
+func (dt *DBTools) CreateDB() error {
 	if dt.connConfig.Adapter != "postgres" {
 		return ErrAdapterNotSupported
 	}
-	_, err := dt.db.Exec("CREATE DATABASE " + name)
+	_, err := dt.db.Exec("CREATE DATABASE " + dt.connConfig.Database)
 	return err
 }

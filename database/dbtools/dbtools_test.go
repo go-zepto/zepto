@@ -21,8 +21,8 @@ func TestCreateAndDropDB(t *testing.T) {
 	dt, err := NewDBTools()
 	require.NoError(t, err)
 	require.NotNil(t, dt)
-	err = dt.CreateDB("mydatabase")
+	err = dt.CreateDB()
 	require.NoError(t, err)
-	err = dt.DropDB("mydatabase")
+	err = dt.DropDB()
 	require.NoError(t, err)
 }
