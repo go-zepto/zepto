@@ -32,6 +32,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 // indirect
 	github.com/urfave/negroni v1.0.0
+	github.com/xo/dburl v0.8.4 // indirect
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77 // indirect
 	go.uber.org/thriftrw v1.26.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97

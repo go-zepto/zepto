@@ -111,16 +111,10 @@ func (z *Zepto) setupDB() {
 	if !dc.Enabled {
 		return
 	}
-	conn := database.Connection{
-		Adapter:    dc.Adapter,
-		Host:       dc.Host,
-		Port:       dc.Port,
-		Username:   dc.Username,
-		Password:   dc.Password,
-		Datababase: dc.Database,
-	}
-	db, err := conn.Open(logger.NewDBLogger(z.logger))
+	connConfig := database.NewConnectionDataFromConfig(&z.config)
+	db, err := connConfig.Open(logger.NewDBLogger(z.logger))
 	if err != nil {
+		z.logger.Error(err)
 		z.logger.Fatal("exiting due to failed database connection")
 	}
 	z.db = db

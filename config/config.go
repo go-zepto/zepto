@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/go-zepto/zepto/database"
 	"github.com/go-zepto/zepto/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -111,6 +110,11 @@ type DBConfig struct {
 	//
 	// default: "db/development.sqlite3"
 	Database string `json:"database" mapstructure:"database"`
+
+	// DB SSLMode
+	//
+	// default: ""
+	SSLMode string `json:"sslmode" mapstructure:"sslmode"`
 }
 
 func SetDefaults() {
@@ -139,7 +143,8 @@ func SetDefaults() {
 	viper.SetDefault("db.port", "")
 	viper.SetDefault("db.username", "")
 	viper.SetDefault("db.password", "")
-	viper.SetDefault("db.database", database.DEFAULT_SQLITE_PATH)
+	viper.SetDefault("db.database", "db/development.sqlite3")
+	viper.SetDefault("db.sslmode", "")
 }
 
 func NewConfigFromFile() (*Config, error) {

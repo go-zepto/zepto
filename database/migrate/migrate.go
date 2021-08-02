@@ -12,6 +12,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-zepto/zepto/config"
+	"github.com/go-zepto/zepto/database"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -48,26 +49,17 @@ type StatusResponse struct {
 
 func databaseURLFromConfig() (string, error) {
 	c, err := config.NewConfigFromFile()
+	connConfig := database.NewConnectionDataFromConfig(c)
+	dburl, err := connConfig.GenerateAdapterDBURL()
 	if err != nil {
-		return "", err
+		return "", nil
 	}
-	db := c.DB
-	if db.Adapter == "sqlite" {
-		return fmt.Sprintf("sqlite3://%s", db.Database), nil
+	url := dburl.URL.String()
+	// Fix sqlite protocol since it comes without double slash
+	if strings.HasPrefix(url, "sqlite3:") {
+		url = strings.Replace(url, "sqlite3:", "sqlite3://", 1)
 	}
-	userAndPassword := c.DB.Username
-	if db.Password != "" {
-		userAndPassword = userAndPassword + ":" + db.Password
-	}
-	dbURL := fmt.Sprintf(
-		"%s://%s@%s:%d/%s",
-		db.Adapter,
-		userAndPassword,
-		db.Host,
-		db.Port,
-		db.Database,
-	)
-	return dbURL, nil
+	return url, nil
 }
 
 func NewMigrate(opts Options) (*Migrate, error) {
