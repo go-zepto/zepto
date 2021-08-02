@@ -106,7 +106,7 @@ func (z *Zepto) SetupGRPC(addr string, fn func(s *grpc.Server)) {
 
 func (z *Zepto) createDefaultHTTPServer() *http.Server {
 	return &http.Server{
-		WriteTimeout: time.Duration(z.config.Server.WriteTimeout) * time.Microsecond,
+		WriteTimeout: time.Duration(z.config.Server.WriteTimeout) * time.Millisecond,
 		ReadTimeout:  time.Duration(z.config.Server.ReadTimeout) * time.Millisecond,
 	}
 }
