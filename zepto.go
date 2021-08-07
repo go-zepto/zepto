@@ -180,7 +180,6 @@ func (z *Zepto) InitApp() {
 		opts.PluginInstances = pluginInstances
 		z.App.Configure(opts)
 		z.Init()
-		z.App.StartWebpackServer()
 	}
 }
 
@@ -190,6 +189,7 @@ func (z *Zepto) DB() *gorm.DB {
 
 func (z *Zepto) Start() {
 	z.InitApp()
+	z.App.StartWebpackServer()
 	now := time.Now()
 	z.startedAt = &now
 	c := make(chan os.Signal)
