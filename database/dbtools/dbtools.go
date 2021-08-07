@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-zepto/zepto/config"
 	"github.com/go-zepto/zepto/database"
+	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/lib/pq"
 )
 
@@ -17,13 +18,10 @@ type DBTools struct {
 	db         *sql.DB
 	connConfig *database.Connection
 	dbName     string
+	migrate    *migrate.Migrate
 }
 
-func NewDBTools() (*DBTools, error) {
-	c, err := config.NewConfigFromFile()
-	if err != nil {
-		return nil, err
-	}
+func NewDBToolsFromConfig(c *config.Config) (*DBTools, error) {
 	connConfig := database.NewConnectionDataFromConfig(c)
 	dbName := connConfig.Database
 	connConfig.Database = DEFAULT_MANAGEMENT_PG_DB_NAME
@@ -42,6 +40,14 @@ func NewDBTools() (*DBTools, error) {
 	}, nil
 }
 
+func NewDBTools() (*DBTools, error) {
+	c, err := config.NewConfigFromFile()
+	if err != nil {
+		return nil, err
+	}
+	return NewDBToolsFromConfig(c)
+}
+
 func (dt *DBTools) DropDB() error {
 	if dt.connConfig.Adapter != "postgres" {
 		return ErrAdapterNotSupported
@@ -56,4 +62,8 @@ func (dt *DBTools) CreateDB() error {
 	}
 	_, err := dt.db.Exec("CREATE DATABASE " + dt.dbName)
 	return err
+}
+
+func (dt *DBTools) Close() error {
+	return dt.db.Close()
 }

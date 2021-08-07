@@ -108,6 +108,11 @@ func (m *Migrate) CreateMigrationFiles(opts CreateMigrationFilesOptions) error {
 	return nil
 }
 
+func (m *Migrate) Close() error {
+	_, err := m.mig.Close()
+	return err
+}
+
 func (m *Migrate) Up() error {
 	return m.mig.Up()
 }
