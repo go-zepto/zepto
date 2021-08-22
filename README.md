@@ -33,3 +33,5 @@ Start development server
 $ cd project
 $ zepto dev
 ```
+
+Great! You brand new project should be running at http://localhost:8000
