@@ -120,7 +120,6 @@ func (z *Zepto) setupDB() {
 	db, err := connConfig.Open(logger.NewDBLogger(z.logger))
 	if err != nil {
 		z.logger.Error(err)
-		z.logger.Fatal("exiting due to failed database connection")
 	}
 	z.db = db
 }
