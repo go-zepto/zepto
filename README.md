@@ -6,7 +6,7 @@ Zepto is a lightweight web framework written in go.
 
 ## Documentation
 
-[Go-Zepto Official Documentation](https://go-zepto.com/docs)
+[Official Documentation](https://go-zepto.com/docs)
 
 ---
 
