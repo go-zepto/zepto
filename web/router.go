@@ -80,23 +80,23 @@ func (router *Router) HandleMethod(methods []string, path string, routeHandler R
 }
 
 func (router *Router) Get(path string, routeHandler RouteHandler) *Router {
-	return router.HandleMethod([]string{"GET"}, path, routeHandler)
+	return router.HandleMethod([]string{"GET", "OPTIONS"}, path, routeHandler)
 }
 
 func (router *Router) Post(path string, routeHandler RouteHandler) *Router {
-	return router.HandleMethod([]string{"POST"}, path, routeHandler)
+	return router.HandleMethod([]string{"POST", "OPTIONS"}, path, routeHandler)
 }
 
 func (router *Router) Put(path string, routeHandler RouteHandler) *Router {
-	return router.HandleMethod([]string{"PUT"}, path, routeHandler)
+	return router.HandleMethod([]string{"PUT", "OPTIONS"}, path, routeHandler)
 }
 
 func (router *Router) Delete(path string, routeHandler RouteHandler) *Router {
-	return router.HandleMethod([]string{"DELETE"}, path, routeHandler)
+	return router.HandleMethod([]string{"DELETE", "OPTIONS"}, path, routeHandler)
 }
 
 func (router *Router) Patch(path string, routeHandler RouteHandler) *Router {
-	return router.HandleMethod([]string{"PATCH"}, path, routeHandler)
+	return router.HandleMethod([]string{"PATCH", "OPTIONS"}, path, routeHandler)
 }
 
 func (router *Router) Any(path string, routeHandler RouteHandler) *Router {
