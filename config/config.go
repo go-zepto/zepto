@@ -41,6 +41,8 @@ type SessionConfig struct {
 
 	// Unique protected string used to hash session [required]
 	Secret string `json:"secret" mapstructure:"secret"`
+
+	SameSite string `json:"same_site" mapstructure:"same_site"`
 }
 
 // ServerConfig is the configuration for the default server.
@@ -123,6 +125,7 @@ func SetDefaults() {
 	viper.SetDefault("app.version", "latest")
 	viper.SetDefault("app.session.name", "zsid")
 	viper.SetDefault("app.session.secret", "")
+	viper.SetDefault("app.session.same_site", "default")
 	viper.SetDefault("app.webpack_enabled", true)
 
 	// Server

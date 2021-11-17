@@ -34,6 +34,7 @@ type Options struct {
 	sessionName     string
 	sessionSecret   string
 	sessionStore    sessions.Store
+	sessionSameSite string
 	pluginInstances map[string]interface{}
 	db              *gorm.DB
 }
@@ -55,6 +56,7 @@ type ConfigureOptions struct {
 	TmplEngine      renderer.Engine
 	SessionName     string
 	SessionStore    sessions.Store
+	SessionSameSite string
 	PluginInstances map[string]interface{}
 	SessionSecret   string
 	DB              *gorm.DB
@@ -77,6 +79,18 @@ func (app *App) startWebpack() {
 	_ = cmd.Wait()
 }
 
+func (app *App) getSameSite() http.SameSite {
+	switch app.opts.sessionSameSite {
+	case "none":
+		return http.SameSiteNoneMode
+	case "lax":
+		return http.SameSiteLaxMode
+	case "strict":
+		return http.SameSiteStrictMode
+	}
+	return http.SameSiteDefaultMode
+}
+
 func (app *App) setupSession() {
 	env := app.opts.env
 	if app.opts.sessionStore == nil {
@@ -88,7 +102,14 @@ func (app *App) setupSession() {
 				secret = "development-secret"
 			}
 		}
-		app.opts.sessionStore = sessions.NewCookieStore([]byte(secret))
+		cookieStore := sessions.NewCookieStore([]byte(secret))
+		cookieStore.Options = &sessions.Options{
+			SameSite: app.getSameSite(),
+		}
+		if app.opts.sessionSameSite == "none" {
+			cookieStore.Options.Secure = true
+		}
+		app.opts.sessionStore = cookieStore
 	}
 }
 
@@ -130,6 +151,7 @@ func (app *App) Configure(opts ConfigureOptions) {
 		webpackEnabled:  opts.WebpackEnabled,
 		pluginInstances: opts.PluginInstances,
 		sessionSecret:   opts.SessionSecret,
+		sessionSameSite: opts.SessionSameSite,
 		db:              opts.DB,
 	}
 	app.tmplEngine = app.opts.tmplEngine
